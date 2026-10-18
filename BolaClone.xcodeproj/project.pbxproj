@@ -29,6 +29,7 @@
 		C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */; };
 		B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */; };
 		304576793ED93A1E112B8781 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D36B6949BFD8789DD96772 /* SettingsView.swift */; };
+		12956A58BDC5A7FF05643CBE /* AntiDetection.m in Sources */ = {isa = PBXBuildFile; fileRef = DF7C6CA1B70F5D3A532DA5E6 /* AntiDetection.m */; };
 		8AB5D7BF38B3C260D170E76B /* GameLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D926D4D568B7F3C8FEE57F3B /* GameLauncher.swift */; };
 		7949BB5D89AFCC77165083A5 /* Kernel3105Primitive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */; };
 		6BB4CB0837DFD327BF7ACF36 /* MHA3105.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059D19C584777BA7110862A /* MHA3105.swift */; };
@@ -70,6 +71,7 @@
 		E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyScreenView.swift; sourceTree = "<group>"; };
 		B4D36B6949BFD8789DD96772 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DF7C6CA1B70F5D3A532DA5E6 /* AntiDetection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntiDetection.m; sourceTree = "<group>"; };
 		D926D4D568B7F3C8FEE57F3B /* GameLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLauncher.swift; sourceTree = "<group>"; };
 		42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kernel3105Primitive.swift; sourceTree = "<group>"; };
 		5059D19C584777BA7110862A /* MHA3105.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MHA3105.swift; sourceTree = "<group>"; };
@@ -185,6 +187,7 @@
 		BD17013737BE7B72847143DA /* Vendor3105 */ = {
 			isa = PBXGroup;
 			children = (
+				DF7C6CA1B70F5D3A532DA5E6 /* AntiDetection.m */,
 				D926D4D568B7F3C8FEE57F3B /* GameLauncher.swift */,
 				42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */,
 				5059D19C584777BA7110862A /* MHA3105.swift */,
@@ -320,6 +323,7 @@
 				C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */,
 				B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */,
 				304576793ED93A1E112B8781 /* SettingsView.swift in Sources */,
+				12956A58BDC5A7FF05643CBE /* AntiDetection.m in Sources */,
 				8AB5D7BF38B3C260D170E76B /* GameLauncher.swift in Sources */,
 				7949BB5D89AFCC77165083A5 /* Kernel3105Primitive.swift in Sources */,
 				6BB4CB0837DFD327BF7ACF36 /* MHA3105.swift in Sources */,
