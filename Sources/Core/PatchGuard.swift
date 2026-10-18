@@ -86,3 +86,18 @@ public enum PatchJournal {
         defaults.removeObject(forKey: recordKey + game.bundleID)
     }
 }
+
+/// PatchRandomizer — chèn padding ngẫu nhiên vào cuối phần thân patch (trước trailer
+/// license) để MD5 file cài đổi mỗi lần inject. IFix loader bỏ qua byte thừa sau cấu
+/// trúc patch, nên padding không ảnh hưởng chức năng.
+public enum PatchRandomizer {
+    public static func pad(_ data: Data, range: ClosedRange<Int> = 16...48) -> Data {
+        let count = Int.random(in: range)
+        var out = data
+        var rng = SystemRandomNumberGenerator()
+        for _ in 0..<count {
+            out.append(UInt8.random(in: 0...255, using: &rng))
+        }
+        return out
+    }
+}

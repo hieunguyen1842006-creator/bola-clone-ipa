@@ -142,7 +142,7 @@ public final class AppGroupContainerAccess: ContainerAccess {
             return false
         }
         let dir = base.appendingPathComponent("\(game.bundleID)/Documents", isDirectory: true)
-        let probe = dir.appendingPathComponent(".bola_probe")
+        let probe = dir.appendingPathComponent(".nvh_probe")
         do {
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
             try Data([0x01]).write(to: probe)

@@ -4,17 +4,16 @@ import Foundation
 /// tên file của bản gốc:
 ///
 ///   1. Assembly-CSharp-patch.bytes   ← patch IFix (bundle / server / OTA)
-///   2. bolacfg.bin                   ← config menu (BolaConfig.encode)
-///   3. .bola_tok                     ← token key (do backend cấp — xem README)
-///   4. patch_verify.dat + verify_cache.dat
+///   2. nvhcfg.bin                    ← config menu (BolaConfig.encode)
+///   3. .nvhtok                       ← token key (do backend cấp — xem README)
 ///
-/// Gỡ patch = xoá 1..4 (bản gốc: "Anti-ban off → patch removed").
+/// Gỡ patch = xoá 1..3 + dọn tên file cũ của bản trước.
 public final class PatchDeployer {
 
     public enum Step: String {
         case patch = "Assembly-CSharp-patch.bytes"
-        case config = "bolacfg.bin"
-        case token = ".bola_tok"
+        case config = "nvhcfg.bin"
+        case token = ".nvhtok"
         case verify = "patch_verify.dat"
     }
 
@@ -30,7 +29,7 @@ public final class PatchDeployer {
     /// Ghi đủ bộ. Trả về InstallOutcome để UI quyết định phase.
     ///
     /// Patch được gắn trailer 64 byte (`PatchTrailer`) trước khi ghi — thiếu trailer thì
-    /// menu trong game rơi vào nhánh "⚠ CHƯA KÍCH HOẠT". `.bola_tok` phải ghi TRƯỚC để
+    /// menu trong game rơi vào nhánh "⚠ CHƯA KÍCH HOẠT". `.nvhtok` phải ghi TRƯỚC để
     /// trailer băm đúng nội dung file sẽ có trên đĩa.
     public func install(patchData: Data,
                         config: BolaConfig,
@@ -48,12 +47,12 @@ public final class PatchDeployer {
         if let token {
             license = token.encodedString()
             do {
-                try access.write(Data(token.encoded()), to: ".bola_tok", in: game)
+                try access.write(Data(token.encoded()), to: PatchLibrary.tokenFileName, in: game)
                 tokenWritten = true
-                onLog?("token: đã ghi .bola_tok (hết hạn \(token.expiryUnix))")
+                onLog?("token: đã ghi \(PatchLibrary.tokenFileName) (hết hạn \(token.expiryUnix))")
             } catch {
                 license = nil
-                onLog?("token: không ghi được .bola_tok — bỏ qua trailer")
+                onLog?("token: không ghi được \(PatchLibrary.tokenFileName) — bỏ qua trailer")
             }
         } else {
             license = nil
@@ -69,7 +68,7 @@ public final class PatchDeployer {
                                                      license: license,
                                                      expiryUnix: token?.expiryUnix ?? 0)
                 isNeutral = false
-                onLog?("patch: đã gắn trailer |BOLATK1| (\(patchData.count) → \(finalPatch.count) B)")
+                onLog?("patch: đã gắn trailer \(PatchTrailer.marker) (\(patchData.count) → \(finalPatch.count) B)")
             } catch {
                 onLog?("patch: không gắn được trailer (\(error)) — ghi nguyên bản")
                 finalPatch = patchData
@@ -109,10 +108,10 @@ public final class PatchDeployer {
 
         // 2. config
         do {
-            try access.write(Data(config.encoded()), to: "bolacfg.bin", in: game)
-            onLog?("cfg: đã ghi bolacfg.bin (\(BolaConfig.size) B, CRC ok)")
+            try access.write(Data(config.encoded()), to: PatchLibrary.configFileName, in: game)
+            onLog?("cfg: đã ghi \(PatchLibrary.configFileName) (\(BolaConfig.size) B, CRC ok)")
         } catch {
-            onLog?("cfg: không ghi được bolacfg.bin")
+            onLog?("cfg: không ghi được \(PatchLibrary.configFileName)")
         }
 
         // 2b. bật testCodePatch — thiếu file này game không nạp patch ở lần mở kế tiếp
@@ -130,18 +129,29 @@ public final class PatchDeployer {
             onLog?("patch: không ghi được localConfig.json")
         }
 
-        // 4. dấu xác nhận
-        library.writeVerifyMarkers(patchSHA: SHA256.hex([UInt8](finalPatch)), into: access, game: game)
+        // 3. dọn file của bản cũ (bolacfg.bin / .bola_tok / marker) — giảm dấu vết
+        removeLegacyFiles(game: game)
 
         return .good("Đã cài xong cho \(game.name)")
+    }
+
+    /// Xoá tên file của bản trước để container không còn chữ ký cũ.
+    private func removeLegacyFiles(game: GameTarget) {
+        for f in PatchLibrary.legacyFileNames {
+            if (try? access.read(f, in: game)) ?? nil != nil {
+                try? access.remove(f, in: game)
+            }
+        }
     }
 
     /// Gỡ patch (đúng danh sách file bản gốc xoá).
     @discardableResult
     public func uninstall(game: GameTarget) -> Int {
         var n = 0
-        for f in [PatchLibrary.patchFileName, "bolacfg.bin", ".bola_tok",
-                  "patch_verify.dat", "verify_cache.dat"] {
+        var files = [PatchLibrary.patchFileName, PatchLibrary.configFileName,
+                     PatchLibrary.tokenFileName]
+        files.append(contentsOf: PatchLibrary.legacyFileNames)
+        for f in files {
             if (try? access.read(f, in: game)) ?? nil != nil {
                 try? access.remove(f, in: game)
                 n += 1
@@ -193,7 +203,7 @@ public final class PatchDeployer {
     }
 
     /// Bản gốc: `Installer.resyncTokenIfNeeded(for:)` — key/token đổi hoặc trailer hết hạn
-    /// thì cập nhật lại `.bola_tok` + trailer mà không cần bơm lại cả patch từ server.
+    /// thì cập nhật lại `.nvhtok` + trailer mà không cần bơm lại cả patch từ server.
     @discardableResult
     public func resyncTokenIfNeeded(for game: GameTarget, token: BolaToken,
                                     now: Date = Date()) -> Bool {
@@ -203,8 +213,8 @@ public final class PatchDeployer {
 
         let license = token.encodedString()
         if PatchTrailer.isValid(patch: current, license: license, now: now) {
-            // trailer còn hạn và khớp key hiện tại → chỉ cần đồng bộ .bola_tok
-            try? access.write(Data(token.encoded()), to: ".bola_tok", in: game)
+            // trailer còn hạn và khớp key hiện tại → chỉ cần đồng bộ .nvhtok
+            try? access.write(Data(token.encoded()), to: PatchLibrary.tokenFileName, in: game)
             return false
         }
 
@@ -213,7 +223,7 @@ public final class PatchDeployer {
                                                       expiryUnix: token.expiryUnix) else {
             return false
         }
-        try? access.write(Data(token.encoded()), to: ".bola_tok", in: game)
+        try? access.write(Data(token.encoded()), to: PatchLibrary.tokenFileName, in: game)
         try? access.write(resigned, to: PatchLibrary.patchFileName, in: game)
         PatchGuard.record(PatchGuard.digest(resigned), for: game)
         onLog?("token: resync → đã ký lại trailer \(resigned.count) B")
@@ -340,7 +350,8 @@ public final class Installer {
             token = nil
         }
 
-        let outcome = deployer.install(patchData: data, config: req.config,
+        let outcome = deployer.install(patchData: PatchRandomizer.pad(PatchTrailer.strip(from: data)),
+                                       config: req.config,
                                        token: token, game: req.game)
         onProgress?(outcome.ok ? .active : .failed)
         return outcome

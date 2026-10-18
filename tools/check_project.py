@@ -166,6 +166,11 @@ if pdata:
           pdata[:8] == bytes.fromhex("cba2b40db219a366"), pdata[:8].hex())
     check("patch > 10 KB (%d B)" % len(pdata), len(pdata) > 10_000)
     check("patch không phải rỗng/placeholder", len(set(pdata)) > 32)
+    check("patch đã repack — không còn bolaminhduc/|BOLATK1|",
+          b"bolaminhduc" not in pdata.lower() and b"|BOLATK1|" not in pdata)
+    check("patch dùng marker mới |NVHTK01|", b"|NVHTK01|" in pdata)
+    check("patch trỏ nvhcfg.bin/.nvhtok",
+          b"/nvhcfg.bin" in pdata and b"/.nvhtok" in pdata)
 
 neutral_path = os.path.join(ROOT, "Resources", "NeutralPatch.bytes")
 if os.path.isfile(neutral_path):

@@ -11,6 +11,12 @@ import FoundationNetworking      // Linux: URLSession nằm ở đây; trên App
 public final class PatchLibrary {
 
     public static let patchFileName = "Assembly-CSharp-patch.bytes"
+    public static let configFileName = "nvhcfg.bin"
+    public static let tokenFileName = ".nvhtok"
+    public static let localConfigFileName = "localConfig.json"
+    /// Tên cũ của bản trước — chỉ dùng để dọn khi nâng cấp.
+    public static let legacyFileNames = ["bolacfg.bin", ".bola_tok",
+                                         "patch_verify.dat", "verify_cache.dat"]
     public static let bundledName = "NVHMenu.bytes"
     public static let remoteCacheName = "remote_patch.bytes"
     public static let githubCacheName = "github_patch.bin"
@@ -159,17 +165,5 @@ public final class PatchLibrary {
             }
         }
         return n
-    }
-
-    /// patch_verify.dat / verify_cache.dat — dấu xác nhận đã cài (bản gốc giữ 2 file này)
-    public func writeVerifyMarkers(patchSHA: String, into access: ContainerAccess, game: GameTarget) {
-        let stamp = "\(patchSHA):\(Int(Date().timeIntervalSince1970))\n"
-        try? access.write(Data(stamp.utf8), to: "patch_verify.dat", in: game)
-        try? access.write(Data(stamp.utf8), to: "verify_cache.dat", in: game)
-    }
-
-    public func readVerifyMarker(from access: ContainerAccess, game: GameTarget) -> String? {
-        guard let d = try? access.read("patch_verify.dat", in: game) else { return nil }
-        return String(data: d, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

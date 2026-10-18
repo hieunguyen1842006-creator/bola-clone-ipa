@@ -104,7 +104,7 @@ let key = "BOLA-TEST-0001"
 let sig = SHA256.hexDigest(key)
 let token = BolaToken(key: key, expiryUnix: 4_100_000_000, sig: sig)
 let text = token.encodedString()
-check("có prefix |BOLATK1|", text.hasPrefix("|BOLATK1|"), text)
+check("có prefix \(BolaToken.prefix)", text.hasPrefix(BolaToken.prefix), text)
 check("sig = SHA256(key) hex (đúng cách patch hex-encode)",
       token.signatureIsValid())
 check("độ dài sig = 64 hex", sig.count == 64)
@@ -129,7 +129,8 @@ let attached = (try? PatchTrailer.attach(to: bodyData, license: licenseText,
 check("attach thêm đúng 64 byte", attached.count == bodyData.count + 64,
       "got \(attached.count)")
 let tailText = String(data: attached.suffix(64), encoding: .utf8) ?? ""
-check("64 byte cuối bắt đầu bằng |BOLATK1|", tailText.hasPrefix("|BOLATK1|"), tailText)
+check("64 byte cuối bắt đầu bằng \(PatchTrailer.marker)",
+      tailText.hasPrefix(PatchTrailer.marker), tailText)
 check("decode được trailer", PatchTrailer.decode(from: attached) != nil)
 check("validate khớp license + body", PatchTrailer.isValid(patch: attached, license: licenseText))
 check("validate sai license → false",
@@ -182,14 +183,14 @@ check("trailer khớp token đã ghi",
       mem.store["Assembly-CSharp-patch.bytes"].map {
           PatchTrailer.isValid(patch: $0, license: token.encodedString())
       } ?? false)
-check("bolacfg.bin ghi đúng 28 byte", mem.store["bolacfg.bin"]?.count == 28)
-check("bolacfg.bin decode lại được", (try? BolaConfig.decode([UInt8](mem.store["bolacfg.bin"]!))) != nil)
-check(".bola_tok ghi đúng nội dung",
-      (mem.store[".bola_tok"].flatMap { String(data: $0, encoding: .utf8) } ?? "").hasPrefix("|BOLATK1|"))
-check("patch_verify.dat + verify_cache.dat có mặt",
-      mem.store["patch_verify.dat"] != nil && mem.store["verify_cache.dat"] != nil)
+check("nvhcfg.bin ghi đúng 28 byte", mem.store[PatchLibrary.configFileName]?.count == 28)
+check("nvhcfg.bin decode lại được",
+      (try? BolaConfig.decode([UInt8](mem.store[PatchLibrary.configFileName]!))) != nil)
+check(".nvhtok ghi đúng nội dung",
+      (mem.store[PatchLibrary.tokenFileName].flatMap { String(data: $0, encoding: .utf8) } ?? "")
+        .hasPrefix(BolaToken.prefix))
 let removed = dep.uninstall(game: .freefireMAX)
-check("uninstall xoá 5 file", removed == 5, "got \(removed)")
+check("uninstall xoá 3 file (patch + cfg + token)", removed == 3, "got \(removed)")
 check("isInstalled = false sau khi gỡ", !dep.isInstalled(game: .freefireMAX))
 
 print("=== Version.compare ===")
@@ -251,13 +252,13 @@ if let acc = access2 {
           resynced.map {
               PatchTrailer.isValid(patch: $0, license: newer.encodedString())
           } ?? false)
-    let cfgBack = (try? acc.read("bolacfg.bin", in: .freefireMAX)) ?? nil
-    check("bolacfg.bin đọc lại decode được",
+    let cfgBack = (try? acc.read(PatchLibrary.configFileName, in: .freefireMAX)) ?? nil
+    check("nvhcfg.bin đọc lại decode được",
           (try? BolaConfig.decode([UInt8](cfgBack ?? Data()))) != nil)
-    let tokBack = (try? acc.read(".bola_tok", in: .freefireMAX)) ?? nil
+    let tokBack = (try? acc.read(PatchLibrary.tokenFileName, in: .freefireMAX)) ?? nil
     check("token đọc lại verify được chữ ký",
           ((try? BolaToken.decode(String(data: tokBack ?? Data(), encoding: .utf8) ?? ""))?.signatureIsValid() ?? false))
-    check("gỡ patch xoá đủ 5 file", dep2.uninstall(game: .freefireMAX) == 5)
+    check("gỡ patch xoá đủ 3 file", dep2.uninstall(game: .freefireMAX) == 3)
 }
 
 // d) duong an toan truoc: direct access co san -> BO QUA kernel

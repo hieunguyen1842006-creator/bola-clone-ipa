@@ -337,7 +337,7 @@ public final class AppModel: ObservableObject {
 
     // MARK: - tương thích bản gốc (AppModel.writeConfig / selfHealToken / attemptMHA)
 
-    /// Chỉ ghi lại `bolacfg.bin` (không tải lại patch), dùng khi đổi toggle/slider.
+    /// Chỉ ghi lại `nvhcfg.bin` (không tải lại patch), dùng khi đổi toggle/slider.
     public func writeConfig() {
         guard throttle() else { return }
         guard gate.isAuthorized, let lease = gate.lease else {
@@ -441,7 +441,8 @@ public final class AppModel: ObservableObject {
         }
         let token = BolaToken(key: lease.key, expiryUnix: lease.expiryUnix, sig: lease.sig)
         let license = token.encodedString()
-        let body = PatchTrailer.strip(from: raw)
+        // padding ngẫu nhiên trước trailer → hash file xuất ra cũng khác mỗi lần
+        let body = PatchRandomizer.pad(PatchTrailer.strip(from: raw))
         guard let signed = try? PatchTrailer.attach(to: body, license: license,
                                                      expiryUnix: lease.expiryUnix) else {
             toast("Không ký được trailer")
@@ -454,13 +455,13 @@ public final class AppModel: ObservableObject {
         do {
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
             try signed.write(to: dir.appendingPathComponent(PatchLibrary.patchFileName))
-            try Data(config.encoded()).write(to: dir.appendingPathComponent("bolacfg.bin"))
-            try Data(token.encoded()).write(to: dir.appendingPathComponent(".bola_tok"))
+            try Data(config.encoded()).write(to: dir.appendingPathComponent(PatchLibrary.configFileName))
+            try Data(token.encoded()).write(to: dir.appendingPathComponent(PatchLibrary.tokenFileName))
             let readme = """
             Copy 3 file sau vào Documents của game (dùng Filza):
               - Assembly-CSharp-patch.bytes
-              - bolacfg.bin
-              - .bola_tok
+              - nvhcfg.bin
+              - .nvhtok
 
             Đường dẫn game:
               /var/mobile/Containers/Data/Application/<UUID>/Documents/

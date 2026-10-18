@@ -6,22 +6,22 @@ import Foundation
 /// Bóc từ IL `BolaminhducMenu.bytes`, vm4::OnGUI (khối license):
 ///
 ///   trailer = Encoding.UTF8.GetString(patch[patch.Length - 64 ..< patch.Length])
-///   trailer.Substring(0, 9) == "|BOLATK1|"
-///   f1 = trailer[9 ..< firstPipe]                  → so với hex(SHA256(.bola_tok))[:16]
+///   trailer.Substring(0, 9) == "|NVHTK01|"
+///   f1 = trailer[9 ..< firstPipe]                  → so với hex(SHA256(.nvhtok))[:16]
 ///   f2 = trailer[firstPipe+1 ..< nextPipe]         → Int64.Parse, so với Unix now
 ///   f3 = trailer[nextPipe+1 ..< nextPipeAfter]     → độ dài 8, so với hex(SHA256(body))[:8]
 ///   body = patch[0 ..< patch.Length - 64]
 ///
 /// Chuỗi ví dụ (46 byte, pad 0x00 cho đủ 64):
 ///
-///   |BOLATK1|9f2c1d4a7b0e5c33|1791983788|a1b2c3d4|
+///   |NVHTK01|9f2c1d4a7b0e5c33|1791983788|a1b2c3d4|
 ///
-/// `license` trong `validate(body:license:)` là NỘI DUNG FILE `.bola_tok` (không phải raw key),
-/// đúng như IL: hash được tính trên chuỗi đọc từ `.bola_tok`.
+/// `license` trong `validate(body:license:)` là NỘI DUNG FILE `.nvhtok` (không phải raw key),
+/// đúng như IL: hash được tính trên chuỗi đọc từ `.nvhtok`.
 public struct PatchTrailer: Equatable {
 
     public static let length = 64
-    public static let marker = "|BOLATK1|"
+    public static let marker = "|NVHTK01|"
     public static let keyHashHexLength = 16    // 8 byte đầu của SHA-256
     public static let bodySigHexLength = 8     // 4 byte đầu của SHA-256
 
@@ -60,7 +60,7 @@ public struct PatchTrailer: Equatable {
     // MARK: - derive
 
     /// `hex(SHA256(license))[:16]` — đúng segment đầu mà vm4 so sánh.
-    /// vm4 đọc `.bola_tok` bằng `String.Trim()` trước khi băm nên ở đây cũng trim.
+    /// vm4 đọc `.nvhtok` bằng `String.Trim()` trước khi băm nên ở đây cũng trim.
     public static func keyHash(for license: String) -> String {
         let trimmed = license.trimmingCharacters(in: .whitespacesAndNewlines)
         return String(SHA256.hexDigest(trimmed).prefix(keyHashHexLength)).lowercased()

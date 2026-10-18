@@ -1,7 +1,7 @@
 import Foundation
 
-/// BolaConfig — codec cho `Documents/bolacfg.bin` (file app ghi vào container Free Fire,
-/// patch trong game đọc ở `Application.persistentDataPath + "/bolacfg.bin"`).
+/// BolaConfig — codec cho `Documents/nvhcfg.bin` (file app ghi vào container Free Fire,
+/// patch trong game đọc ở `Application.persistentDataPath + "/nvhcfg.bin"`).
 ///
 /// Layout lấy đúng từ source gốc (`AppModel.writeConfig`):
 ///   24 byte payload + 4 byte CRC32 LE = 28 byte.
@@ -135,7 +135,7 @@ public struct BolaConfig: Equatable {
 
         public var description: String {
             switch self {
-            case .tooShort(let n): return "bolacfg.bin quá ngắn: \(n) < \(BolaConfig.size)"
+            case .tooShort(let n): return "nvhcfg.bin quá ngắn: \(n) < \(BolaConfig.size)"
             case .badMagic(let m): return "sai magic: \(m.map { String(format: "%02X", $0) }.joined()) ≠ 424F4C41"
             case .badVersion(let v): return String(format: "sai version: 0x%02X ≠ 0x01", v)
             case .badCRC(let e, let g): return String(format: "CRC32 lệch: file=0x%08X, tính=0x%08X", e, g)
@@ -247,20 +247,20 @@ public struct BolaConfig: Equatable {
     }
 }
 
-// MARK: - Token .bola_tok
+// MARK: - Token .nvhtok
 
-/// Codec cho `.bola_tok` — file loader ghi, patch trong game đọc & kiểm tra
+/// Codec cho `.nvhtok` — file loader ghi, patch trong game đọc & kiểm tra
 /// (vm4 instr 1440–1830).
 ///
-/// ⚠️ ĐÍNH CHÍNH so với bản đọc IL đầu tiên: chuỗi `|BOLATK1|…` mà vm4 kiểm tra KHÔNG
-/// phải nội dung `.bola_tok` — nó là **64 byte cuối của file patch** (xem `PatchTrailer`).
-/// `.bola_tok` chỉ được đọc lên, `Trim()`, rồi băm SHA-256; 16 hex đầu của hash đó được
+/// ⚠️ ĐÍNH CHÍNH so với bản đọc IL đầu tiên: chuỗi `|NVHTK01|…` mà vm4 kiểm tra KHÔNG
+/// phải nội dung `.nvhtok` — nó là **64 byte cuối của file patch** (xem `PatchTrailer`).
+/// `.nvhtok` chỉ được đọc lên, `Trim()`, rồi băm SHA-256; 16 hex đầu của hash đó được
 /// so với field đầu trong trailer.
 ///
-/// `BolaToken` ở đây vẫn là payload tiện dụng để ghi `.bola_tok`; `encodedString()` là
+/// `BolaToken` ở đây vẫn là payload tiện dụng để ghi `.nvhtok`; `encodedString()` là
 /// chuỗi được băm. Đừng nhầm nó với trailer.
 public struct BolaToken: Equatable {
-    public static let prefix = "|BOLATK1|"
+    public static let prefix = "|NVHTK01|"
 
     public var key: String
     public var expiryUnix: Int64

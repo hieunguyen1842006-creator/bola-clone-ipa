@@ -210,8 +210,9 @@ public final class Antiban {
         let docs = (root as NSString).appendingPathComponent("Documents")
         let manifest = ourJunkNames()
         let keep: Set<String> = [
-            PatchLibrary.patchFileName, "bolacfg.bin", "localConfig.json",
-            ".bola_tok", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
+            PatchLibrary.patchFileName, PatchLibrary.configFileName,
+            PatchLibrary.localConfigFileName, PatchLibrary.tokenFileName,
+            ".nvh_probe", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
         ]
         let hints = ["bolt", "airlift", "innova", "delta", "cheat", "hack",
                      "bolaminhduc", "bolt_", "air_lift"]
@@ -240,8 +241,9 @@ public final class Antiban {
         let fm = FileManager.default
         let manifest = ourJunkNames()
         let keep: Set<String> = [
-            PatchLibrary.patchFileName, "bolacfg.bin", "localConfig.json",
-            ".bola_tok", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
+            PatchLibrary.patchFileName, PatchLibrary.configFileName,
+            PatchLibrary.localConfigFileName, PatchLibrary.tokenFileName,
+            ".nvh_probe", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
             ".com.apple.mobile_container_manager.metadata.plist",
         ]
         let hints = ["log", "trace", "report", "crash", "analytic", "bugly", "telemetry",
