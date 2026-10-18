@@ -133,10 +133,15 @@ public final class AppModel: ObservableObject {
         return ContainerAccessChain(providers)
     }()
 
-    /// Primitive cắm ngoài. `nil` = chỉ dùng đường hợp lệ (jailbreak / app group / MHA).
-    /// Muốn cắm: set biến này trước khi tạo AppModel, hoặc dùng `MockContainerPrimitive`
-    /// để chạy thử toàn bộ đường ống. Xem Sources/Core/KernelPrimitive.swift.
-    public static var pluggedPrimitive: KernelPrimitive?
+    /// Primitive cắm ngoài. Mặc định trên iOS là chuỗi 3105 (kexploit + sandbox_escape);
+    /// `nil` trên nền tảng khác. Có thể ghi đè trước khi tạo AppModel.
+    public static var pluggedPrimitive: KernelPrimitive? = {
+        #if canImport(ObjectiveC) && canImport(UIKit)
+        return Kernel3105Primitive()
+        #else
+        return nil
+        #endif
+    }()
 
 
     public static let defaultColors: [String: UInt16] = [

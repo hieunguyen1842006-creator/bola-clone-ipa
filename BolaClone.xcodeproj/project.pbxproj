@@ -29,7 +29,14 @@
 		C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */; };
 		B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */; };
 		304576793ED93A1E112B8781 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D36B6949BFD8789DD96772 /* SettingsView.swift */; };
+		7949BB5D89AFCC77165083A5 /* Kernel3105Primitive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */; };
 		6BB4CB0837DFD327BF7ACF36 /* MHA3105.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059D19C584777BA7110862A /* MHA3105.swift */; };
+		D01FC90BC162A7169934D870 /* kexploit_opa334.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF75D601AAE967E702B699E /* kexploit_opa334.m */; };
+		6538B9F34924FAA1E67D045F /* krw.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B66841B49A378A181EF27AF /* krw.m */; };
+		4671FBC73BD5668CA52F33D0 /* kutils.m in Sources */ = {isa = PBXBuildFile; fileRef = 715873C74EE43CD3DE1F291E /* kutils.m */; };
+		024660672791C70C05782FF6 /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = ACA73B85AEA3EB392C865BBF /* offsets.m */; };
+		4F3C1F33171F5A538A054FCC /* sandbox_escape.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DA2B166E68A8EF0495E3A50 /* sandbox_escape.m */; };
+		189FF8D71E67F11E457CF5A8 /* vnode.m in Sources */ = {isa = PBXBuildFile; fileRef = FC982F5EA0CCB3EAE5C74974 /* vnode.m */; };
 		BAB4039F5D3C2E7E66ED6466 /* mcm_bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 31D94369471824B77FA20704 /* mcm_bridge.m */; };
 		2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21B2256B51CB3ED234E5DB3E /* Assets.xcassets */; };
 		F569973B8F7F4C6E58D783A4 /* bola_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* bola_silence.wav */; };
@@ -61,9 +68,24 @@
 		E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyScreenView.swift; sourceTree = "<group>"; };
 		B4D36B6949BFD8789DD96772 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kernel3105Primitive.swift; sourceTree = "<group>"; };
 		5059D19C584777BA7110862A /* MHA3105.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MHA3105.swift; sourceTree = "<group>"; };
+		1AF75D601AAE967E702B699E /* kexploit_opa334.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/kexploit_opa334.m; sourceTree = "<group>"; };
+		6B66841B49A378A181EF27AF /* krw.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/krw.m; sourceTree = "<group>"; };
+		715873C74EE43CD3DE1F291E /* kutils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/kutils.m; sourceTree = "<group>"; };
+		ACA73B85AEA3EB392C865BBF /* offsets.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/offsets.m; sourceTree = "<group>"; };
+		3DA2B166E68A8EF0495E3A50 /* sandbox_escape.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/sandbox_escape.m; sourceTree = "<group>"; };
+		FC982F5EA0CCB3EAE5C74974 /* vnode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/vnode.m; sourceTree = "<group>"; };
 		31D94369471824B77FA20704 /* mcm_bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = mcm_bridge.m; sourceTree = "<group>"; };
 		78D9117A745F9B7C577E577B /* BolaClone-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BolaClone-Bridging-Header.h; sourceTree = "<group>"; };
+		D54F14956C0018FDC71F065A /* kexploit_opa334.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/kexploit_opa334.h; sourceTree = "<group>"; };
+		8FD77572A76F777E62732980 /* krw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/krw.h; sourceTree = "<group>"; };
+		B0D68026B25DF258B7DBA930 /* kutils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/kutils.h; sourceTree = "<group>"; };
+		ED57B2C50B9C3BFCCF157302 /* machine_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/machine_info.h; sourceTree = "<group>"; };
+		DB84FC3F05D8ECD06660CB8A /* offsets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/offsets.h; sourceTree = "<group>"; };
+		5B97CB4AFB4D84001A8E9B36 /* sandbox_escape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/sandbox_escape.h; sourceTree = "<group>"; };
+		6201843382D34E83B5061855 /* vnode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/vnode.h; sourceTree = "<group>"; };
+		A764B9980AA987F4FDDCA973 /* xpaci.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/xpaci.h; sourceTree = "<group>"; };
 		2E25A4B3A1BB8915A477E6C8 /* mcm_bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcm_bridge.h; sourceTree = "<group>"; };
 		21B2256B51CB3ED234E5DB3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DA6381D5BE520727BA075FAB /* bola_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bola_silence.wav; sourceTree = "<group>"; };
@@ -157,9 +179,24 @@
 		BD17013737BE7B72847143DA /* Vendor3105 */ = {
 			isa = PBXGroup;
 			children = (
+				42E2D03B2AABB4EC93BD46D0 /* Kernel3105Primitive.swift */,
 				5059D19C584777BA7110862A /* MHA3105.swift */,
+				1AF75D601AAE967E702B699E /* kexploit_opa334.m */,
+				6B66841B49A378A181EF27AF /* krw.m */,
+				715873C74EE43CD3DE1F291E /* kutils.m */,
+				ACA73B85AEA3EB392C865BBF /* offsets.m */,
+				3DA2B166E68A8EF0495E3A50 /* sandbox_escape.m */,
+				FC982F5EA0CCB3EAE5C74974 /* vnode.m */,
 				31D94369471824B77FA20704 /* mcm_bridge.m */,
 				78D9117A745F9B7C577E577B /* BolaClone-Bridging-Header.h */,
+				D54F14956C0018FDC71F065A /* kexploit_opa334.h */,
+				8FD77572A76F777E62732980 /* krw.h */,
+				B0D68026B25DF258B7DBA930 /* kutils.h */,
+				ED57B2C50B9C3BFCCF157302 /* machine_info.h */,
+				DB84FC3F05D8ECD06660CB8A /* offsets.h */,
+				5B97CB4AFB4D84001A8E9B36 /* sandbox_escape.h */,
+				6201843382D34E83B5061855 /* vnode.h */,
+				A764B9980AA987F4FDDCA973 /* xpaci.h */,
 				2E25A4B3A1BB8915A477E6C8 /* mcm_bridge.h */,
 			);
 			path = Vendor3105;
@@ -273,7 +310,14 @@
 				C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */,
 				B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */,
 				304576793ED93A1E112B8781 /* SettingsView.swift in Sources */,
+				7949BB5D89AFCC77165083A5 /* Kernel3105Primitive.swift in Sources */,
 				6BB4CB0837DFD327BF7ACF36 /* MHA3105.swift in Sources */,
+				D01FC90BC162A7169934D870 /* kexploit_opa334.m in Sources */,
+				6538B9F34924FAA1E67D045F /* krw.m in Sources */,
+				4671FBC73BD5668CA52F33D0 /* kutils.m in Sources */,
+				024660672791C70C05782FF6 /* offsets.m in Sources */,
+				4F3C1F33171F5A538A054FCC /* sandbox_escape.m in Sources */,
+				189FF8D71E67F11E457CF5A8 /* vnode.m in Sources */,
 				BAB4039F5D3C2E7E66ED6466 /* mcm_bridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

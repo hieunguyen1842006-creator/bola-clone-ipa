@@ -33,11 +33,18 @@ def main() -> int:
     vendor_sources = []
     vendor_headers = []
     if os.path.isdir(vendor_dir):
-        for f in sorted(os.listdir(vendor_dir)):
-            if f.endswith((".swift", ".m", ".c")):
-                vendor_sources.append("Vendor3105/" + f)
-            elif f.endswith(".h"):
-                vendor_headers.append("Vendor3105/" + f)
+        for root, _d, files in os.walk(vendor_dir):
+            for f in sorted(files):
+                rel = os.path.relpath(os.path.join(root, f), ROOT).replace(BS, "/")
+                if f.endswith((".swift", ".m", ".c")):
+                    vendor_sources.append(rel)
+                elif f.endswith(".h"):
+                    vendor_headers.append(rel)
+        vendor_sources.sort()
+        vendor_headers.sort()
+
+    def vendor_path(p: str) -> str:
+        return p[len("Vendor3105/"):]
 
     def file_type(p: str) -> str:
         if p.endswith(".swift"): return "sourcecode.swift"
@@ -89,7 +96,7 @@ def main() -> int:
     for p in vendor_sources + vendor_headers:
         w("\t\t%s /* %s */ = {isa = PBXFileReference; lastKnownFileType = %s; "
           "path = %s; sourceTree = \"<group>\"; };"
-          % (oid("fr" + p), os.path.basename(p), file_type(p), os.path.basename(p)))
+          % (oid("fr" + p), os.path.basename(p), file_type(p), vendor_path(p)))
     w("\t\t%s /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = "
       "folder.assetcatalog; path = Assets.xcassets; sourceTree = \"<group>\"; };"
       % oid("fr-Assets"))
