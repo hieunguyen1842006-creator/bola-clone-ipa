@@ -78,6 +78,7 @@
 		FC982F5EA0CCB3EAE5C74974 /* vnode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kexploit/vnode.m; sourceTree = "<group>"; };
 		31D94369471824B77FA20704 /* mcm_bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = mcm_bridge.m; sourceTree = "<group>"; };
 		78D9117A745F9B7C577E577B /* BolaClone-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BolaClone-Bridging-Header.h; sourceTree = "<group>"; };
+		D82A82FBDD3140F731F33DDD /* fileport_compat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/fileport_compat.h; sourceTree = "<group>"; };
 		D54F14956C0018FDC71F065A /* kexploit_opa334.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/kexploit_opa334.h; sourceTree = "<group>"; };
 		8FD77572A76F777E62732980 /* krw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/krw.h; sourceTree = "<group>"; };
 		B0D68026B25DF258B7DBA930 /* kutils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit/kutils.h; sourceTree = "<group>"; };
@@ -189,6 +190,7 @@
 				FC982F5EA0CCB3EAE5C74974 /* vnode.m */,
 				31D94369471824B77FA20704 /* mcm_bridge.m */,
 				78D9117A745F9B7C577E577B /* BolaClone-Bridging-Header.h */,
+				D82A82FBDD3140F731F33DDD /* fileport_compat.h */,
 				D54F14956C0018FDC71F065A /* kexploit_opa334.h */,
 				8FD77572A76F777E62732980 /* krw.h */,
 				B0D68026B25DF258B7DBA930 /* kutils.h */,
