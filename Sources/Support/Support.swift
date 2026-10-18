@@ -83,6 +83,7 @@ public final class Antiban {
     static let globalCrashLogs = "/var/mobile/Library/Logs/CrashReporter"
 
     private var timer: Timer?
+    private var enabledAt: Date?
     private var deployer: PatchDeployer?
     private var access: ContainerAccess?
     private var game: GameTarget = .freefireMAX
@@ -108,8 +109,9 @@ public final class Antiban {
         }
         enabled = on
         if on {
+            enabledAt = Date()
             onLog?("🛡️ Đã bật Anti-ban — tự dọn dấu vết liên tục (tắt sẽ tự gỡ patch)")
-            let n = cleanNow()
+            let n = cleanNow() + cleanExposed()
             if n > 0 { onLog?("anti-ban: đã dọn \(n) mục") }
             // khoá telemetry + thả decoy chạy nền để không treo UI
             let root = containerRoot()
@@ -132,6 +134,7 @@ public final class Antiban {
             startLoop()
         } else {
             stopLoop()
+            enabledAt = nil
             let unlocked = unlockTelemetryDirs()
             let removed = removeDecoys()
             onLog?("anti-ban: mở khoá \(unlocked) thư mục, gỡ \(removed) file rác")
@@ -175,6 +178,100 @@ public final class Antiban {
     private static func remove(_ fm: FileManager, _ path: String) -> Bool {
         guard fm.fileExists(atPath: path) else { return false }
         return (try? fm.removeItem(atPath: path)) != nil
+    }
+
+    // MARK: dọn file lộ + file mới (nguồn: Antiban.swift bản gốc)
+
+    private func ourJunkNames() -> Set<String> {
+        guard let mine = FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask).first?.path else { return [] }
+        let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+        guard let text = try? String(contentsOfFile: manifest, encoding: .utf8) else { return [] }
+        return Set(text.split(separator: "\n")
+            .map { String($0).trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty })
+    }
+
+    private func isOurJunk(_ name: String, _ manifest: Set<String>) -> Bool {
+        if name == ".bola_junk" { return true }
+        if AntibanDecoy.prefixes.contains(where: { name.hasPrefix($0) }) { return true }
+        if name.hasPrefix(AntibanDecoy.cachePrefix) { return true }
+        if AntibanDecoy.patchSiblings.contains(name) { return true }
+        if manifest.contains(name) { return true }
+        return false
+    }
+
+    /// Xoá rác của tool khác / bản cũ trong Documents game — trừ file của mình.
+    @discardableResult
+    public func cleanExposed() -> Int {
+        guard let root = containerRoot() else { return 0 }
+        let fm = FileManager.default
+        let docs = (root as NSString).appendingPathComponent("Documents")
+        let manifest = ourJunkNames()
+        let keep: Set<String> = [
+            PatchLibrary.patchFileName, "bolacfg.bin", "localConfig.json",
+            ".bola_tok", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
+        ]
+        let hints = ["bolt", "airlift", "innova", "delta", "cheat", "hack",
+                     "bolaminhduc", "bolt_", "air_lift"]
+        guard let items = try? fm.contentsOfDirectory(atPath: docs) else { return 0 }
+        var removed = 0
+        for f in items {
+            if keep.contains(f) { continue }
+            if isOurJunk(f, manifest) { continue }
+            let low = f.lowercased()
+            guard hints.contains(where: { low.contains($0) }) else { continue }
+            let p = (docs as NSString).appendingPathComponent(f)
+            var isDir: ObjCBool = false
+            fm.fileExists(atPath: p, isDirectory: &isDir)
+            guard let attrs = try? fm.attributesOfItem(atPath: p),
+                  let size = attrs[.size] as? Int, !isDir.boolValue,
+                  size < 50 * 1024 * 1024 else { continue }
+            if (try? fm.removeItem(atPath: p)) != nil { removed += 1 }
+        }
+        return removed
+    }
+
+    /// File sinh ra sau khi bật anti (mtime >= since) mà tên dính log/telemetry → xoá.
+    @discardableResult
+    public func sweepNewFiles(since: Date) -> Int {
+        guard let root = containerRoot() else { return 0 }
+        let fm = FileManager.default
+        let manifest = ourJunkNames()
+        let keep: Set<String> = [
+            PatchLibrary.patchFileName, "bolacfg.bin", "localConfig.json",
+            ".bola_tok", ".bola_uid", ".bola_dbg.txt", ".bola_probe",
+            ".com.apple.mobile_container_manager.metadata.plist",
+        ]
+        let hints = ["log", "trace", "report", "crash", "analytic", "bugly", "telemetry",
+                     "beacon", "garena", "tencent", "anticheat", "anti_cheat", "shadow",
+                     "upload", "feedback", "audit", "detect", "integrity", "tlog", "xlog",
+                     "tdlog", "sys.log"]
+        let dirs = [
+            (root as NSString).appendingPathComponent("Documents"),
+            (root as NSString).appendingPathComponent("Library"),
+            (root as NSString).appendingPathComponent("Library/Caches"),
+        ]
+        let cutoff = since.addingTimeInterval(-90)
+        var removed = 0
+        for d in dirs {
+            guard let items = try? fm.contentsOfDirectory(atPath: d) else { continue }
+            for f in items {
+                if keep.contains(f) { continue }
+                if isOurJunk(f, manifest) { continue }
+                if f == "contentcache" || f == "Preferences" { continue }
+                let low = f.lowercased()
+                guard hints.contains(where: { low.contains($0) }) else { continue }
+                let p = (d as NSString).appendingPathComponent(f)
+                var isDir: ObjCBool = false
+                fm.fileExists(atPath: p, isDirectory: &isDir)
+                if isDir.boolValue { continue }
+                guard let attrs = try? fm.attributesOfItem(atPath: p),
+                      let mt = attrs[.modificationDate] as? Date, mt >= cutoff else { continue }
+                if (try? fm.removeItem(atPath: p)) != nil { removed += 1 }
+            }
+        }
+        return removed
     }
 
     // MARK: khoá telemetry (nguồn: Antiban.swift của bản gốc)
@@ -295,6 +392,9 @@ public final class Antiban {
             }
         }
 
+        // manifest cũ của bản trước (để trong container game)
+        try? fm.removeItem(atPath: (docs as NSString).appendingPathComponent(".bola_junk"))
+
         for dir in [docs, library] {
             guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }
             for f in items {
@@ -338,8 +438,12 @@ public final class Antiban {
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in
-                let n = self.cleanNow()
-                if n > 0 { self.onLog?("anti-ban: đã dọn \(n) mục") }
+                let cleaned = self.cleanNow() + self.cleanExposed()
+                let swept = self.enabledAt.map { self.sweepNewFiles(since: $0) } ?? 0
+                _ = self.lockTelemetryDirs()   // game có thể đã tạo lại thư mục
+                if cleaned + swept > 0 {
+                    self.onLog?("anti-ban: dọn \(cleaned), quét file mới \(swept)")
+                }
                 self.onTick?()
             }
         }
