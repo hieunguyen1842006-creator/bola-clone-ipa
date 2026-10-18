@@ -6,9 +6,9 @@ check_project.py — kiểm tra tĩnh cả project clone (chạy được trên 
   1. project.pbxproj : id duy nhất, mọi fileRef trỏ tới file CÓ THẬT,
                        mọi .swift trong Sources có mặt ở build phase Sources,
                        phase Resources trỏ đúng asset/wav
-  2. Info.plist      : parse được + các key bắt buộc (BolaOfflineMaxDays, LSApplicationQueriesSchemes…)
+  2. Info.plist      : parse được + các key bắt buộc (NVHOfflineMaxDays, LSApplicationQueriesSchemes…)
   3. Assets.xcassets : JSON hợp lệ, app icon có file 1024
-  4. bola_silence.wav: header WAV hợp lệ
+  4. nvh_silence.wav: header WAV hợp lệ
   5. project.yml     : mọi path khai báo đều tồn tại
   6. nguồn Swift     : cân bằng {}, (), [] ngoài chuỗi/comment (bắt lỗi gõ tay)
 
@@ -109,8 +109,8 @@ check("Sources phase có đủ %d file .swift" % len(swift_on_disk),
 res_phase = re.search(r"isa = PBXResourcesBuildPhase;.*?files = \(([^)]*)\);", pbx, re.S)
 res_ids = set(re.findall(r"([0-9A-F]{24}) /\*", res_phase.group(1))) if res_phase else set()
 res_names = {ref_by_id.get(buildfile_to_ref.get(i), ("?", "?"))[1] for i in res_ids}
-check("Resources phase có Assets.xcassets + bola_silence.wav + patch",
-      {"Assets.xcassets", "bola_silence.wav", "BolaminhducMenu.bytes"} <= res_names,
+check("Resources phase có Assets.xcassets + nvh_silence.wav + patch",
+      {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.bytes"} <= res_names,
       str(res_names))
 check("target/project có PBXProject + PBXNativeTarget",
       "isa = PBXProject;" in pbx and "isa = PBXNativeTarget;" in pbx)
@@ -122,10 +122,11 @@ check("bundle id + deployment target",
 print("\n== 2. Info.plist ==")
 info_path = os.path.join(ROOT, "Resources", "Info.plist")
 pl = plistlib.load(open(info_path, "rb"))
-for k in ("BolaOfflineMaxDays", "BolaProduct", "BolaTelegram", "LSApplicationQueriesSchemes",
+for k in ("NVHOfflineMaxDays", "NVHProduct", "NVHTelegram", "NVHAuthor",
+          "LSApplicationQueriesSchemes",
           "UIBackgroundModes", "UIFileSharingEnabled", "CFBundleShortVersionString"):
     check("key %s" % k, k in pl)
-check("offline days == 3", pl.get("BolaOfflineMaxDays") == 3)
+check("offline days == 3", pl.get("NVHOfflineMaxDays") == 3)
 check("query schemes gồm freefire*",
       set(pl.get("LSApplicationQueriesSchemes", [])) >= {"freefire", "freefiremax"})
 check("background mode audio", "audio" in pl.get("UIBackgroundModes", []))
@@ -141,8 +142,8 @@ with open(icon_file, "rb") as fh:
     head = fh.read(8)
 check("app icon là PNG", head[:8] == b"\x89PNG\r\n\x1a\n")
 
-print("\n== 4. bola_silence.wav ==")
-wav = os.path.join(ROOT, "Resources", "bola_silence.wav")
+print("\n== 4. nvh_silence.wav ==")
+wav = os.path.join(ROOT, "Resources", "nvh_silence.wav")
 with wave.open(wav, "rb") as wf:
     check("wav hợp lệ (%d Hz, %d kênh, %d frames)" % (wf.getframerate(), wf.getnchannels(), wf.getnframes()),
           wf.getnchannels() == 1 and wf.getframerate() == 8000 and wf.getnframes() == 8000)
@@ -150,12 +151,12 @@ with wave.open(wav, "rb") as wf:
 print("\n== 5. project.yml ==")
 yml = open(os.path.join(ROOT, "project.yml"), encoding="utf-8").read()
 for p in ("Sources", "Resources", "Resources/Info.plist", "Resources/Assets.xcassets",
-          "Resources/bola_silence.wav", "Resources/BolaminhducMenu.bytes"):
+          "Resources/nvh_silence.wav", "Resources/NVHMenu.bytes"):
     check("project.yml path %s tồn tại" % p, os.path.exists(os.path.join(ROOT, p)))
 check("project.yml có target BolaClone", "BolaClone:" in yml)
 
 print("\n== 5b. Patch đóng gói ==")
-patch_path = os.path.join(ROOT, "Resources", "BolaminhducMenu.bytes")
+patch_path = os.path.join(ROOT, "Resources", "NVHMenu.bytes")
 if os.path.isfile(patch_path):
     pdata = open(patch_path, "rb").read()
     check("patch có magic IFix cba2b40db219a366",

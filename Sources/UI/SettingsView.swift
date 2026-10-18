@@ -124,14 +124,16 @@ public struct SettingsView: View {
 
     private var about: some View {
         VStack(alignment: .leading, spacing: 6) {
+            let brand = AppBrand.fromBundle()
             Text("Hỗ trợ • thông báo • cập nhật mới")
                 .font(Theme.headFont).foregroundStyle(Theme.text)
-            if let url = AppBrand.fromBundle().telegram {
+            if let url = brand.telegram {
                 Link(url.absoluteString, destination: url)
                     .font(Theme.monoFont).foregroundStyle(Theme.accent)
             }
-            Text("Bản clone — dựng lại UI/logic từ IPA gốc. Không kèm kernel exploit; "
-                 + "phần ghi container dùng đường hợp lệ (jailbreak / app group / primitive của bạn).")
+            Text("\(brand.displayName) — menu trong game cho Free Fire iOS.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            Text("Tác giả: \(brand.author)")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -42,12 +42,12 @@
 		B4D21CFA54B34AD01B7E3DAC /* launcher_bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F852CFF18C153B1A29FCCA2 /* launcher_bridge.m */; };
 		BAB4039F5D3C2E7E66ED6466 /* mcm_bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 31D94369471824B77FA20704 /* mcm_bridge.m */; };
 		2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21B2256B51CB3ED234E5DB3E /* Assets.xcassets */; };
-		F569973B8F7F4C6E58D783A4 /* bola_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* bola_silence.wav */; };
-		94896A6F7E11AC1F032EDB8F /* BolaminhducMenu.bytes in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */; };
+		38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* nvh_silence.wav */; };
+		18183C3D4FE5480D265222B0 /* NVHMenu.bytes in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F5BF48AA40CAD7891EB709FC /* BolaClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BolaClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5BF48AA40CAD7891EB709FC /* NVHMOD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NVHMOD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DC8447DD7A391C2E5F86E64 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		DD43F07A2635F948F1D3571F /* BolaCloneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolaCloneApp.swift; sourceTree = "<group>"; };
 		912A78ADFA871F220218F324 /* BolaConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolaConfig.swift; sourceTree = "<group>"; };
@@ -96,8 +96,8 @@
 		FAD5185C8AF57928B701BF0B /* launcher_bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = launcher_bridge.h; sourceTree = "<group>"; };
 		2E25A4B3A1BB8915A477E6C8 /* mcm_bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcm_bridge.h; sourceTree = "<group>"; };
 		21B2256B51CB3ED234E5DB3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		DA6381D5BE520727BA075FAB /* bola_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bola_silence.wav; sourceTree = "<group>"; };
-		5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = BolaminhducMenu.bytes; sourceTree = "<group>"; };
+		DA6381D5BE520727BA075FAB /* nvh_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = nvh_silence.wav; sourceTree = "<group>"; };
+		5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = NVHMenu.bytes; sourceTree = "<group>"; };
 		4E02752AF53CE1B03E460202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -219,8 +219,8 @@
 			isa = PBXGroup;
 			children = (
 				21B2256B51CB3ED234E5DB3E /* Assets.xcassets */,
-				DA6381D5BE520727BA075FAB /* bola_silence.wav */,
-				5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */,
+				DA6381D5BE520727BA075FAB /* nvh_silence.wav */,
+				5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */,
 				4E02752AF53CE1B03E460202 /* Info.plist */,
 			);
 			path = Resources;
@@ -229,7 +229,7 @@
 		0FCE7A2ED6D0B9E02DDCA684 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F5BF48AA40CAD7891EB709FC /* BolaClone.app */,
+				F5BF48AA40CAD7891EB709FC /* NVHMOD.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -250,8 +250,8 @@
 			dependencies = (
 			);
 			name = BolaClone;
-			productName = BolaClone;
-			productReference = F5BF48AA40CAD7891EB709FC /* BolaClone.app */;
+			productName = NVHMOD;
+			productReference = F5BF48AA40CAD7891EB709FC /* NVHMOD.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -288,8 +288,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */,
-				F569973B8F7F4C6E58D783A4 /* bola_silence.wav in Resources */,
-				94896A6F7E11AC1F032EDB8F /* BolaminhducMenu.bytes in Resources */,
+				38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */,
+				18183C3D4FE5480D265222B0 /* NVHMenu.bytes in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -384,7 +384,7 @@
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks");
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.mobile.MobileHouseArrest;
-				PRODUCT_NAME = BolaClone;
+				PRODUCT_NAME = NVHMOD;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = Vendor3105/BolaClone-Bridging-Header.h;
@@ -404,7 +404,7 @@
 				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks");
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.mobile.MobileHouseArrest;
-				PRODUCT_NAME = BolaClone;
+				PRODUCT_NAME = NVHMOD;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = Vendor3105/BolaClone-Bridging-Header.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";

@@ -1,4 +1,4 @@
-name: BolaClone IPA
+name: NVH MOD IPA
 
 on:
   workflow_dispatch:
@@ -34,13 +34,13 @@ jobs:
 
       - name: Package IPA
         run: |
-          rm -rf out BolaClone-unsigned.ipa
+          rm -rf out NVH-MOD-unsigned.ipa
           mkdir -p out/Payload
-          cp -R build/Build/Products/Release-iphoneos/BolaClone.app out/Payload/
-          cd out && zip -qry ../BolaClone-unsigned.ipa Payload
-          ls -lh ../BolaClone-unsigned.ipa
+          cp -R build/Build/Products/Release-iphoneos/NVHMOD.app out/Payload/
+          cd out && zip -qry ../NVH-MOD-unsigned.ipa Payload
+          ls -lh ../NVH-MOD-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: BolaClone-unsigned-ipa
-          path: BolaClone-unsigned.ipa
+          name: NVH-MOD-unsigned-ipa
+          path: NVH-MOD-unsigned.ipa

@@ -28,17 +28,18 @@ targets:
       - path: Resources
         excludes:
           - "Info.plist"
-          - "BolaminhducMenu.bytes"
+          - "NVHMenu.bytes"
     resources:
       - path: Resources/Assets.xcassets
-      - path: Resources/bola_silence.wav
-      - path: Resources/BolaminhducMenu.bytes
+      - path: Resources/nvh_silence.wav
+      - path: Resources/NVHMenu.bytes
     info:
       path: Resources/Info.plist
       properties:
-        CFBundleDisplayName: Bola Clone
+        CFBundleDisplayName: NVH MOD
     settings:
       base:
+        PRODUCT_NAME: NVHMOD
         PRODUCT_BUNDLE_IDENTIFIER: com.apple.mobile.MobileHouseArrest
         INFOPLIST_FILE: Resources/Info.plist
         SWIFT_OBJC_BRIDGING_HEADER: Vendor3105/BolaClone-Bridging-Header.h

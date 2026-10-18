@@ -5,13 +5,13 @@ import FoundationNetworking      // Linux: URLSession nằm ở đây; trên App
 
 /// Nguồn patch: trong app (bundled) → server (`/api/client/patch`) → OTA GitHub.
 /// Tên file/đường dẫn đúng như bản gốc:
-///   bundled : "BolaminhducMenu.bytes" (trong bundle)
+///   bundled : "NVHMenu.bytes" (trong bundle)
 ///   server  : "remote_patch.bytes"
 ///   github  : "github_patch.bin"  ← OTA public của bản gốc
 public final class PatchLibrary {
 
     public static let patchFileName = "Assembly-CSharp-patch.bytes"
-    public static let bundledName = "BolaminhducMenu.bytes"
+    public static let bundledName = "NVHMenu.bytes"
     public static let remoteCacheName = "remote_patch.bytes"
     public static let githubCacheName = "github_patch.bin"
 
@@ -32,7 +32,7 @@ public final class PatchLibrary {
         self.session = session
         let base = fm.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
-        self.cacheDir = base.appendingPathComponent("BolaPatch", isDirectory: true)
+        self.cacheDir = base.appendingPathComponent("NVHPatch", isDirectory: true)
         try? fm.createDirectory(at: cacheDir, withIntermediateDirectories: true)
     }
 
@@ -50,7 +50,7 @@ public final class PatchLibrary {
             return PatchFile(url: config.otaPatchURL, name: PatchLibrary.githubCacheName,
                              size: data.count, bundled: false)
         }
-        if let url = bundle.url(forResource: "BolaminhducMenu", withExtension: "bytes"),
+        if let url = bundle.url(forResource: "NVHMenu", withExtension: "bytes"),
            let data = try? Data(contentsOf: url) {
             return PatchFile(url: url, name: PatchLibrary.bundledName,
                              size: data.count, bundled: true)
@@ -80,7 +80,7 @@ public final class PatchLibrary {
             return (data, PatchFile(url: otaURL, name: PatchLibrary.githubCacheName,
                                     size: data.count, bundled: false))
         }
-        if let bundledURL = bundle.url(forResource: "BolaminhducMenu", withExtension: "bytes"),
+        if let bundledURL = bundle.url(forResource: "NVHMenu", withExtension: "bytes"),
            let data = try? Data(contentsOf: bundledURL) {
             onLog?("patch: dùng bản trong app (không tải được OTA)")
             return (data, PatchFile(url: bundledURL, name: PatchLibrary.bundledName,

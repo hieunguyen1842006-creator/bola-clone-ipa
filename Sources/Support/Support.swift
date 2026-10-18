@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - BackgroundAudio (giữ app sống khi người dùng mở game — bola_silence.wav)
+// MARK: - BackgroundAudio (giữ app sống khi người dùng mở game — nvh_silence.wav)
 
 #if canImport(AVFoundation)
 import AVFoundation
@@ -11,7 +11,7 @@ public final class BackgroundAudio {
     private var player: AVAudioPlayer?
     private var session: AVAudioSession?
 
-    public func start(resource: String = "bola_silence", ext: String = "wav") {
+    public func start(resource: String = "nvh_silence", ext: String = "wav") {
         guard let url = Bundle.main.url(forResource: resource, withExtension: ext) else { return }
         do {
             let session = AVAudioSession.sharedInstance()
@@ -48,7 +48,7 @@ enum AntibanDecoy {
         "com.appsflyer", "com.crashlytics.data", "com.google.firebase", "crashes",
     ]
     /// File rác trộn patch thật (prefix của bản gốc).
-    static let prefixes = ["BOLA_CHEAT_", "BOLA_MENU_", "MINHDUC_BAIT_"]
+    static let prefixes = ["CHEAT_TMP_", "MOD_CACHE_", "BAIT_TMP_"]
     static let patchSiblings = [
         "Assembly-CSharp-patch.bak", "Assembly-CSharp-patch_old.bytes",
         "Assembly-CSharp-patch2.bytes", "Assembly-CSharp-patch(1).bytes",
@@ -185,7 +185,7 @@ public final class Antiban {
     private func ourJunkNames() -> Set<String> {
         guard let mine = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask).first?.path else { return [] }
-        let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+        let manifest = (mine as NSString).appendingPathComponent("nvh_junk_\(game.rawValue).txt")
         guard let text = try? String(contentsOfFile: manifest, encoding: .utf8) else { return [] }
         return Set(text.split(separator: "\n")
             .map { String($0).trimmingCharacters(in: .whitespaces) }
@@ -193,7 +193,7 @@ public final class Antiban {
     }
 
     private func isOurJunk(_ name: String, _ manifest: Set<String>) -> Bool {
-        if name == ".bola_junk" { return true }
+        if name == ".nvh_junk" { return true }
         if AntibanDecoy.prefixes.contains(where: { name.hasPrefix($0) }) { return true }
         if name.hasPrefix(AntibanDecoy.cachePrefix) { return true }
         if AntibanDecoy.patchSiblings.contains(name) { return true }
@@ -363,7 +363,7 @@ public final class Antiban {
 
         // manifest nằm trong container của app mình, không nằm trong container game
         if let mine = manifestDir {
-            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(gameRaw).txt")
+            let manifest = (mine as NSString).appendingPathComponent("nvh_junk_\(gameRaw).txt")
             try? names.joined(separator: "\n").write(toFile: manifest, atomically: true, encoding: .utf8)
         }
         return n
@@ -379,7 +379,7 @@ public final class Antiban {
         var n = 0
 
         if let mine = fm.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
-            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+            let manifest = (mine as NSString).appendingPathComponent("nvh_junk_\(game.rawValue).txt")
             if let text = try? String(contentsOfFile: manifest, encoding: .utf8) {
                 for line in text.split(separator: "\n") {
                     let name = String(line).trimmingCharacters(in: .whitespaces)
@@ -393,7 +393,7 @@ public final class Antiban {
         }
 
         // manifest cũ của bản trước (để trong container game)
-        try? fm.removeItem(atPath: (docs as NSString).appendingPathComponent(".bola_junk"))
+        try? fm.removeItem(atPath: (docs as NSString).appendingPathComponent(".nvh_junk"))
 
         for dir in [docs, library] {
             guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }

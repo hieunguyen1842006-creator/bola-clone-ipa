@@ -112,15 +112,15 @@ public final class AppModel: ObservableObject {
     }
 
     public static let defaultServer: ServerConfig = {
-        // đọc cấu hình build từ Info.plist (BolaOfflineMaxDays, TserverPkgToken)
+        // đọc cấu hình build từ Info.plist (NVHOfflineMaxDays, TserverPkgToken)
         let info = Bundle.main.infoDictionary ?? [:]
-        let offlineDays = (info["BolaOfflineMaxDays"] as? Int) ?? 3
+        let offlineDays = (info["NVHOfflineMaxDays"] as? Int) ?? 3
         let pkgToken = (info["TserverPkgToken"] as? String) ?? ""
         return ServerConfig(
             baseURL: URL(string: "https://example.invalid")!,     // ← đổi thành backend của bạn
             offlineMaxDays: offlineDays,
             packageToken: pkgToken,
-            telegramURL: (info["BolaTelegram"] as? String).flatMap(URL.init(string:)),
+            telegramURL: (info["NVHTelegram"] as? String).flatMap(URL.init(string:)),
             otaPatchURL: nil)
     }()
 
@@ -427,14 +427,14 @@ public final class AppModel: ObservableObject {
         log("restore: \(outcome.message)")
     }
 
-    /// Xuất 3 file cài patch ra Documents/BolaExport để copy thủ công (Filza).
+    /// Xuất 3 file cài patch ra Documents/NVHExport để copy thủ công (Filza).
     /// Dùng khi app không có quyền ghi container game (chưa jailbreak/entitlement).
     public func exportPatchFiles() {
         guard gate.isAuthorized, let lease = gate.lease else {
             toast("🔑 Nhập key trước")
             return
         }
-        guard let url = Bundle.main.url(forResource: "BolaminhducMenu", withExtension: "bytes"),
+        guard let url = Bundle.main.url(forResource: "NVHMenu", withExtension: "bytes"),
               let raw = try? Data(contentsOf: url) else {
             toast("Không thấy patch trong app")
             return
@@ -450,7 +450,7 @@ public final class AppModel: ObservableObject {
 
         let fm = FileManager.default
         guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        let dir = docs.appendingPathComponent("BolaExport", isDirectory: true)
+        let dir = docs.appendingPathComponent("NVHExport", isDirectory: true)
         do {
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
             try signed.write(to: dir.appendingPathComponent(PatchLibrary.patchFileName))
@@ -469,8 +469,8 @@ public final class AppModel: ObservableObject {
             """
             try readme.write(to: dir.appendingPathComponent("README.txt"),
                              atomically: true, encoding: .utf8)
-            log("export: đã xuất patch + cfg + token vào Documents/BolaExport")
-            toast("Đã xuất file — mở Files > Bola Clone > BolaExport")
+            log("export: đã xuất patch + cfg + token vào Documents/NVHExport")
+            toast("Đã xuất file — mở Files > NVH MOD > NVHExport")
         } catch {
             log("export: lỗi \(error.localizedDescription)")
             toast("Xuất file lỗi — thử lại")

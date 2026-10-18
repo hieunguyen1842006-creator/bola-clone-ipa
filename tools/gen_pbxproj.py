@@ -58,10 +58,10 @@ def main() -> int:
     group_of = lambda p: "/".join(p.split("/")[:-1])
     groups = sorted({group_of(p) for p in swift_files})
 
-    res_files = ["Resources/Assets.xcassets", "Resources/bola_silence.wav",
-                 "Resources/BolaminhducMenu.bytes"]
-    ref_key = {"Resources/Assets.xcassets": "fr-Assets", "Resources/bola_silence.wav": "fr-Wav",
-               "Resources/BolaminhducMenu.bytes": "fr-Patch"}
+    res_files = ["Resources/Assets.xcassets", "Resources/nvh_silence.wav",
+                 "Resources/NVHMenu.bytes"]
+    ref_key = {"Resources/Assets.xcassets": "fr-Assets", "Resources/nvh_silence.wav": "fr-Wav",
+               "Resources/NVHMenu.bytes": "fr-Patch"}
 
     L: list[str] = []
     w = L.append
@@ -86,8 +86,8 @@ def main() -> int:
 
     # ---- PBXFileReference
     w("/* Begin PBXFileReference section */")
-    w("\t\t%s /* BolaClone.app */ = {isa = PBXFileReference; explicitFileType = "
-      "wrapper.application; includeInIndex = 0; path = BolaClone.app; "
+    w("\t\t%s /* NVHMOD.app */ = {isa = PBXFileReference; explicitFileType = "
+      "wrapper.application; includeInIndex = 0; path = NVHMOD.app; "
       "sourceTree = BUILT_PRODUCTS_DIR; };" % oid("product"))
     for p in swift_files:
         w("\t\t%s /* %s */ = {isa = PBXFileReference; lastKnownFileType = %s; "
@@ -100,10 +100,10 @@ def main() -> int:
     w("\t\t%s /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = "
       "folder.assetcatalog; path = Assets.xcassets; sourceTree = \"<group>\"; };"
       % oid("fr-Assets"))
-    w("\t\t%s /* bola_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; "
-      "path = bola_silence.wav; sourceTree = \"<group>\"; };" % oid("fr-Wav"))
-    w("\t\t%s /* BolaminhducMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = "
-      "file; path = BolaminhducMenu.bytes; sourceTree = \"<group>\"; };" % oid("fr-Patch"))
+    w("\t\t%s /* nvh_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; "
+      "path = nvh_silence.wav; sourceTree = \"<group>\"; };" % oid("fr-Wav"))
+    w("\t\t%s /* NVHMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = "
+      "file; path = NVHMenu.bytes; sourceTree = \"<group>\"; };" % oid("fr-Patch"))
     w("\t\t%s /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; "
       "path = Info.plist; sourceTree = \"<group>\"; };" % oid("fr-Info"))
     w("/* End PBXFileReference section */")
@@ -167,8 +167,8 @@ def main() -> int:
     w("\t\t\tisa = PBXGroup;")
     w("\t\t\tchildren = (")
     w("\t\t\t\t%s /* Assets.xcassets */," % oid("fr-Assets"))
-    w("\t\t\t\t%s /* bola_silence.wav */," % oid("fr-Wav"))
-    w("\t\t\t\t%s /* BolaminhducMenu.bytes */," % oid("fr-Patch"))
+    w("\t\t\t\t%s /* nvh_silence.wav */," % oid("fr-Wav"))
+    w("\t\t\t\t%s /* NVHMenu.bytes */," % oid("fr-Patch"))
     w("\t\t\t\t%s /* Info.plist */," % oid("fr-Info"))
     w("\t\t\t);")
     w("\t\t\tpath = Resources;")
@@ -177,7 +177,7 @@ def main() -> int:
     w("\t\t%s /* Products */ = {" % oid("grp-Products"))
     w("\t\t\tisa = PBXGroup;")
     w("\t\t\tchildren = (")
-    w("\t\t\t\t%s /* BolaClone.app */," % oid("product"))
+    w("\t\t\t\t%s /* NVHMOD.app */," % oid("product"))
     w("\t\t\t);")
     w("\t\t\tname = Products;")
     w("\t\t\tsourceTree = \"<group>\";")
@@ -198,8 +198,8 @@ def main() -> int:
     w("\t\t\tbuildRules = (\n\t\t\t);")
     w("\t\t\tdependencies = (\n\t\t\t);")
     w("\t\t\tname = BolaClone;")
-    w("\t\t\tproductName = BolaClone;")
-    w("\t\t\tproductReference = %s /* BolaClone.app */;" % oid("product"))
+    w("\t\t\tproductName = NVHMOD;")
+    w("\t\t\tproductReference = %s /* NVHMOD.app */;" % oid("product"))
     w("\t\t\tproductType = \"com.apple.product-type.application\";")
     w("\t\t};")
     w("/* End PBXNativeTarget section */")
@@ -291,7 +291,7 @@ def main() -> int:
         "LD_RUNPATH_SEARCH_PATHS": "(\"@executable_path/Frameworks\")",
         "MARKETING_VERSION": "1.0.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.apple.mobile.MobileHouseArrest",
-        "PRODUCT_NAME": "BolaClone",
+        "PRODUCT_NAME": "NVHMOD",
         "SWIFT_OBJC_BRIDGING_HEADER": "Vendor3105/BolaClone-Bridging-Header.h",
         "SWIFT_EMIT_LOC_STRINGS": "NO",
         "SWIFT_VERSION": "5.9",

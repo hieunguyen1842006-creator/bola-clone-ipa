@@ -184,24 +184,27 @@ public struct ServerConfig: Equatable {
     }
 }
 
-// MARK: - AppBrand (BolaProduct / BolaTelegram trong Info.plist)
+// MARK: - AppBrand (NVHProduct / NVHTelegram trong Info.plist)
 
-public struct AppBrand {
+public struct AppBrand: Equatable {
     public var product: String
     public var displayName: String
+    public var author: String
     public var telegram: URL?
 
-    public init(product: String, displayName: String, telegram: URL?) {
+    public init(product: String, displayName: String, author: String = "", telegram: URL?) {
         self.product = product
         self.displayName = displayName
+        self.author = author
         self.telegram = telegram
     }
 
     public static func fromBundle(_ bundle: Bundle = .main) -> AppBrand {
         let info = bundle.infoDictionary ?? [:]
-        let telegram = (info["BolaTelegram"] as? String).flatMap(URL.init(string:))
-        return AppBrand(product: info["BolaProduct"] as? String ?? "clone",
-                        displayName: info["CFBundleDisplayName"] as? String ?? "Bola Clone",
+        let telegram = (info["NVHTelegram"] as? String).flatMap(URL.init(string:))
+        return AppBrand(product: info["NVHProduct"] as? String ?? "NVH MOD",
+                        displayName: info["CFBundleDisplayName"] as? String ?? "NVH MOD",
+                        author: info["NVHAuthor"] as? String ?? "Nguyễn Việt Hiếu",
                         telegram: telegram)
     }
 }
