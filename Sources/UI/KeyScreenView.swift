@@ -21,6 +21,8 @@ public struct KeyScreenView: View {
             VStack(spacing: 18) {
                 header
                 keyField
+                Text("Chưa có server key? Nhập 1 để dùng offline.")
+                    .font(.system(size: 10)).foregroundStyle(Theme.dim)
                 if !gate.errorText.isEmpty {
                     Text(gate.errorText)
                         .font(Theme.bodyFont)

@@ -50,14 +50,21 @@ public final class LicenseGate: ObservableObject {
 
     // MARK: vòng đời
 
+    /// Key thủ công khi chưa dựng server: nhập đúng chuỗi này là dùng offline.
+    public static let manualKey = "1"
+
     public func start() {
         state = .started
         if let cached = store.load() {
             lease = cached
             state = .activated
             refreshTexts()
-            onLog?("tserver terminal: dùng bản cache offline (còn \(offlineDaysLeft()) ngày)")
-            verifyInBackground()
+            if cached.key == Self.manualKey {
+                onLog?("manual key: dùng offline (key=\(Self.manualKey))")
+            } else {
+                onLog?("tserver terminal: dùng bản cache offline (còn \(offlineDaysLeft()) ngày)")
+                verifyInBackground()
+            }
         } else {
             state = .needKey
             statusText = "Nhập key để kích hoạt menu"
@@ -72,6 +79,20 @@ public final class LicenseGate: ObservableObject {
             state = .needKey
             return
         }
+
+        // Chưa có server key: key thủ công = 1, cấp lease offline 10 năm.
+        if key == Self.manualKey {
+            let lease = makeManualLease(for: key)
+            self.lease = lease
+            self.busy = false
+            self.errorText = ""
+            self.store.save(lease)
+            self.state = .activated
+            self.afterAuthorized()
+            self.onLog?("manual key: kích hoạt offline (key=\(key))")
+            return
+        }
+
         busy = true
         errorText = ""
         state = .starting
@@ -110,6 +131,22 @@ public final class LicenseGate: ObservableObject {
         statusText = "Nhập key để kích hoạt menu"
         remainingText = ""
         errorText = ""
+    }
+
+    /// Lease giả lập cho key thủ công (chưa có server): 10 năm, không gọi mạng.
+    private func makeManualLease(for key: String) -> Lease {
+        let expiry = Int64(Date().timeIntervalSince1970) + 10 * 365 * 24 * 3600
+        return Lease(key: key,
+                     maskedKey: KeyMask.mask(key),
+                     expiryUnix: expiry,
+                     sig: SHA256.hexDigest(key),
+                     licenseType: "manual",
+                     isLifetime: true,
+                     startsOnActivation: true,
+                     maxDevices: 0,
+                     effectiveExpiresAt: nil,
+                     licenseExpiresAt: nil,
+                     expiresAt: nil)
     }
 
     public var isAuthorized: Bool {
@@ -161,7 +198,7 @@ public final class LicenseGate: ObservableObject {
     }
 
     private func verifyInBackground() {
-        guard let lease = self.lease else { return }
+        guard let lease = self.lease, lease.key != Self.manualKey else { return }
         Task {
             if let fresh = try? await client.check(key: lease.key, packageToken: packageToken) {
                 await MainActor.run {
