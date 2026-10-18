@@ -118,6 +118,8 @@ check("INFOPLIST_FILE = Resources/Info.plist", "INFOPLIST_FILE = Resources/Info.
 check("bundle id + deployment target",
       "PRODUCT_BUNDLE_IDENTIFIER = com.apple.mobile.MobileHouseArrest;" in pbx
       and "IPHONEOS_DEPLOYMENT_TARGET = 16.0;" in pbx)
+check("app icon được actool biên dịch (ASSETCATALOG_COMPILER_APPICON_NAME)",
+      "ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;" in pbx)
 
 print("\n== 2. Info.plist ==")
 info_path = os.path.join(ROOT, "Resources", "Info.plist")

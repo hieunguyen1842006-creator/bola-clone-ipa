@@ -284,6 +284,7 @@ def main() -> int:
         "TARGETED_DEVICE_FAMILY": "\"1,2\"",
     }
     tgt = {
+        "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "GENERATE_INFOPLIST_FILE": "NO",
