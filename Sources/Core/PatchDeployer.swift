@@ -35,7 +35,8 @@ public final class PatchDeployer {
     public func install(patchData: Data,
                         config: BolaConfig,
                         token: BolaToken?,
-                        game: GameTarget) -> InstallOutcome {
+                        game: GameTarget,
+                        bundle: Bundle = .main) -> InstallOutcome {
         guard access.isAvailable(for: game) else {
             return .bad("Không tìm thấy thư mục game.\nKhông ghi được — mở game 1 lần "
                         + "(để tạo container) rồi thử lại")
@@ -59,27 +60,51 @@ public final class PatchDeployer {
             onLog?("token: chưa có lease — patch sẽ hiện '⚠ CHƯA KÍCH HOẠT' trong game")
         }
 
-        // 1. patch (+ trailer nếu có license)
+        // 1. patch: có license hợp lệ → patch đầy đủ + trailer; không → neutral seed
         let finalPatch: Data
+        let isNeutral: Bool
         if let license, tokenWritten {
             do {
                 finalPatch = try PatchTrailer.attach(to: patchData,
                                                      license: license,
                                                      expiryUnix: token?.expiryUnix ?? 0)
+                isNeutral = false
                 onLog?("patch: đã gắn trailer |BOLATK1| (\(patchData.count) → \(finalPatch.count) B)")
             } catch {
                 onLog?("patch: không gắn được trailer (\(error)) — ghi nguyên bản")
                 finalPatch = patchData
+                isNeutral = false
             }
+        } else if let seed = PatchGuard.neutralData(bundle: bundle) {
+            finalPatch = seed
+            isNeutral = true
+            onLog?("patch: chưa có key hợp lệ → ghi neutral seed (\(seed.count) B, không chức năng)")
         } else {
             finalPatch = patchData
+            isNeutral = true
+            onLog?("patch: thiếu NeutralPatch.bytes — ghi patch thô")
         }
 
         do {
             try access.write(finalPatch, to: PatchLibrary.patchFileName, in: game)
-            onLog?("inject: kernel sẵn sàng → cài \(PatchLibrary.patchFileName) (\(finalPatch.count) B)")
         } catch {
             return .bad("Lỗi ghi file: \(PatchLibrary.patchFileName)")
+        }
+
+        // 1b. đọc lại + so hash — ghi xong mà lệch thì coi như fail
+        if let back = (try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil {
+            let expected = PatchGuard.digest(finalPatch)
+            guard PatchGuard.digest(back) == expected else {
+                try? access.remove(PatchLibrary.patchFileName, in: game)
+                onLog?("patch: hash sau khi ghi lệch → đã gỡ file")
+                return .bad("Patch ghi xong nhưng hash không khớp — thử inject lại")
+            }
+            if isNeutral {
+                PatchGuard.clear(for: game)
+            } else {
+                PatchGuard.record(expected, for: game)
+            }
+            onLog?("patch: hash ok \(expected.prefix(12))… (\(isNeutral ? "neutral" : "active"))")
         }
 
         // 2. config
@@ -117,8 +142,15 @@ public final class PatchDeployer {
                 n += 1
             }
         }
+        PatchGuard.clear(for: game)
         onLog?("patch removed (\(n) file) — Anti-ban off → patch removed (\(n))")
         return n
+    }
+
+    /// Trạng thái toàn vẹn của patch đang cài (vòng anti-ban dùng để cảnh báo).
+    public func installedState(for game: GameTarget, bundle: Bundle = .main) -> PatchGuard.State {
+        let data = (try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil
+        return PatchGuard.state(of: data, for: game, bundle: bundle)
     }
 
     public func isInstalled(game: GameTarget) -> Bool {
@@ -165,6 +197,7 @@ public final class PatchDeployer {
         }
         try? access.write(Data(token.encoded()), to: ".bola_tok", in: game)
         try? access.write(resigned, to: PatchLibrary.patchFileName, in: game)
+        PatchGuard.record(PatchGuard.digest(resigned), for: game)
         onLog?("token: resync → đã ký lại trailer \(resigned.count) B")
         return true
     }

@@ -59,9 +59,9 @@ def main() -> int:
     groups = sorted({group_of(p) for p in swift_files})
 
     res_files = ["Resources/Assets.xcassets", "Resources/nvh_silence.wav",
-                 "Resources/NVHMenu.bytes"]
+                 "Resources/NVHMenu.bytes", "Resources/NeutralPatch.bytes"]
     ref_key = {"Resources/Assets.xcassets": "fr-Assets", "Resources/nvh_silence.wav": "fr-Wav",
-               "Resources/NVHMenu.bytes": "fr-Patch"}
+               "Resources/NVHMenu.bytes": "fr-Patch", "Resources/NeutralPatch.bytes": "fr-Neutral"}
 
     L: list[str] = []
     w = L.append
@@ -104,6 +104,8 @@ def main() -> int:
       "path = nvh_silence.wav; sourceTree = \"<group>\"; };" % oid("fr-Wav"))
     w("\t\t%s /* NVHMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = "
       "file; path = NVHMenu.bytes; sourceTree = \"<group>\"; };" % oid("fr-Patch"))
+    w("\t\t%s /* NeutralPatch.bytes */ = {isa = PBXFileReference; lastKnownFileType = "
+      "file; path = NeutralPatch.bytes; sourceTree = \"<group>\"; };" % oid("fr-Neutral"))
     w("\t\t%s /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; "
       "path = Info.plist; sourceTree = \"<group>\"; };" % oid("fr-Info"))
     w("/* End PBXFileReference section */")
@@ -169,6 +171,7 @@ def main() -> int:
     w("\t\t\t\t%s /* Assets.xcassets */," % oid("fr-Assets"))
     w("\t\t\t\t%s /* nvh_silence.wav */," % oid("fr-Wav"))
     w("\t\t\t\t%s /* NVHMenu.bytes */," % oid("fr-Patch"))
+    w("\t\t\t\t%s /* NeutralPatch.bytes */," % oid("fr-Neutral"))
     w("\t\t\t\t%s /* Info.plist */," % oid("fr-Info"))
     w("\t\t\t);")
     w("\t\t\tpath = Resources;")

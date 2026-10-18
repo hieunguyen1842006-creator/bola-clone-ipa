@@ -109,8 +109,8 @@ check("Sources phase có đủ %d file .swift" % len(swift_on_disk),
 res_phase = re.search(r"isa = PBXResourcesBuildPhase;.*?files = \(([^)]*)\);", pbx, re.S)
 res_ids = set(re.findall(r"([0-9A-F]{24}) /\*", res_phase.group(1))) if res_phase else set()
 res_names = {ref_by_id.get(buildfile_to_ref.get(i), ("?", "?"))[1] for i in res_ids}
-check("Resources phase có Assets.xcassets + nvh_silence.wav + patch",
-      {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.bytes"} <= res_names,
+check("Resources phase có Assets.xcassets + wav + patch + neutral seed",
+      {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.bytes", "NeutralPatch.bytes"} <= res_names,
       str(res_names))
 check("target/project có PBXProject + PBXNativeTarget",
       "isa = PBXProject;" in pbx and "isa = PBXNativeTarget;" in pbx)
@@ -153,18 +153,27 @@ with wave.open(wav, "rb") as wf:
 print("\n== 5. project.yml ==")
 yml = open(os.path.join(ROOT, "project.yml"), encoding="utf-8").read()
 for p in ("Sources", "Resources", "Resources/Info.plist", "Resources/Assets.xcassets",
-          "Resources/nvh_silence.wav", "Resources/NVHMenu.bytes"):
+          "Resources/nvh_silence.wav", "Resources/NVHMenu.bytes",
+          "Resources/NeutralPatch.bytes"):
     check("project.yml path %s tồn tại" % p, os.path.exists(os.path.join(ROOT, p)))
 check("project.yml có target BolaClone", "BolaClone:" in yml)
 
 print("\n== 5b. Patch đóng gói ==")
 patch_path = os.path.join(ROOT, "Resources", "NVHMenu.bytes")
-if os.path.isfile(patch_path):
-    pdata = open(patch_path, "rb").read()
+pdata = open(patch_path, "rb").read() if os.path.isfile(patch_path) else b""
+if pdata:
     check("patch có magic IFix cba2b40db219a366",
           pdata[:8] == bytes.fromhex("cba2b40db219a366"), pdata[:8].hex())
     check("patch > 10 KB (%d B)" % len(pdata), len(pdata) > 10_000)
     check("patch không phải rỗng/placeholder", len(set(pdata)) > 32)
+
+neutral_path = os.path.join(ROOT, "Resources", "NeutralPatch.bytes")
+if os.path.isfile(neutral_path):
+    ndata = open(neutral_path, "rb").read()
+    check("neutral seed có magic IFix",
+          ndata[:8] == bytes.fromhex("cba2b40db219a366"), ndata[:8].hex())
+    check("neutral seed nhỏ hơn patch thật (%d < %d B)" % (len(ndata), len(pdata)),
+          len(ndata) < len(pdata))
 
 print("\n== 6. Cân bằng ngoặc trong nguồn Swift ==")
 PAIRS = {"{": "}", "(": ")", "[": "]"}

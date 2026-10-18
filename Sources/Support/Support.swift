@@ -84,6 +84,7 @@ public final class Antiban {
 
     private var timer: Timer?
     private var enabledAt: Date?
+    private var integrityWarned = false
     private var deployer: PatchDeployer?
     private var access: ContainerAccess?
     private var game: GameTarget = .freefireMAX
@@ -443,6 +444,16 @@ public final class Antiban {
                 _ = self.lockTelemetryDirs()   // game có thể đã tạo lại thư mục
                 if cleaned + swept > 0 {
                     self.onLog?("anti-ban: dọn \(cleaned), quét file mới \(swept)")
+                }
+                // patch trong container bị sửa/ghi đè → cảnh báo một lần
+                if let deployer = self.deployer,
+                   deployer.installedState(for: self.game) == .modified {
+                    if !self.integrityWarned {
+                        self.integrityWarned = true
+                        self.onLog?("patch: hash lệch — file trong container đã bị sửa")
+                    }
+                } else {
+                    self.integrityWarned = false
                 }
                 self.onTick?()
             }
