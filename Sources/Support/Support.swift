@@ -117,14 +117,16 @@ public final class Antiban {
                 .urls(for: .documentDirectory, in: .userDomainMask).first?.path
             let gameRaw = game.rawValue
             Task.detached(priority: .utility) {
-                var locked = 0, planted = 0
+                let result: (locked: Int, planted: Int)
                 if let root {
-                    locked = Antiban.lockTelemetryDirs(root: root)
-                    planted = Antiban.plantDecoys(root: root, manifestDir: manifestDir, gameRaw: gameRaw)
+                    result = (Antiban.lockTelemetryDirs(root: root),
+                              Antiban.plantDecoys(root: root, manifestDir: manifestDir, gameRaw: gameRaw))
+                } else {
+                    result = (0, 0)
                 }
                 await MainActor.run {
-                    self.onLog?("anti-ban: đã khoá \(locked) thư mục telemetry (0555)")
-                    self.onLog?("anti-ban: đã thả \(planted) file rác trộn patch")
+                    self.onLog?("anti-ban: đã khoá \(result.locked) thư mục telemetry (0555)")
+                    self.onLog?("anti-ban: đã thả \(result.planted) file rác trộn patch")
                 }
             }
             startLoop()
