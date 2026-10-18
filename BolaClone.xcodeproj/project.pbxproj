@@ -21,6 +21,7 @@
 		54B579EFF4FA9EE1320F2BE9 /* PatchGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E608A29613B34BD5EFDA64 /* PatchGuard.swift */; };
 		25E18E110327FB1F968D9B32 /* PatchLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */; };
 		A7113739C76913BC201CD5C9 /* PatchTrailer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */; };
+		253600881F7DFD1AE510167A /* PatchVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20534F3609FE921114DA3EB8 /* PatchVault.swift */; };
 		BC3BE35B1FE202D0AFFB244E /* VersionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B84827DCC99638C943367D22 /* VersionGate.swift */; };
 		C2B0551A4E212408661657E4 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56DE5EEE7AE4D209CEDC85F /* Logger.swift */; };
 		9224FC37474745379BCD1C4D /* Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFEE6B420D90192178D73D1 /* Support.swift */; };
@@ -44,7 +45,7 @@
 		BAB4039F5D3C2E7E66ED6466 /* mcm_bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 31D94369471824B77FA20704 /* mcm_bridge.m */; };
 		2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21B2256B51CB3ED234E5DB3E /* Assets.xcassets */; };
 		38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* nvh_silence.wav */; };
-		18183C3D4FE5480D265222B0 /* NVHMenu.bytes in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */; };
+		CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */; };
 		58C24311F25B5580E679F810 /* NeutralPatch.bytes in Resources */ = {isa = PBXBuildFile; fileRef = F531AE29667F167DB1304929 /* NeutralPatch.bytes */; };
 /* End PBXBuildFile section */
 
@@ -65,6 +66,7 @@
 		87E608A29613B34BD5EFDA64 /* PatchGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchGuard.swift; sourceTree = "<group>"; };
 		A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchLibrary.swift; sourceTree = "<group>"; };
 		2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTrailer.swift; sourceTree = "<group>"; };
+		20534F3609FE921114DA3EB8 /* PatchVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchVault.swift; sourceTree = "<group>"; };
 		B84827DCC99638C943367D22 /* VersionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionGate.swift; sourceTree = "<group>"; };
 		D56DE5EEE7AE4D209CEDC85F /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		BBFEE6B420D90192178D73D1 /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
@@ -100,7 +102,7 @@
 		2E25A4B3A1BB8915A477E6C8 /* mcm_bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcm_bridge.h; sourceTree = "<group>"; };
 		21B2256B51CB3ED234E5DB3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DA6381D5BE520727BA075FAB /* nvh_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = nvh_silence.wav; sourceTree = "<group>"; };
-		5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = NVHMenu.bytes; sourceTree = "<group>"; };
+		5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = NVHMenu.vault; sourceTree = "<group>"; };
 		F531AE29667F167DB1304929 /* NeutralPatch.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = NeutralPatch.bytes; sourceTree = "<group>"; };
 		4E02752AF53CE1B03E460202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -162,6 +164,7 @@
 				87E608A29613B34BD5EFDA64 /* PatchGuard.swift */,
 				A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */,
 				2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */,
+				20534F3609FE921114DA3EB8 /* PatchVault.swift */,
 				B84827DCC99638C943367D22 /* VersionGate.swift */,
 			);
 			path = Core;
@@ -225,7 +228,7 @@
 			children = (
 				21B2256B51CB3ED234E5DB3E /* Assets.xcassets */,
 				DA6381D5BE520727BA075FAB /* nvh_silence.wav */,
-				5EDE39C2647E5A19904F2D94 /* NVHMenu.bytes */,
+				5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */,
 				F531AE29667F167DB1304929 /* NeutralPatch.bytes */,
 				4E02752AF53CE1B03E460202 /* Info.plist */,
 			);
@@ -295,7 +298,7 @@
 			files = (
 				2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */,
 				38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */,
-				18183C3D4FE5480D265222B0 /* NVHMenu.bytes in Resources */,
+				CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */,
 				58C24311F25B5580E679F810 /* NeutralPatch.bytes in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -322,6 +325,7 @@
 				54B579EFF4FA9EE1320F2BE9 /* PatchGuard.swift in Sources */,
 				25E18E110327FB1F968D9B32 /* PatchLibrary.swift in Sources */,
 				A7113739C76913BC201CD5C9 /* PatchTrailer.swift in Sources */,
+				253600881F7DFD1AE510167A /* PatchVault.swift in Sources */,
 				BC3BE35B1FE202D0AFFB244E /* VersionGate.swift in Sources */,
 				C2B0551A4E212408661657E4 /* Logger.swift in Sources */,
 				9224FC37474745379BCD1C4D /* Support.swift in Sources */,

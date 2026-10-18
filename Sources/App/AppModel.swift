@@ -434,8 +434,7 @@ public final class AppModel: ObservableObject {
             toast("🔑 Nhập key trước")
             return
         }
-        guard let url = Bundle.main.url(forResource: "NVHMenu", withExtension: "bytes"),
-              let raw = try? Data(contentsOf: url) else {
+        guard let raw = PatchVault.bundledPatch() else {
             toast("Không thấy patch trong app")
             return
         }

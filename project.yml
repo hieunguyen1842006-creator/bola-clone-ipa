@@ -29,11 +29,12 @@ targets:
         excludes:
           - "Info.plist"
           - "NVHMenu.bytes"
+          - "NVHMenu.vault"
           - "NeutralPatch.bytes"
     resources:
       - path: Resources/Assets.xcassets
       - path: Resources/nvh_silence.wav
-      - path: Resources/NVHMenu.bytes
+      - path: Resources/NVHMenu.vault
       - path: Resources/NeutralPatch.bytes
     info:
       path: Resources/Info.plist

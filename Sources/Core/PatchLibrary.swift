@@ -17,7 +17,7 @@ public final class PatchLibrary {
     /// Tên cũ của bản trước — chỉ dùng để dọn khi nâng cấp.
     public static let legacyFileNames = ["bolacfg.bin", ".bola_tok",
                                          "patch_verify.dat", "verify_cache.dat"]
-    public static let bundledName = "NVHMenu.bytes"
+    public static let bundledName = "NVHMenu.vault"
     public static let remoteCacheName = "remote_patch.bytes"
     public static let githubCacheName = "github_patch.bin"
 
@@ -56,9 +56,8 @@ public final class PatchLibrary {
             return PatchFile(url: config.otaPatchURL, name: PatchLibrary.githubCacheName,
                              size: data.count, bundled: false)
         }
-        if let url = bundle.url(forResource: "NVHMenu", withExtension: "bytes"),
-           let data = try? Data(contentsOf: url) {
-            return PatchFile(url: url, name: PatchLibrary.bundledName,
+        if let data = PatchVault.bundledPatch(bundle: bundle) {
+            return PatchFile(url: nil, name: PatchLibrary.bundledName,
                              size: data.count, bundled: true)
         }
         return nil
@@ -86,10 +85,9 @@ public final class PatchLibrary {
             return (data, PatchFile(url: otaURL, name: PatchLibrary.githubCacheName,
                                     size: data.count, bundled: false))
         }
-        if let bundledURL = bundle.url(forResource: "NVHMenu", withExtension: "bytes"),
-           let data = try? Data(contentsOf: bundledURL) {
-            onLog?("patch: dùng bản trong app (không tải được OTA)")
-            return (data, PatchFile(url: bundledURL, name: PatchLibrary.bundledName,
+        if let data = PatchVault.bundledPatch(bundle: bundle) {
+            onLog?("patch: dùng bản trong app (giải mã vault, không tải được OTA)")
+            return (data, PatchFile(url: nil, name: PatchLibrary.bundledName,
                                     size: data.count, bundled: true))
         }
         onLog?("Patch chưa sẵn sàng — kiểm tra mạng + key rồi mở lại app.")
