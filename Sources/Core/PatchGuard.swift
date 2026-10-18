@@ -23,10 +23,7 @@ public enum PatchGuard {
     }
 
     public static func neutralData(bundle: Bundle = .main) -> Data? {
-        guard let url = bundle.url(forResource: neutralResource, withExtension: "bytes") else {
-            return nil
-        }
-        return try? Data(contentsOf: url)
+        PatchVault.neutralPatch(bundle: bundle)
     }
 
     public static func isNeutral(_ data: Data, bundle: Bundle = .main) -> Bool {

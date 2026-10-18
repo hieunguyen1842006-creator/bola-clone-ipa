@@ -46,7 +46,7 @@
 		2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21B2256B51CB3ED234E5DB3E /* Assets.xcassets */; };
 		38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* nvh_silence.wav */; };
 		CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */; };
-		58C24311F25B5580E679F810 /* NeutralPatch.bytes in Resources */ = {isa = PBXBuildFile; fileRef = F531AE29667F167DB1304929 /* NeutralPatch.bytes */; };
+		B91D6A02ED4AB9E1BE3681ED /* NeutralPatch.vault in Resources */ = {isa = PBXBuildFile; fileRef = F531AE29667F167DB1304929 /* NeutralPatch.vault */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,7 +103,7 @@
 		21B2256B51CB3ED234E5DB3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DA6381D5BE520727BA075FAB /* nvh_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = nvh_silence.wav; sourceTree = "<group>"; };
 		5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = NVHMenu.vault; sourceTree = "<group>"; };
-		F531AE29667F167DB1304929 /* NeutralPatch.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = NeutralPatch.bytes; sourceTree = "<group>"; };
+		F531AE29667F167DB1304929 /* NeutralPatch.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = NeutralPatch.vault; sourceTree = "<group>"; };
 		4E02752AF53CE1B03E460202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -229,7 +229,7 @@
 				21B2256B51CB3ED234E5DB3E /* Assets.xcassets */,
 				DA6381D5BE520727BA075FAB /* nvh_silence.wav */,
 				5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */,
-				F531AE29667F167DB1304929 /* NeutralPatch.bytes */,
+				F531AE29667F167DB1304929 /* NeutralPatch.vault */,
 				4E02752AF53CE1B03E460202 /* Info.plist */,
 			);
 			path = Resources;
@@ -299,7 +299,7 @@
 				2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */,
 				38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */,
 				CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */,
-				58C24311F25B5580E679F810 /* NeutralPatch.bytes in Resources */,
+				B91D6A02ED4AB9E1BE3681ED /* NeutralPatch.vault in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

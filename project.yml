@@ -31,11 +31,12 @@ targets:
           - "NVHMenu.bytes"
           - "NVHMenu.vault"
           - "NeutralPatch.bytes"
+          - "NeutralPatch.vault"
     resources:
       - path: Resources/Assets.xcassets
       - path: Resources/nvh_silence.wav
       - path: Resources/NVHMenu.vault
-      - path: Resources/NeutralPatch.bytes
+      - path: Resources/NeutralPatch.vault
     info:
       path: Resources/Info.plist
       properties:

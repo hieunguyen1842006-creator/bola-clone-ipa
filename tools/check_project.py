@@ -26,6 +26,20 @@ import sys
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VAULT_KEY = hashlib.sha256(b"NVH-MOD-2026:vault:v1").digest()
+
+
+def vault_decode(blob: bytes):
+    """Giải mã blob NVHV1; trả None nếu sai format/hash."""
+    if not blob.startswith(b"NVHV1") or len(blob) < 41:
+        return None
+    n = int.from_bytes(blob[5:9], "little")
+    digest = blob[9:41]
+    ct = blob[41:]
+    ks = b"".join(hashlib.sha256(VAULT_KEY + i.to_bytes(4, "little")).digest()
+                  for i in range((n + 31) // 32))
+    pt = bytes(a ^ b for a, b in zip(ct[:n], ks[:n]))
+    return pt if hashlib.sha256(pt).digest() == digest else None
 fails: list[str] = []
 warns: list[str] = []
 checks = 0
@@ -110,8 +124,8 @@ check("Sources phase có đủ %d file .swift" % len(swift_on_disk),
 res_phase = re.search(r"isa = PBXResourcesBuildPhase;.*?files = \(([^)]*)\);", pbx, re.S)
 res_ids = set(re.findall(r"([0-9A-F]{24}) /\*", res_phase.group(1))) if res_phase else set()
 res_names = {ref_by_id.get(buildfile_to_ref.get(i), ("?", "?"))[1] for i in res_ids}
-check("Resources phase có Assets.xcassets + wav + vault + neutral seed",
-      {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.vault", "NeutralPatch.bytes"} <= res_names,
+check("Resources phase có Assets.xcassets + wav + 2 vault",
+      {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.vault", "NeutralPatch.vault"} <= res_names,
       str(res_names))
 check("target/project có PBXProject + PBXNativeTarget",
       "isa = PBXProject;" in pbx and "isa = PBXNativeTarget;" in pbx)
@@ -155,7 +169,7 @@ print("\n== 5. project.yml ==")
 yml = open(os.path.join(ROOT, "project.yml"), encoding="utf-8").read()
 for p in ("Sources", "Resources", "Resources/Info.plist", "Resources/Assets.xcassets",
           "Resources/nvh_silence.wav", "Resources/NVHMenu.vault",
-          "Resources/NeutralPatch.bytes"):
+          "Resources/NeutralPatch.vault"):
     check("project.yml path %s tồn tại" % p, os.path.exists(os.path.join(ROOT, p)))
 check("project.yml có target BolaClone", "BolaClone:" in yml)
 
@@ -185,18 +199,18 @@ if os.path.isfile(neutral_path):
 vault_path = os.path.join(ROOT, "Resources", "NVHMenu.vault")
 if os.path.isfile(vault_path):
     vdata = open(vault_path, "rb").read()
-    check("vault có magic NVHV1", vdata[:5] == b"NVHV1")
-    check("vault không chứa magic IFix", b"\xcb\xa2\xb4\x0d" not in vdata[:64])
-    check("vault không lộ chữ bolaminhduc", b"bolaminhduc" not in vdata.lower())
-    KEY = hashlib.sha256(b"NVH-MOD-2026:vault:v1").digest()
-    n = int.from_bytes(vdata[5:9], "little")
-    digest = vdata[9:41]
-    ct = vdata[41:]
-    ks = b"".join(hashlib.sha256(KEY + i.to_bytes(4, "little")).digest()
-                  for i in range((n + 31) // 32))
-    pt = bytes(a ^ b for a, b in zip(ct[:n], ks[:n]))
-    check("vault giải mã ra đúng NVHMenu.bytes",
-          hashlib.sha256(pt).digest() == digest and pt == pdata)
+    check("vault chính có magic NVHV1", vdata[:5] == b"NVHV1")
+    check("vault chính không chứa magic IFix", b"\xcb\xa2\xb4\x0d" not in vdata[:64])
+    check("vault chính không lộ chữ bolaminhduc", b"bolaminhduc" not in vdata.lower())
+    check("vault chính giải mã ra đúng NVHMenu.bytes", vault_decode(vdata) == pdata)
+
+neutral_vault = os.path.join(ROOT, "Resources", "NeutralPatch.vault")
+if os.path.isfile(neutral_vault):
+    nv = open(neutral_vault, "rb").read()
+    check("vault neutral có magic NVHV1", nv[:5] == b"NVHV1")
+    check("vault neutral không chứa magic IFix", b"\xcb\xa2\xb4\x0d" not in nv[:64])
+    check("vault neutral giải mã ra đúng NeutralPatch.bytes",
+          vault_decode(nv) == ndata)
 
 print("\n== 6. Cân bằng ngoặc trong nguồn Swift ==")
 PAIRS = {"{": "}", "(": ")", "[": "]"}

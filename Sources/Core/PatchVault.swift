@@ -10,19 +10,29 @@ import Foundation
 /// Keystream: sha256(key || counter_u32_le), XOR từng block 32 byte.
 public enum PatchVault {
 
-    public static let resource = "NVHMenu"
+    public static let patchResource = "NVHMenu"
+    public static let neutralResource = "NeutralPatch"
     public static let ext = "vault"
     private static let magic: [UInt8] = Array("NVHV1".utf8)
     private static let key = SHA256.digest(Array("NVH-MOD-2026:vault:v1".utf8))
 
-    /// Patch plaintext để đem đi ký + ghi container.
+    /// Patch chính để đem đi ký + ghi container.
     public static func bundledPatch(bundle: Bundle = .main) -> Data? {
+        load(resource: patchResource, bundle: bundle)
+    }
+
+    /// Neutral seed (không chức năng) khi chưa có license.
+    public static func neutralPatch(bundle: Bundle = .main) -> Data? {
+        load(resource: neutralResource, bundle: bundle)
+    }
+
+    public static func load(resource: String, bundle: Bundle = .main) -> Data? {
         if let url = bundle.url(forResource: resource, withExtension: ext),
            let blob = try? Data(contentsOf: url),
            let plain = decode(blob) {
             return plain
         }
-        // Dev fallback: bản build cũ còn để patch plaintext trong bundle.
+        // Dev fallback: build cũ còn để file plaintext trong bundle.
         if let url = bundle.url(forResource: resource, withExtension: "bytes"),
            let plain = try? Data(contentsOf: url) {
             return plain
