@@ -23,7 +23,12 @@ public final class AppModel: ObservableObject {
 
     @Published public var phase: Phase = .idle
     @Published public var statusText: String = "Đang chuẩn bị…"
-    @Published public var game: GameTarget = .freefireMAX
+    @Published public var game: GameTarget = .freefireMAX {
+        didSet {
+            guard game != oldValue else { return }
+            patchInstalled = Self.persistedInjected(for: game)
+        }
+    }
     @Published public var installedInfo: [GameTarget: Bool] = [:]
     @Published public var patchInstalled: Bool = false
     @Published public var logText: String = ""
@@ -104,7 +109,7 @@ public final class AppModel: ObservableObject {
         gate.onLog = { [weak self] in self?.log($0) }
         gate.onAuthorized = { [weak self] in self?.selfHealToken() }
         antibanEngine.onLog = { [weak self] in self?.log($0) }
-        antibanEngine.onForceOff = { [weak self] _ in self?.patchInstalled = false }
+        antibanEngine.onForceOff = { [weak self] _ in self?.markInjected(false) }
 
         Logger.shared.onChange = { [weak self] lines in
             self?.logText = lines.suffix(120).map { "\($0.stamp)  \($0.text)" }.joined(separator: "\n")
@@ -174,7 +179,10 @@ public final class AppModel: ObservableObject {
             found[g] = Self.canOpen(scheme: g.scheme) || access.isAvailable(for: g)
         }
         installedInfo = found
-        patchInstalled = access.isAvailable(for: game) && isPatchPresent()
+        // Trạng thái inject được lưu bền: lần mở app đầu chưa có quyền đọc container
+        // nên không thể chỉ dựa vào việc dò file patch.
+        patchInstalled = Self.persistedInjected(for: game)
+            || (access.isAvailable(for: game) && isPatchPresent())
         if !found.values.contains(true) {
             log("Không thấy game. Kiểm tra game đã cài chưa nhé.")
         }
@@ -198,6 +206,20 @@ public final class AppModel: ObservableObject {
 
     private func isPatchPresent() -> Bool {
         ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) != nil
+    }
+
+    // MARK: trạng thái inject bền (sống qua lần kill app)
+
+    private static let injectedPrefix = "nvh.injected."
+
+    public static func persistedInjected(for game: GameTarget) -> Bool {
+        UserDefaults.standard.bool(forKey: injectedPrefix + game.bundleID)
+    }
+
+    /// Cập nhật nút INJECT / UN INJECT và ghi nhớ trạng thái cho lần mở sau.
+    private func markInjected(_ on: Bool) {
+        patchInstalled = on
+        UserDefaults.standard.set(on, forKey: Self.injectedPrefix + game.bundleID)
     }
 
     // MARK: hành động
@@ -289,7 +311,7 @@ public final class AppModel: ObservableObject {
             let outcome = await inst.run(req)
             await MainActor.run {
                 self.busy = false
-                self.patchInstalled = outcome.ok
+                self.markInjected(outcome.ok)
                 self.statusText = outcome.message
                 self.toast(outcome.message)
                 self.keyMaskedName = KeyMask.mask(lease.key)
@@ -320,7 +342,7 @@ public final class AppModel: ObservableObject {
         Task { @MainActor in
             let n = (installer as Installer).deployerUninstall(game: game)
             log("inject: huỷ muộn → gỡ patch vừa cài (\(n))")
-            patchInstalled = false
+            markInjected(false)
             phase = .idle
             toast("Đã huỷ — đã gỡ xong")
         }
@@ -329,7 +351,7 @@ public final class AppModel: ObservableObject {
     public func removePatch() {
         guard throttle() else { return }
         let n = installer.deployerUninstall(game: game)
-        patchInstalled = false
+        markInjected(false)
         phase = .idle
         log("Đã gỡ xong. Mở lại game để áp dụng nhé. (\(n) file)")
         toast("Đã gỡ xong. Mở lại game để áp dụng nhé.")
@@ -364,7 +386,7 @@ public final class AppModel: ObservableObject {
         let inst = makeInstaller(access: access)
         inst.currentLease = lease
         if inst.resyncTokenIfNeeded(for: game) {
-            patchInstalled = true
+            markInjected(true)
             log("token: self-heal → đã ký lại trailer cho \(game.name)")
         }
     }
@@ -420,7 +442,7 @@ public final class AppModel: ObservableObject {
     /// Gỡ toàn bộ và trả về trạng thái nghỉ (bản gốc: AppModel.restore).
     public func restore() {
         let outcome = installer.restore(game: game)
-        patchInstalled = false
+        markInjected(false)
         phase = .idle
         statusText = outcome.message
         toast(outcome.message)

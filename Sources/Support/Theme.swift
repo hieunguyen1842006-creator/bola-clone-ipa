@@ -74,25 +74,36 @@ public struct CardButtonStyle: ButtonStyle {
 
 public struct InjectButtonStyle: ButtonStyle {
     public var enabled: Bool = true
-    public init(enabled: Bool = true) { self.enabled = enabled }
+    /// Đã inject → nút chuyển đỏ với chữ "UN INJECT"
+    public var danger: Bool = false
+    public init(enabled: Bool = true, danger: Bool = false) {
+        self.enabled = enabled
+        self.danger = danger
+    }
     public func makeBody(configuration: Configuration) -> some View {
+        let labelColor: Color = danger ? .white : (enabled ? .black : Theme.dim)
+        let fill: [Color] = danger
+            ? [Color(hex: 0xE24848), Color(hex: 0x8E1B1B)]
+            : (enabled ? [Theme.accent, Color(hex: 0x1FA97F)] : [Theme.cardHi, Theme.card])
+        let stroke: Color = danger
+            ? Color(hex: 0xFF8A8A).opacity(0.6)
+            : (enabled ? Theme.borderHi.opacity(0.6) : Theme.border)
+        let glow: Color = danger ? Theme.danger.opacity(0.3)
+            : (enabled ? Theme.accent.opacity(0.25) : .clear)
         configuration.label
             .font(Theme.titleFont)
-            .foregroundStyle(enabled ? Color.black : Theme.dim)
+            .foregroundStyle(labelColor)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(LinearGradient(colors: enabled
-                                         ? [Theme.accent, Color(hex: 0x1FA97F)]
-                                         : [Theme.cardHi, Theme.card],
+                    .fill(LinearGradient(colors: fill,
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(enabled ? Theme.borderHi.opacity(0.6) : Theme.border, lineWidth: 1)
+                            .stroke(stroke, lineWidth: 1)
                     )
-                    .shadow(color: enabled ? Theme.accent.opacity(0.25) : .clear,
-                            radius: 14, y: 6)
+                    .shadow(color: glow, radius: 14, y: 6)
             )
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
     }

@@ -168,20 +168,25 @@ public struct HomeView: View {
             }
             .buttonStyle(CardButtonStyle())
 
-            Button { model.inject() } label: {
+            Button {
+                if model.patchInstalled { model.removePatch() } else { model.inject() }
+            } label: {
                 HStack(spacing: 10) {
-                    if model.busy { ProgressView().tint(.black) }
-                    Text(model.busy ? "Đang inject…" : "INJECT")
+                    if model.busy {
+                        ProgressView().tint(model.patchInstalled ? .white : .black)
+                    }
+                    Text(model.busy
+                         ? "Đang xử lý…"
+                         : (model.patchInstalled ? "UN INJECT" : "INJECT"))
                 }
             }
-            .buttonStyle(InjectButtonStyle(enabled: !model.busy && gate.isAuthorized))
+            .buttonStyle(InjectButtonStyle(enabled: !model.busy && gate.isAuthorized,
+                                           danger: model.patchInstalled))
             .disabled(model.busy)
 
-            if model.patchInstalled {
-                Button("Un-inject — gỡ patch khỏi game") { model.removePatch() }
-                    .font(Theme.bodyFont).foregroundStyle(Theme.danger)
-            }
-            Text("Chọn game → chỉnh chức năng → bấm INJECT")
+            Text(model.patchInstalled
+                 ? "Đang inject — bấm UN INJECT để gỡ patch"
+                 : "Chọn game → chỉnh chức năng → bấm INJECT")
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
         }
     }
