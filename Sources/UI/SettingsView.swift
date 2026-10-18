@@ -54,7 +54,7 @@ public struct SettingsView: View {
                 model.clearCache()
             }
             divider
-            row("Gỡ patch khỏi game", value: model.patchInstalled ? "Đã cài đặt" : "Chưa có gì để gỡ.") {
+            row("Un-inject — gỡ patch khỏi game", value: model.patchInstalled ? "Đã cài đặt" : "Chưa có gì để gỡ.") {
                 model.removePatch()
             }
             divider

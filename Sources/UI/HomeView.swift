@@ -178,7 +178,7 @@ public struct HomeView: View {
             .disabled(model.busy)
 
             if model.patchInstalled {
-                Button("Gỡ patch khỏi game") { model.removePatch() }
+                Button("Un-inject — gỡ patch khỏi game") { model.removePatch() }
                     .font(Theme.bodyFont).foregroundStyle(Theme.danger)
             }
             Text("Chọn game → chỉnh chức năng → bấm INJECT")

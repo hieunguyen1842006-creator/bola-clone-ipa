@@ -54,3 +54,35 @@ public enum PatchGuard {
         return digest(installed) == expected ? .ok : .modified
     }
 }
+
+/// PatchJournal — nhớ `localConfig.json` gốc trước khi ghi đè để un-inject khôi phục.
+/// Giống Sophia: uninject trả cấu hình về như trước, không để lại cờ testCodePatch.
+public enum PatchJournal {
+
+    private static let configKey = "nvh.cfg.orig."
+    private static let recordKey = "nvh.cfg.record."
+
+    public static func rememberConfig(_ data: Data?, for game: GameTarget) {
+        let defaults = UserDefaults.standard
+        defaults.set(true, forKey: recordKey + game.bundleID)
+        if let data {
+            defaults.set(data, forKey: configKey + game.bundleID)
+        } else {
+            defaults.removeObject(forKey: configKey + game.bundleID)
+        }
+    }
+
+    public static func hasConfigRecord(for game: GameTarget) -> Bool {
+        UserDefaults.standard.bool(forKey: recordKey + game.bundleID)
+    }
+
+    public static func originalConfig(for game: GameTarget) -> Data? {
+        UserDefaults.standard.data(forKey: configKey + game.bundleID)
+    }
+
+    public static func clearConfig(for game: GameTarget) {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: configKey + game.bundleID)
+        defaults.removeObject(forKey: recordKey + game.bundleID)
+    }
+}

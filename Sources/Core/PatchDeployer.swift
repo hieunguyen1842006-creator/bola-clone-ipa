@@ -117,6 +117,11 @@ public final class PatchDeployer {
 
         // 2b. bật testCodePatch — thiếu file này game không nạp patch ở lần mở kế tiếp
         // (repo gốc đóng kèm localConfig.json đúng nội dung này cạnh patch).
+        // Nhớ bản gốc để un-inject khôi phục (chỉ lần đầu, không ghi đè bằng config của mình).
+        if !PatchJournal.hasConfigRecord(for: game) {
+            let originalConfig = (try? access.read("localConfig.json", in: game)) ?? nil
+            PatchJournal.rememberConfig(originalConfig, for: game)
+        }
         do {
             try access.write(Data(#"{"testCodePatch":true}"#.utf8),
                              to: "localConfig.json", in: game)
@@ -143,6 +148,19 @@ public final class PatchDeployer {
             }
         }
         PatchGuard.clear(for: game)
+
+        // un-inject: trả localConfig.json về bản gốc (hoặc xoá nếu trước đó chưa có)
+        if PatchJournal.hasConfigRecord(for: game) {
+            if let original = PatchJournal.originalConfig(for: game) {
+                try? access.write(original, to: "localConfig.json", in: game)
+                onLog?("un-inject: đã khôi phục localConfig.json gốc")
+            } else {
+                try? access.remove("localConfig.json", in: game)
+                onLog?("un-inject: đã xoá localConfig.json (trước đó chưa có)")
+            }
+            PatchJournal.clearConfig(for: game)
+        }
+
         onLog?("patch removed (\(n) file) — Anti-ban off → patch removed (\(n))")
         return n
     }
