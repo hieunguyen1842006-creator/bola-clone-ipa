@@ -26,7 +26,11 @@ public final class AppModel: ObservableObject {
     @Published public var game: GameTarget = .freefireMAX {
         didSet {
             guard game != oldValue else { return }
-            patchInstalled = Self.persistedInjected(for: game)
+            if access.isAvailable(for: game) {
+                patchInstalled = isPatchPresent()
+            } else {
+                patchInstalled = Self.persistedInjected(for: game)
+            }
         }
     }
     @Published public var installedInfo: [GameTarget: Bool] = [:]
@@ -179,10 +183,15 @@ public final class AppModel: ObservableObject {
             found[g] = Self.canOpen(scheme: g.scheme) || access.isAvailable(for: g)
         }
         installedInfo = found
-        // Trạng thái inject được lưu bền: lần mở app đầu chưa có quyền đọc container
-        // nên không thể chỉ dựa vào việc dò file patch.
-        patchInstalled = Self.persistedInjected(for: game)
-            || (access.isAvailable(for: game) && isPatchPresent())
+        // Màu nút = file thật trong Documents của game: có patch + config = đỏ.
+        // Chỉ khi chưa đọc được container mới dùng trạng thái lưu từ lần trước.
+        if access.isAvailable(for: game) {
+            let present = isPatchPresent()
+            patchInstalled = present
+            UserDefaults.standard.set(present, forKey: Self.injectedPrefix + game.bundleID)
+        } else {
+            patchInstalled = Self.persistedInjected(for: game)
+        }
         if !found.values.contains(true) {
             log("Không thấy game. Kiểm tra game đã cài chưa nhé.")
         }
@@ -204,8 +213,11 @@ public final class AppModel: ObservableObject {
         }
     }
 
+    /// Đã inject = có ĐỦ `Assembly-CSharp-patch.bytes` + `nvhcfg.bin` trong Documents game.
     private func isPatchPresent() -> Bool {
-        ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) != nil
+        let patch = ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) != nil
+        let cfg = ((try? access.read(PatchLibrary.configFileName, in: game)) ?? nil) != nil
+        return patch && cfg
     }
 
     // MARK: trạng thái inject bền (sống qua lần kill app)
