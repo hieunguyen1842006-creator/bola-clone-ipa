@@ -9,16 +9,24 @@ import UIKit
 enum GameLauncher {
 
     static func launch(_ game: GameTarget, log: @escaping (String) -> Void) {
-        if BolaOpenApplication(game.bundleID) {
-            log("đã gửi lệnh mở game (LSApplicationWorkspace)")
-            return
+        // IFix chỉ nạp patch lúc process khởi động → tắt bản đang chạy trước.
+        let killed = BolaTerminateApplication(game.bundleID)
+        if killed {
+            log("đã tắt game cũ — mở lại để nạp patch")
         }
-        let schemes: [String] = {
-            var seen = Set<String>()
-            return [game.scheme, "freefire", "ff", "freefireth", "freefiremax"]
-                .filter { seen.insert($0).inserted }
-        }()
-        tryScheme(schemes, at: 0, game: game, log: log)
+        let delay: TimeInterval = killed ? 0.8 : 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            if BolaOpenApplication(game.bundleID) {
+                log("đã gửi lệnh mở game (LSApplicationWorkspace)")
+                return
+            }
+            let schemes: [String] = {
+                var seen = Set<String>()
+                return [game.scheme, "freefire", "ff", "freefireth", "freefiremax"]
+                    .filter { seen.insert($0).inserted }
+            }()
+            tryScheme(schemes, at: 0, game: game, log: log)
+        }
     }
 
     private static func tryScheme(_ schemes: [String], at index: Int,

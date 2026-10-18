@@ -14,6 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 BOOL BolaOpenApplication(NSString *bundleID);
 
+/// Tắt app (LSApplicationWorkspace terminate…). NO nếu máy không cho phép.
+BOOL BolaTerminateApplication(NSString *bundleID);
+
 /// Phiên bản app đã cài (LSApplicationProxy.shortVersionString); nil nếu không đọc được.
 NSString * _Nullable BolaInstalledAppVersion(NSString *bundleID);
 

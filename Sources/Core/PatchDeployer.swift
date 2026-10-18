@@ -90,6 +90,16 @@ public final class PatchDeployer {
             onLog?("cfg: không ghi được bolacfg.bin")
         }
 
+        // 2b. bật testCodePatch — thiếu file này game không nạp patch ở lần mở kế tiếp
+        // (repo gốc đóng kèm localConfig.json đúng nội dung này cạnh patch).
+        do {
+            try access.write(Data(#"{"testCodePatch":true}"#.utf8),
+                             to: "localConfig.json", in: game)
+            onLog?("patch: đã bật testCodePatch (localConfig.json)")
+        } catch {
+            onLog?("patch: không ghi được localConfig.json")
+        }
+
         // 4. dấu xác nhận
         library.writeVerifyMarkers(patchSHA: SHA256.hex([UInt8](finalPatch)), into: access, game: game)
 

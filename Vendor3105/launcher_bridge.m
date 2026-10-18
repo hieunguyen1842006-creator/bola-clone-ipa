@@ -39,6 +39,23 @@ BOOL BolaOpenApplication(NSString *bundleID) {
     return YES;
 }
 
+BOOL BolaTerminateApplication(NSString *bundleID) {
+    if (bundleID.length == 0) return NO;
+
+    Class workspaceClass = BolaWorkspaceClass();
+    if (!workspaceClass) return NO;
+
+    SEL defaultSel = NSSelectorFromString(@"defaultWorkspace");
+    if (![(id)workspaceClass respondsToSelector:defaultSel]) return NO;
+    id workspace = ((BolaMsgSend0)objc_msgSend)((id)workspaceClass, defaultSel);
+    if (!workspace) return NO;
+
+    SEL termSel = NSSelectorFromString(@"terminateApplicationForBundleIdentifier:");
+    if (![workspace respondsToSelector:termSel]) return NO;
+    ((BolaMsgSend2)objc_msgSend)(workspace, termSel, bundleID);
+    return YES;
+}
+
 NSString *BolaInstalledAppVersion(NSString *bundleID) {
     if (bundleID.length == 0) return nil;
     BolaWorkspaceClass();
