@@ -1,0 +1,1624 @@
+openApplicationWithBundleID:
+freefire
+freefireth
+freefiremax
+[-] socket create failed!!!
+IOSurfaceAddress
+IOSurfaceAllocSize
+IOSurfaceMemoryRegion
+PurpleGfxMem
+early_kread
+[*] MTE checkpoint: OOB physical read/write reached without panic
+[-] mach_make_memory_entry_64 failed!!!
+[-] setsockopt failed!!!
+[-] mach_vm_map failed !!!
+[-] Failed to create surface!!!
+[+] mach_vm_map failed!!!
+[-] mach_vm_map failed!!!
+[!] error: (size > EARLY_KRW_LENGTH)
+[-] Found freed PCB Page!
+[+] Corrupting icmp6filter pointer...
+[-] getsockopt failed!!!
+[-] Found old PCB Page!!!!
+[-] Found last PCB
+[-] mach_port_deallocate failed!!!
+[-] mach_vm_allocate failed!!!
+[-] pe_v2: mach_vm_allocate search mapping failed
+[-] pe_v2: mach_make_memory_entry_64 failed
+[-] pe_v2: Failed to deallocate wired page
+[+] pe_v2: Socket limit reached, waiting for zone trimming...
+[-] pe_v2: Found old/duplicate wired page, skipping
+[-] pe_v2: initial mach_vm_allocate failed
+[-] Couldn't find controlSocketAddr || rwSocketAddr
+[+] Running on non-A18/M4 device
+[+] Running on A18/M4 device
+win??
+[-] race thread reported failure
+/usr/lib/system/libsystem_containermanager.dylib
+container_query_create
+container_query_set_class
+container_query_set_identifiers
+container_query_operation_set_flags
+container_query_operation_set_part
+container_query_get_single_result
+container_query_free
+container_object_copy
+container_object_get_path
+container_copy_sandbox_token
+container_object_sandbox_extension_activate
+hw.cpufamily
+hw.cpusubtype
+hw.machine
+[-] Only supported offset for iOS/iPadOS 17.0 - 26.0.x
+/private/var/mobile/Containers/Data/Application
+/private/var/mobile/Containers/Data/System
+[SBX] self_proc is NULL
+[SBX] proc_ro invalid
+[SBX] ucred not found
+[SBX] cr_label invalid
+[SBX] sandbox invalid
+[SBX] ext_set invalid
+[SBX] *** SANDBOX ESCAPED (R+W) ***
+.3105_access_probe_%d_%@
+com.apple.app-sandbox.read-write
+integrity_db.sqlite
+patch_verify.dat
+verify_cache.dat
+Library/Caches/Analytics
+Library/Caches/CrashReporter
+Library/Caches/crashes
+Library/Caches/com.crashlytics.data
+Library/Caches/bugly
+Library/Caches/com.google.firebase
+Library/Caches/com.appsflyer
+Library/Caches/adjust-sdk
+Library/Caches/Snapshots
+Library/Caches/GCloud
+Library/Caches/GVoice
+Library/Caches/com.facebook.sdk
+Library/Caches/com.garena
+Library/Caches/garena
+Library/Caches/com.google.gmp
+esp
+aim
+misc
+allInstalledApplications
+com.dts.freefireth
+com.dts.freefiremax
+/Documents/contentcache/
+/var/mobile/Library/Logs/CrashReporter
+/var/mobile/Library/Logs/CrashReporter/
+{"testCodePatch":true,"resetGuest":true}
+/localConfig.json
+CFBundleDisplayName
+_TtC11BolaMinhDuc8AppModel
+_phase
+_statusText
+_game
+_installedInfo
+_patchInstalled
+_logText
+_restoring
+_toastText
+toastToken
+_cfgFlags
+_aimBone
+_silentFov
+_aimFov
+_headRate
+_camFov
+_espThick
+_language
+_antiban
+_mhaActive
+_writeOK
+_keyMaskedName
+_keyHoursLeft
+cancelRequested
+lastActionTime
+antibanTimer
+keyCardTimer
+settleWindow
+didBootstrap
+kernelInFlight
+kernelDone
+kernelWaiters
+Đang chuẩn bị…
+auto: mở app → chạy exploit ở nền
+Đã sẵn sàng — không cần chuẩn bị lại
+auto: đã truy cập được thư mục game → bỏ qua kernel (an toàn hơn)
+v16@?0@"NSTimer"8
+/Documents/bolacfg.bin
+cfg: không ghi được bolacfg.bin
+cfg: đã ghi bolacfg.bin
+exploit: 1/2 kernel r/w (kexploit_opa334) …
+exploit: FAILED — kexploit_opa334 returned 
+ (unsupported build or race lost)
+exploit: kernel r/w established
+exploit: 2/2 sandbox escape (3105 build) …
+exploit: sandbox_escape -> 
+ (hay trả -1 nhưng vẫn ghi được — bình thường)
+exploit: xong — để INJECT tự kiểm tra và cài patch
+exploit: FAILED — proc_self() == 0
+Có lỗi — thử lại nhé
+Sẵn sàng — bấm INJECT
+exploit: thử lại lần 2…
+mha: đã mở container qua MobileHouseArrest — bỏ qua kernel
+mha: không khả dụng (mã 
+) — dùng kernel exploit
+patch: dùng bản trong app (không tải được OTA)
+patch: đã tải patch mới từ GitHub (
+reset guest: đã đặt cờ localConfig.json vào 
+Không ghi được — mở game 1 lần (để tạo container) rồi thử lại
+Could not write — launch the game once (container must exist) then retry
+🧹 Đã đặt cờ reset guest — tắt hẳn game rồi MỞ LẠI để reset!
+🧹 Guest reset flag written — force-close the game and RELAUNCH it!
+🛡️ Đã bật Anti-ban — tự dọn dấu vết liên tục (tắt sẽ tự gỡ patch)
+🛡️ Anti-ban on — keeps wiping traces (turning off auto-removes the patch)
+🔑 Nhập key xong rồi mới bật được Anti-ban nhé!
+🔑 Activate your key before enabling Anti-ban!
+Assembly-CSharp-patch.bytes
+antiban: tắt anti → tự gỡ patch 
+Đã tắt Anti-ban → tự gỡ patch (
+Anti-ban off → patch removed (
+ui: bỏ qua thao tác quá nhanh (chống bấm nhầm)
+Patch chưa sẵn sàng — kiểm tra mạng + key rồi mở lại app.
+Patch not ready — check network + key, then reopen the app.
+inject: chưa có patch cá nhân hoá hợp lệ
+Chờ một chút rồi inject…
+inject: kernel đang chạy — sẽ cài ngay khi xong
+⛔ Bản này đã ngừng hoạt động.
+⛔ This build has been stopped.
+inject: bản đã bị server kill
+inject: kernel chưa sẵn sàng, huỷ inject
+Chưa sẵn sàng — chờ vài giây rồi thử lại nhé.
+Not ready yet — try again in a few seconds.
+inject: kernel sẵn sàng → cài 
+Đã huỷ inject
+inject: đã huỷ theo yêu cầu
+Đã cài — chuẩn bị mở game…
+Đã inject — đang mở game
+Đã huỷ — đã gỡ xong
+inject: huỷ muộn → gỡ patch vừa cài (
+KHÔNG mở được
+Đã cài xong nhưng không mở được game — mở 
+ bằng tay giúp mình.
+Installed, but the game didn't open — please open 
+đã gửi lệnh mở game
+cache: đã xoá 
+Đã xoá bộ nhớ đệm (
+_TtC11BolaMinhDuc15BackgroundAudio
+player
+bola_silence.wav
+cài & mở game
+install & open the game
+gỡ khỏi game
+remove from the game
+nhấn để huỷ
+vui lòng đợi
+inject: người dùng bấm huỷ
+Khung quanh người & bot
+Box around players & bots
+Đường kẻ từ tâm ngắm
+Line from the crosshair
+Khung xương người (skeleton)
+Thanh HP cho người & bot
+HP bar for players & bots
+Tên người chơi / bot
+Player / bot name
+Khoảng cách tới mục tiêu
+Distance to the target
+Hiện cả bot (AI)
+Show bots (AI) too
+Số địch + bot ở trên màn hình
+Enemies + bots shown on screen
+Hiện đồng đội (màu xanh)
+Show teammates (green)
+paintpalette.fill
+Màu hiển thị
+Khoá địch gần tâm ngắm nhất
+Lock the enemy nearest the crosshair
+Bắn lệch vẫn bay vào bone đã chọn
+Shots bend into the selected bone
+cursorarrow.rays
+Hiện vòng FOV
+Ẩn/hiện vòng tròn FOV trên màn hình
+Show or hide the FOV circle on screen
+Không bắn vào địch đã bị hạ gục
+Don't shoot knocked-down enemies
+Tỉ lệ vào đầu
+Đạn thẳng (No Recoil 0%)
+Straight bullets (No Recoil 0%)
+Triệt tiêu độ tỏa đạn — đạn bay thẳng tắp
+Eliminates bullet spread — bullets fly straight
+ĐỂ LỖI DAME
+Bật Đạn Thẳng can thiệp triệt tiêu độ tỏa đạn. Máy chủ có thể từ chối tính sát thương khi xả đạn liên tục dẫn tới SÁT THƯƠNG ẢO / LỖI DAME (bắn trúng địch nhưng không mất máu). Khuyên dùng cẩn trọng!
+Straight bullets nullifies spread. The server may reject damage when firing continuously, causing FAKE DAMAGE (hits but no HP loss). Use with care!
+Bắn Siêu Tốc (Fast Fire)
+Tăng tốc độ nhả đạn của súng liên thanh
+Increases auto-fire rate
+Đổi Súng Nhanh
+Fast Weapon Swap
+Triệt tiêu delay đổi súng, bắn liền tục
+Removes swap delay
+arrow.left.arrow.right
+Khử gia tốc rơi, nhảy giật lùi né đạn
+No fall acceleration, back jump
+arrow.up.forward
+Nhảy Cao (High Jump)
+Nhảy cao 1.2x vượt tường kẹo, leo nóc nhà
+Jump 1.2x over low walls
+arrow.up.circle.fill
+Chạy Nhanh x3 (Speed Run)
+Di chuyển thần tốc, né đạn & lướt nhanh
+Run fast, dodge bullets
+Tốc độ quá cao gây lệch tọa độ giữa máy bạn và server (Desync). Khi vừa chạy vừa xả đạn, server có thể TỪ CHỐI TÍNH SÁT THƯƠNG — đạn trúng địch nhưng không mất máu. Dùng cẩn trọng!
+High speed desyncs you from the server. Firing while running may cause FAKE DAMAGE. Use with care!
+Góc Nhìn Rộng (Cam Xa)
+Mở rộng góc quan sát toàn cảnh chiến trường
+Widen the camera view
+camera.viewfinder
+Điệu Nhảy Booyah
+Kích hoạt nhảy Booyah & Carnival liên tục
+Trigger Booyah & Carnival dance
+Mở Khóa 144 FPS
+Mở khóa tần số quét, hình ảnh siêu mượt
+Unlocks high refresh rate
+Khoảng Cách Cam (FOV)
+exclamationmark.triangle.fill
+CẢNH BÁO NGUY HIỂM:
+Chỉnh chức năng
+Contradictory frame constraints specified.
+Chọn ngôn ngữ
+checkmark.circle.fill
+Hỗ trợ • thông báo • cập nhật mới
+Support • announcements • updates
+Chọn game → chỉnh chức năng → bấm INJECT
+Pick a game → tweak features → tap INJECT
+Không thấy game
+Đã phát hiện
+Chỉnh chức năng & INJECT
+Features & INJECT
+gamecontroller.fill
+arrow.counterclockwise.circle.fill
+Xoá định danh khách — mở game tạo guest mới (tắt hẳn game trước!)
+Wipe the guest identity — relaunch to create a new guest (force-close first!)
+person.crop.circle.badge.xmark
+🔑 Nhập key trước để bật
+🔑 Activate your key first
+Mặc định tắt mỗi lần mở app — bật lại khi cần
+Off by default each launch — enable when needed
+shield.lefthalf.filled
+HỆ ĐIỀU HÀNH
+checkmark.shield.fill
+Trợ lý trong game
+bolt.shield.fill
+/var/mobile/Containers/Data/Application
+/.com.apple.mobile_container_manager.metadata.plist
+/var/mobile/Containers/Data/Application/
+MCMMetadataIdentifier
+Chưa kết nối được với game
+Can't reach the game
+Chưa cài đặt
+Đã cài đặt
+LSApplicationWorkspace
+/System/Library/PrivateFrameworks/MobileCoreServices.framework/MobileCoreServices
+/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices
+defaultWorkspace
+bundleIdentifier
+applicationIdentifier
+Fatal error
+Không tìm thấy thư mục game.
+Game folder not found.
+localConfig.json
+Chưa có gì để gỡ.
+Nothing to remove.
+Đã gỡ xong. Mở lại game để áp dụng nhé.
+Removed. Reopen the game to apply.
+Không tìm thấy 
+. Kiểm tra game đã cài chưa nhé.
+ not found. Check that the game is installed.
+Lỗi ghi file: 
+Đã cài xong cho 
+. Mở game để kiểm tra nhé.
+. Open the game to test.
+lock.shield.fill
+Chưa có key? Liên hệ admin để mua.
+Đang kết nối hệ thống key…
+_TtC11BolaMinhDuc11LicenseGate
+_state
+_remainingText
+_busy
+_errorText
+leaseExpiryUnix
+started
+activated
+BolaOfflineMaxDays
+v16@?0@"NSDictionary"8
+tserver terminal: %@
+Key hết hạn hoặc bị thu hồi — nhập key mới.
+tserver key info: %@
+remainingSeconds
+pkg_6yNT9gnfWl9NjBw4vZw80CW9INCCUsNL
+https://ds.tphat.store/api/client/secret?
+v32@?0@"NSData"8@"NSURLResponse"16@"NSError"24
+https://ds.tphat.store/api/client/patch?
+remote_patch.bytes
+/api/client/check
+https://ds.tphat.store
+application/json
+/api/client/activate
+server activate failed: %@
+v32@?0@"NSURL"8@"NSURLResponse"16@"NSError"24
+github_patch.bin
+https://raw.githubusercontent.com/Tranduc1124/DSMINHDUC/main/BolaMinhDuc/Patches/BolaminhducMenu.bytes
+BolaminhducMenu-OTA
+Xoá Bộ Nhớ Đệm
+File tạm trong app
+Temporary app files
+Thông Tin Ứng Dụng
+Phiên bản • thiết bị
+Version • device
+CFBundleShortVersionString
+info.circle.fill
+_TtC11BolaMinhDuc11VersionGate
+_blocked
+_killed
+_message
+_downloadURL
+_latestVersion
+timer
+lastOkKey
+Cần kết nối mạng để xác thực (
+ ngày một lần).
+Bản này đã ngừng hoạt động.
+https://ds.tphat.store/download/latest
+bola_last_server_ok
+PHIÊN BẢN CŨ
+Bản mới nhất: 
+Cảm ơn bạn đã sử dụng!
+Bạn đang sử dụng phiên bản cũ. Vui lòng tải bản mới nhất để tiếp tục!
+NGỪNG HOẠT ĐỘNG
+⬇️  TẢI BẢN MỚI NHẤT
+_TtC11BolaMinhDucP33_6FAA0012C6B539C3506DC469761B39FC19ResourceBundleClass
+v16@?0@"NSNotification"8
+result
+terminal
+status
+errorCode
+empty_terminal_event
+v16@?0q8
+paid
+invalid_key_input
+v20@?0@"NSDictionary"8B16
+message
+stale_authorization_lease
+stage
+callback
+callback_shape_rejected
+callback_context_rejected
+kind
+fields
+licenseKey
+maskedKey
+licenseKeyMasked
+isLifetime
+startsOnActivation
+maxDevices
+effectiveExpiresAt
+licenseExpiresAt
+expiresAt
+en_US_POSIX
+UTC
+yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+yyyy-MM-dd'T'HH:mm:ss'Z'
+licenseType
+lifetime
+forever
+%ld
+licenseRef
+<null>
+features
+VALID
+%tserver_timekeyt%
+%tserver_key_remaining%
+%tserver_remaining_seconds%
+%tserver_key%
+%tserver_key_masked%
+%tserver_key_type%
+%tserver_license_type%
+%tserver_key_id%
+%tserver_license_ref%
+%tserver_key_status%
+%tserver_expires_at%
+%tserver_max_devices%
+%tserver_is_lifetime%
+true
+false
+%tserver_starts_on_activation%
+%tserver_capabilities%
+diagnosticId
+requestId
+updateUrl
+license
+key_confirmation_failed
+{"ok":false,"status":"SERVER_ERROR"}
+abcdefghijklmnopqrstuvwxyz0123456789+.-
+Lifetime
+Bat dau tinh khi kich hoat
+Da het han
+%ld ngay %ld gio
+%ld gio %ld phut
+%ld phut
+com.tserver.activation.terminal
+com.tserver.activation-attempt
+timeout
+active_timeout
+Activation was superseded by a newer attempt.
+cancelled
+superseded
+preflight
+activation_returned_need_key
+profile_session_required
+Authorization lease does not grant paid capability
+lease_capability_missing
+attemptId
+sdkBuild
+unknown
+httpStatus
+security
+unsafe_environment
+sdk
+sdk_terminal
+NEED_UUID
+NEED_KEY
+EXPIRED
+REVOKED
+INVALID_KEY
+DEVICE_MISMATCH
+DEVICE_BLOCKED
+BAD_SESSION
+SERVER_ERROR
+NETWORK_ERROR
+TRIAL_ALREADY_USED
+OFFLINE_GRACE_VALID
+OFFLINE_GRACE_EXPIRED
+BAD_RESPONSE_SIGNATURE
+INVALID_API_KEY
+INVALID_CLIENT_API_KEY
+CLIENT_KEY_UNAVAILABLE
+PACKAGE_BUNDLE_DENIED
+BAD_PACKAGE_SESSION
+UPDATE_REQUIRED
+MAINTENANCE
+BAD_CLIENT_SIGNATURE
+REPLAY_REQUEST
+RATE_LIMITED
+AUTHORIZATION_LEASE_INVALID
+ACTIVATION_TIMEOUT
+ACTIVATION_CANCELLED
+UNSAFE_ENVIRONMENT
+CALLBACK_FAILURE
+UI_FAILURE
+TRANSPORT_SESSION_ERROR
+authUiConfig
+authUiConfigSha256
+0123456789abcdef
+templateName
+renderer
+revision
+config
+sha256
+templateId
+rendererId
+rendererRevision
+authUiVersion
+bundleId
+savedAt
+startedAt
+pairGeneration
+generation
+profileSessionToken
+packageSessionToken
+Dang mo trang xac minh UUID. Vui long doi.
+TserverAuth is not configured
+Server khong tra ve du lieu mo trang ho so
+PROFILE_OPENED
+Da mo trang cai ho so. Cai xong trong Cai dat roi quay lai app.
+profileStartUrl
+Khong mo duoc trinh duyet de cai ho so
+v12@?0B8
+v16@?0@"NSString"8
+sessionToken
+Callback URL is nil
+Missing sessionToken in callback URL
+Callback context does not match this app
+Hay xac minh UUID thiet bi truoc
+v32@?0@"NSDictionary"8@"NSString"16@"NSString"24
+License key is empty
+empty_key
+client_key_unavailable
+missing_config
+profile_session_missing
+package_session
+Package session token is missing
+package_session_missing
+activation_request
+activationAttemptId
+clientSecurity
+activation_response
+transport_handshake
+transport_handshake_failed
+Package session bootstrap did not return a bearer.
+package_bootstrap
+package_session_missing_after_bootstrap
+CFBundleURLTypes
+CFBundleURLSchemes
+returnScheme
+clientInstallId
+sdkVersion
+appVersion
+All endpoints failed
+Sealed auth material unavailable
+Client auth material unavailable in this process
+Bootstrap superseded by activation.
+v24@?0@"NSDictionary"8@"NSError"16
+Authorization
+Bearer %@
+TRANSPORT_SESSION_REQUIRED
+BAD_TRANSPORT_CRYPTO
+responseSignature
+TRANSPORT_HANDSHAKE_FAILED
+TRANSPORT_ENCRYPT_FAILED
+VALIDATION_ERROR
+APP_DISABLED
+STORE_DISABLED
+PACKAGE_DISABLED
+PACKAGE_MAINTENANCE
+Empty server response
+package-token
+Bad response signature
+Authorization lease invalid
+lease_install_%ld
+createdAt
+package-session
+Empty result
+@"UIViewController"8@?0
+v16@?0@"NSURL"8
+src=app
+%@src=app
+about
+blob
+data
+file
+http
+https
+itms-services
+javascript
+mailto
+sms
+tel
+auto
+tserverapp
+Signed authorization lease is active
+Network error
+Unknown error
+_tserverClientResponseMeta
+authUiTemplate
+REPLACE_WITH_YOUR_PACKAGE_TOKEN
+com.gvt.mod.firstResourceSyncDone
+REPLACE
+configuration
+force_update
+missing_auth_config
+return_scheme_not_registered
+Dang dong bo xac nhan thiet bi...
+paid capability unlocked
+Auth heartbeat failed
+Dang xac minh thiet bi...
+Dang kiem tra xac nhan thiet bi...
+connectedScenes
+WindowScene
+windows
+Empty auth result
+Dang thu ket noi lai...
+screens
+loading
+title
+subtitle
+lease-2026-01
+authorizationLease
+TserverAuthorizationLease
+Lease envelope missing or malformed
+Lease envelope serialization failed
+Lease signature invalid
+Lease claims malformed
+Lease claims do not match: %@
+iat
+nbf
+exp
+Lease time window invalid (now:%lld, iat:%lld, nbf:%lld, exp:%lld)
+jti
+Lease digest invalid
+payloadDigest
+Lease rollback rejected
+Lease watermark persistence failed
+Lease watermark is invalid or unavailable
+capabilities
+com.tserver.authorization-lease
+alg
+payload
+signatures
+ES256
+kid
+signature
+^[A-Za-z0-9_-]+$
+iss
+aud
+packageId
+packageAudience
+clientKid
+install
+profile
+packageSession
+device
+^al_[A-Za-z0-9_-]{8,96}$
+^cid_[a-f0-9]{16}$
+claims_schema_invalid
+sealed_strings_unavailable
+iss_mismatch(got:%@,expected:%s)
+aud_mismatch(got:%@,expected:%s)
+bundle_mismatch(got:%@,claim:%@)
+client_kid_mismatch(got:%@,claim:%@)
+package-audience
+package_audience_mismatch
+client_install_mismatch
+profile_session_mismatch
+package_session_mismatch
+frida
+frida-agent
+frida-gadget
+frida-server
+libfrida
+gum-js-loop
+libcycript
+cycript
+cynject
+ssl-kill
+sslkill
+sslkillswitch
+flex.dylib
+libreveal
+revelation
+substrate
+substitute
+libhooker
+ellekit
+cephei
+rocketbootstrap
+tweakinject
+libsparkapplist
+objection
+hermes-engine-hook
+idevicesyslog
+libimobiledevice
+pcapd
+shadowhook
+dobby
+FRIDA_AGENT
+FRIDA_SERVER
+FRIDA_OPTIONS
+_MSSafeMode
+DYLD_INSERT_LIBRARIES
+debugserver
+lldb
+gdb
+ida
+hopper
+gmain
+gdbus
+pool-frida
+/Applications/Cydia.app
+/Library/MobileSubstrate/MobileSubstrate.dylib
+/bin/bash
+/usr/sbin/sshd
+/etc/apt
+/private/var/lib/apt/
+/var/jb
+/var/jb/usr
+/var/jb/etc
+/var/jb/Applications
+/basebin
+/basebin/jbctl
+/var/binpack
+/.bootstrapped
+/usr/lib/libsubstitute.dylib
+/usr/lib/substrate
+/private/jailbreak_probe_tserver
+guard.frida
+guard enabled
+guard disabled
+enabled
+terminating: frida detected
+image
+port
+server
+libgum
+quickjsp
+fridagadget
+re.frida.server
+/usr/sbin/frida-server
+/usr/bin/frida-server
+/usr/bin/fridaserver
+/var/jb/usr/sbin/frida-server
+/var/jb/usr/bin/fridaserver
+/private/var/usr/bin/fridaserver
+/var/jb/usr/sbin/frida
+com.tserver.runtime-integrity
+device-salt-v1
+stable
+changed
+invalid
+flags
+codeSignature
+executable
+deviceBinding
+SecStaticCodeCreateWithPath
+SecStaticCodeCheckValidity
+valid
+packageSettings
+securityPolicy
+hookKill
+logKill
+forceUpdate
+minSdkBuild
+requireTransportSession
+minTransportVersion
+tlsSpkiPins
+0123456789abcdefABCDEF
+acceptedClientIdentityKids
+allowWithoutKey
+hideScreenCapture
+protectScreenContent
+requireLatestSdk
+forceUpdateUrl
+yes
+__TEXT
+__text
+gum-js
+fishhook
+hookzz
+inlinehook
+mshook
+cydia
+whale
+sandhook
+bfinject
+dumpdecrypted
+clutch
+flex
+charles
+mitmproxy
+proxyman
+FillKey
+EmbedOk
+BlobOpen
+AntiHook
+Wipe
+SecurityGate
+LeaseIntegrity
+LeaseCapability
+LeaseGeneration
+RuntimeIntegrityContext
+RuntimeIntegrityFlags
+RuntimeCodeSignature
+RuntimeExecutable
+BootstrapPrepared
+APIClientStartAuthorization
+APIClientPerformAuthorized
+APIClientOpenPaid
+APIClientConfirmKey
+apiclient_paid
+apiclient_on_login
+/dev/null
+3utools
+3uairplayer
+i4tools
+itools
+itunnel
+ideviceinstaller
+usbmuxd
+lockdownd
+syslogd
+logd
+diagnosticd
+osanalyticshelper
+sysdiagnose
+tcpdump
+console
+cfgutil
+cfgutilagent
+appleconfiguratord
+iosappinstaller
+anytrans
+ifunbox
+syncios
+imazing
+waltr
+sideloadly
+altserver
+altdaemon
+clientPublicKey
+transportVersion
+sessionId
+serverPublicKey
+mac
+ts_
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-
+UNKNOWN
+PROFILE_EXPIRED
+MISSING_AUTH_CONFIG
+RETURN_SCHEME_NOT_REGISTERED
+NOTICE
+TserverStatusDidChangeNotification
+TserverNoticeDidArriveNotification
+TserverNetworkDidChangeNotification
+TserverLeaseDidChangeNotification
+TserverDiagnosticDidAppendNotification
+statusEnum
+notice
+online
+latencyMs
+authorized
+entry
+lastStatus
+noticeId
+type
+info
+network
+reachable
+unreachable
+lastLatencyMs
+lastRequestAt
+lease
+invalidated
+packageTemplate
+endpointHost
+leaseAuthorized
+leaseRemainingSeconds
+osVersion
+counts
+statusChanges
+noticesShown
+networkFailures
+logLevel
+com.tserver.tls-advertised-pins
+673302402ccbce7d0f8c4c969a4e4c9b577d25803935cf24820a038cae308032
+com.tserver.tls-pin-evidence
+delegate
+URL
+URLContexts
+x-store-id
+timestamp
+nonce
+POST
+x-timestamp
+x-nonce
+x-signature
+signatureScope
+aes-256-gcm-hkdf
+CCCryptorGCM
+CCCryptorCreateWithMode
+CCCryptorGCMSetIV
+CCCryptorGCMAddAAD
+CCCryptorGCMFinalize
+null
+\u%04x
+%C%C
+version
+sourceAliases
+sources
+default
+sourceOverridesServer
+authTheme
+glass_dark
+layout
+floating
+flow
+minimumLoadingMs
+validAction
+button
+geometry
+horizontalInset
+maxCardWidth
+minCardWidth
+minCardHeight
+xOffset
+yOffset
+overlayOpacity
+cardOpacity
+iconSize
+position
+center
+animation
+scale
+durationMs
+delayMs
+distance
+typography
+fontFamily
+System
+titleSize
+subtitleSize
+buttonSize
+inputSize
+icons
+fa-bolt
+needKey
+fa-key
+needUuid
+fa-shield-halved
+fa-circle-check
+CFBundleName
+CFBundleExecutable
+Transport session required
+com.tserver.http
+Production HTTPS endpoint required
+Request freshness material unavailable
+Transport v3 encrypt failed
+Sealed transport header unavailable
+Transport v3 session missing
+Client identity attestation unavailable
+Sealed content-type unavailable
+Transport v3 request snapshot invalid
+TLS pin evidence missing
+Response exceeds size limit
+Transport v3 response verification failed
+CLIENT_IDENTITY_REQUIRED
+Expected Transport v3 encrypted response
+HTTP %ld returned non-JSON response
+Response was not valid JSON
+NOT_CONFIGURED
+Set member API key (mk_...) and packageId before using TserverMemberInfo
+BAD_ENDPOINT
+Tserver endpoint is missing
+EMPTY
+packages
+PACKAGE_NOT_FOUND
+Package id does not belong to this member API key
+package
+byPackage
+onlineCount
+lastSeenAt
+onlinePackage
+%@?packageId=%@&includeRaw=false&limit=500
+EMPTY_KEY
+includeRaw
+key
+PACKAGE_MISMATCH
+License key is not in configured packageId
+keys
+keyError
+%tserver_package_id%
+%tserver_member_package_id%
+%tserver_package_name%
+name
+%tserver_package_status%
+packageStatus
+%tserver_bundle_id%
+%tserver_key_count%
+keyCount
+%tserver_keys_count%
+%lu
+%tserver_online%
+%tserver_online_last_seen%
+computedStatus
+%tserver_key_raw_status%
+%tserver_device_count%
+deviceCount
+%tserver_created_at%
+mk_
+Empty member info result
+ERROR
+Member info request failed
+tserver-watermark-v1|%@|%@
+%lld|%@|%@
+com.tserver.auth.refresh
+data:image
+background
+backgroundUrl
+backgroundImageOpacity
+logo
+logoUrl
+icon
+logoSize
+card
+borderWidth
+borderColor
+accent
+shadowOpacity
+shadowRadius
+text
+mutedText
+danger
+TSRV-XXXX-XXXX
+fa-solid
+fas 
+fa-
+fa-shield
+fa-check
+fa-power-off
+fa-box-archive
+fa-box
+fa-triangle-exclamation
+fa-exclamation
+fa-clock-rotate-left
+fa-clock
+fa-screwdriver-wrench
+fa-wrench
+fa-gear
+fa-arrow-up-from-bracket
+fa-arrow-up
+fa-ban
+fa-mobile-screen-button
+fa-mobile
+fa-wifi
+fa-server
+fa-lock
+fa-unlock
+fa-user-shield
+fa-fingerprint
+fa-id-card
+fa-gamepad
+fa-crown
+fa-star
+fa-heart
+fa-circle-info
+fa-circle-xmark
+fa-rotate
+fa-spinner
+fa-cloud
+fa-download
+shield
+check
+power
+box
+triangle
+exclamation
+clock
+bolt
+wrench
+gear
+arrow
+ban
+wifi
+lock
+key.fill
+shield.fill
+spinner
+bolt.fill
+shippingbox.fill
+warn
+rotate
+clock.arrow.circlepath
+maintenance
+wrench.and.screwdriver.fill
+update
+download
+revoke
+nosign
+mobile
+iphone
+server.rack
+game
+star
+star.fill
+heart
+heart.fill
+crown
+crown.fill
+user
+person.crop.circle.fill
+circle.fill
+TserverFontAwesome
+solidFontOfSize:
+FontAwesome6Free-Solid
+Font Awesome 6 Free
+FontAwesome6FreeSolid
+FontAwesome5Free-Solid
+Font Awesome 5 Free Solid
+FontAwesome
+UIImageSymbolConfiguration
+Font Awesome 5 Free
+keyText
+expiryText
+deviceText
+com.tserver.sdk.noticeDismissals.v1
+tap
+any
+fullscreen
+anywhere
+tap_anywhere
+continueMode
+validContinueMode
+showButton
+announcement
+audience
+ALL_SDK_UI
+v16@?0@"UIAlertAction"8
+apple_glass
+LOADING
+expired
+revoked
+deviceBlocked
+deviceMismatch
+updateRequired
+networkError
+serverError
+Key: %@
+UUID: %@
+buttonText
+placeholder
+v16@?0@"UITextField"8
+closeButtonText
+PROFILE_NOT_INSTALLED
+PROFILE_DOWNLOAD_REQUIRED
+BAD_PROFILE_PAYLOAD
+PROFILE_CALLBACK_
+Ho so chua duoc cai. Mo lai Safari, vao Cai dat > Ho so da tai > Cai dat, sau do quay lai app.
+Dang dong bo lai trang thai ho so...
+Package token khong hop le. Kiem tra token pkg_... trong dylib.
+Client auth bi tu choi boi server. Kiem tra ban dylib dang inject co dung SHA-256 da xac nhan.
+Client auth khong kha dung trong process nay. Tat debugger, Frida, SSL-bypass va dung ban dylib da xac nhan.
+App/package khong hop le cho thiet bi nay.
+BLOCKING
+Can lay UUID thiet bi
+Please enter license key
+License expired
+License revoked
+This key is already linked to another device
+Khong the ket noi toi server.
+Server dang loi, vui long thu lai.
+Dang mo trang xac nhan thiet bi...
+Da mo trang xac nhan. Cai ho so trong Cai dat, sau do quay lai app de dong bo UUID.
+PROFILE_ALREADY_CONFIRMED
+Khong mo duoc trang cai ho so. Thu lai.
+Dang kich hoat key...
+Empty activate response
+presentation_exception
+style
+noticeTitle
+noticeMessage
+noticeType
+badgeText
+badgeSize
+secondaryText
+footerSize
+Cai ho so xac minh de lay ma may. Khong VPN / MDM.
+tapHint
+footerText
+tipText
+width
+bottom_sheet
+bottom
+top
+success
+error
+instances
+selectedTemplates
+topTrailing
+topLeading
+bottomTrailing
+bottomLeading
+template
+progressFrom
+progress
+resource_panel
+compact_toast
+opacity
+radius
+showProgress
+showSteps
+steps
+xPx
+yPx
+free
+xPercent
+yPercent
+custom
+animateProgress
+progressTo
+completeTitle
+completeSubtitle
+collapseOnComplete
+collapseDelayMs
+collapseDurationMs
+  Device Verify  
+profileSubtitle
+Ho so chi de xac minh thiet bi.
+profileSteps
+profileStepsText
+Bam Lay UUID
+Cho phep tai ho so
+Cai dat > Ho so da tai > Cai dat
+done
+pending
+none
+slide_up
+slide_down
+slide_left
+slide_right
+bounce
+spring
+fade
+fade_only
+BAD_SIGNATURE
+PROFILE_CHALLENGE_
+PROFILE_UDID_MISSING
+PROFILE_SESSION_NOT_CONFIRMABLE
+badPackageSession
+appDisabled
+storeDisabled
+packageDisabled
+packageMaintenance
+packageBundleDenied
+invalidApiKey
+invalidClientApiKey
+clientKeyUnavailable
+Dang kiem tra key
+Key hop le
+Xac minh thiet bi
+Nhap key
+Key khong hop le
+Key da het han
+Ban da bi ban key
+Sai thiet bi
+Thiet bi bi ban
+Loi chu ky server
+Loi chu ky client request
+Yeu cau da bi lap lai
+Qua nhieu yeu cau
+Loi chu ky request
+Cai ho so chua thanh cong
+Can xac nhan lai
+Server dang tat
+He thong dang tat
+Package dang tat
+Package dang bao tri
+Sai ung dung
+Phien package het han
+Package token khong hop le
+Client auth bi server tu choi
+Client auth khong kha dung
+Da dung trial
+Het han offline
+REQUEST_VALIDATION_FAILED
+Du lieu khong hop le
+Loi server
+Loi mang
+Het thoi gian kich hoat
+Kich hoat da huy
+Moi truong khong an toan
+Lease khong hop le
+Loi callback
+Loi hien thi
+Loi phien bao mat
+Can cap nhat
+Bao tri
+Loi xac thuc
+Vui long doi trong giay lat...
+Xac nhan de vao menu.
+Lien ket may nay voi license bang Device Verify an toan.
+Nhap license key de kich hoat.
+Vui long nhap key moi de tiep tuc.
+Key nay da bi ban / thu hoi. Lien he nguoi ban de duoc ho tro.
+Key nay da duoc lien ket voi thiet bi khac.
+Thiet bi nay da bi ban tren he thong.
+Server tra ve chu ky khong hop le.
+Chu ky request client khong hop le. Kiem tra dong ho thiet bi va ban dylib hien tai.
+Yeu cau bi lap lai. Vui long thu lai.
+Qua nhieu yeu cau. Vui long doi it phut roi thu lai.
+Chu ky request khong hop le.
+Cai ho so that bai. Mo lai Safari, cai trong Cai dat > Ho so da tai, sau do quay lai app.
+Phien xac nhan da het han, vui long lay UUID lai.
+Server key dang tam tat. Vui long thu lai sau.
+Store/server hien dang tam tat.
+Package nay da bi tat boi chu package.
+Package nay dang bao tri/update, vui long thu lai sau.
+Package nay khong duoc phep chay tren app hien tai.
+Phien package da het han, vui long mo lai app.
+Server tu choi client auth. Kiem tra SHA-256 cua dylib dang inject co dung ban da xac nhan.
+May nay da dung trial trong nhom nay.
+Cache license offline da het han.
+Du lieu gui len server khong hop le.
+Loi mang. Vui long thu lai sau.
+Khong nhan duoc ket qua kich hoat. Vui long thu lai.
+Lan kich hoat nay da bi huy.
+Moi truong chay khong an toan.
+Authorization lease khong hop le. Kiem tra dong ho thiet bi / ban app moi.
+Callback bi tu choi hoac khong hop le.
+Khong the hien thi ket qua kich hoat.
+Khong tao duoc phien bao mat voi server.
+Vui long cap nhat de tiep tuc.
+Server dang bao tri, vui long thu lai sau.
+Server tu choi request xac thuc.
+Tiep tuc
+Lay UUID
+Kich hoat
+Thu lai
+Nhap key moi
+Nhap key khac
+Mo lai Safari
+Lay UUID lai
+Cap nhat
+__unset__
+windowScene
+capture
+host content protection active
+hostView
+secureCanvas
+host content protection released
+setWindowScene:
+coordinateSpace
+bounds
+activationState
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_
+%C%C%C%C%C%C
+#7c3aed
+#ffffff
+#a1a1aa
+#ef4444
+#22c55e
+blur
+shadow
+uiTemplates
+popup
+velvet_glass
+orientation
+landscape
+#a78bfa
+#f8f7ff
+#9ca3c7
+#fb7185
+Hoan tat
+Menu san sang
+Vui long doi
+Kiem tra license
+Da tai key
+Cho nhap key
+Cai ho so xac minh
+San sang vao menu
+clean_light
+centered
+#2563EB
+#EAF0F6
+#FFFFFF
+#C63C4B
+neon_dark
+#14B8A6
+#E6FEFA
+#94B9B4
+#FB7185
+compact_dark
+#E2654B
+#F8F9FB
+#B3B7C2
+#E06C75
+floating_card
+#D58A28
+#101B2A
+#1C2B3B
+#F7FAFC
+#AFBBC8
+#4DAE81
+minimal
+game_loader
+Dang xu ly...
+Vui long doi...
+Data nut bam
+Data thong bao
+Data lien ket
+Skin giao dien
+Dang tai xac thuc...
+Dang kiem tra key va thiet bi
+Dang lay UUID...
+Mo ho so cau hinh de xac minh may
+Tao phien xac minh
+Tai ho so UUID
+Cho cai dat ho so
+Dong bo thiet bi
+Dang cho nhap key...
+Nhap key de kich hoat menu
+Da xac thuc thanh cong
+Server phan hoi khong hop le
+corner_toast
+Xong
+Chi can cai ho so xac minh de doc ma may. Khong VPN, khong MDM.
+DEVICE VERIFY
+profileTitle
+Xac minh thiet bi an toan
+Ho so chi doc ma dinh danh thiet bi. Khong cai VPN / MDM / chung chi root.
+Bam Lay UUID de mo trang cai ho so
+Chon Cho phep khi iOS hoi tai ho so
+Vao Cai dat > Ho so da tai > Cai dat
+Quay lai app de dong bo UUID tu dong
+profileButtonText
+Cai ho so thiet bi
+profileAllowButtonText
+openSettingsHint
+Neu iOS khong mo cai dat, vao Cai dat > Chung > VPN & Quan ly thiet bi.
+securityNote
+Ho so chi dung de xac minh thiet bi cho license. Khong doc du lieu ca nhan.
+copyLinkText
+Copy link xac minh
+May chu dang ban. Vui long thu lai sau.
+Vui long cap nhat app de tiep tuc.
+Server dang bao tri
+He thong dang bao tri/update, vui long quay lai sau.
+Vui long mo lai app de lay phien package moi.
+Kiem tra token pkg_... trong ban dylib vua build.
+Client auth khong khop
+Dylib dang chay chua khop CLIENT_API_KEY tren server. Kiem tra Artifact MATCH truoc khi phat hanh.
+assets
+Device Verify
+Ho so chi doc ma dinh danh thiet bi cho license. Khong cai VPN, CA, root certificate hay MDM.
+installTitle
+installSubtitle
+Dung Safari/Chrome hien tai. Sau khi cho phep tai ho so, vao Cai dat > Ho so da tai > Cai dat.
+allowTitle
+allowSubtitle
+Nhan nut ben duoi tren trinh duyet hien tai. iOS se hien hop thoai Cho phep.
+completeText
+UUID da nhan. Dang mo app...
+installButtonText
+allowButtonText
+returnButtonText
+Quay lai app
+Bam Lay UUID / Cai ho so tren trinh duyet hien tai.
+Chon Cho phep khi iOS hoi tai ho so.
+Vao Cai dat > Ho so da tai > Cai dat.
+Quay lai app de dong bo UUID tu dong.
+portrait
+horizontal
+ngang
+springDamping
+springVelocity
+schemaVersion
+generic
+motion
+haptic
+light
+medium
+rigid
+#0A84FF
+#1C1C1E
+#8E8E93
+#FF453A
+pop
+presentation
+terminal_status
+cyber_terminal
+#39F6C0
+#E8FFF8
+#78B6A4
+#FF617A
+#4FFFB8
+scan
+maxCardHeight
+warningText
+snoozeButtonText
+warning
+@"UIColor"16@?0@"UITraitCollection"8
+systemBlueColor
+License Key
+Menlo-Bold
+CourierNewPS-BoldMT
+transform.translation.y
+tserver.scanline
+root@tserver:~# ./authenticate
+root@tserver:~# ./authenticate --secure --verbose
+> status = %@
+> init secure_channel
+> load package_token
+> broadcast_received
+> title: %@
+> notice_id = %@
+active
+Can UUID/profile de tiep tuc
+> require uuid_profile
+> detect device_identity
+> task: %@
+> detail: %@
+> pipeline:
+  1) open safari verify page
+  2) allow + install profile
+  3) sync uuid -> app
+Nhap key de tiep tuc
+> open /dev/license
+> prompt "%@"
+> hint "%@"
+> waiting_for_input...
+> echo $LICENSE_KEY
+Ma license
+Vui long cho...
+> ./scan --package --lease
+> note: %@
+> ./scan --package --device --lease
+> running
+Dang kiem tra
+Khong the tiep tuc
+Session verified
+Input or network failure
+Cham de tiep tuc
+ Cau hinh app chua dung
+> AUTH_OK
+> AUTH_RUNNING
+> UPDATE_REQUIRED
+> AUTH_FAIL
+> code = %@
+> msg  = %@
+> info = %@
+> session_verified = true
+> session_verified = false
+> summary: %@
+> license_granted = true
+Doi key khac
+> Cham man hinh de doi key
+kCFAllocatorNull
+CFDataCreateWithBytesNoCopy
+CFPropertyListCreateWithData
+CFPropertyListCreateFromXMLData
+CFStringCreateWithCStringNoCopy
+CFDictionaryGetValue
+CFGetTypeID
+CFStringGetTypeID
+CFStringGetCString
+CFRelease
+/System/Library/CoreServices/SystemVersion.plist
+ProductVersion
+%d.%d.%d
+FileAttributeKey
+NNSFileAttributeKey
+Foundation
+OpenExternalURLOptionsKey
+NUIApplicationOpenExternalURLOptionsKey
+UIKit
+URLResourceKey
+NNSURLResourceKey
+BOLA
+BolaMinhDuc
+AppModel
+BackgroundAudio
+BolaMinhDucApp
+FeatureTab
+ConfigView
+CustomColorPickerPanel
+InjectButtonStyle
+SegmentButtonStyle
+self
+ContentView
+HomeView
+GameTarget
+InstallOutcome
+KeyScreenView
+LicenseGate
+State
+PatchFile
+SettingsView
+ToastView
+RowButtonStyle
+StatusDot
+VersionGate
+BlockOverlay
+ResourceBundleClass
+tserver
+callbacksessionT
+NSJSONSerializatJSONObjectWithData:options:errordataWithJSONObject:options:errorcompleteValidResperformAuthorizeconfirmKey:succeactivateKey:sessionToken:completbootstrapWithComTserverGdismiss
+tserver-v3|%@|ents3|%@|%@|%@|%@|x-ts-client-kid
+%@|%@|%@|%@|%@|%x-ts-client-sig
+t-v3|%@
+x-app-apx-ts-sigContent-x-ts-sidx-ts-encx-reques
+package_session_auth_session_paipending_profile_last_valid_paylolease_display_v2authorization_lease_watermark_v1com.tserver.lastWorkingEndpoint
+http://
+ OS/2akbS
+AWSM

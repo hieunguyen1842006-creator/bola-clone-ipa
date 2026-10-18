@@ -1,0 +1,53 @@
+# XcodeGen — sinh BolaClone.xcodeproj từ file này:
+#   brew install xcodegen && xcodegen generate
+# (repo cũng kèm sẵn BolaClone.xcodeproj dựng tay, mở trực tiếp cũng được)
+name: BolaClone
+options:
+  bundleIdPrefix: com.clone.bola
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    ENABLE_BITCODE: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    TARGETED_DEVICE_FAMILY: "1,2"
+    SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+    OTHER_LDFLAGS: "-framework AVFoundation"
+targets:
+  BolaClone:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+        excludes:
+          - "Info.plist"
+          - "BolaminhducMenu.bytes"
+    resources:
+      - path: Resources/Assets.xcassets
+      - path: Resources/bola_silence.wav
+      - path: Resources/BolaminhducMenu.bytes
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Bola Clone
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clone.bola.app
+        INFOPLIST_FILE: Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_EMIT_LOC_STRINGS: NO
+schemes:
+  BolaClone:
+    build:
+      targets:
+        BolaClone: all
+    run:
+      config: Debug
+    archive:
+      config: Release

@@ -1,0 +1,361 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		832E7CEFAC9261EEDC816276 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC8447DD7A391C2E5F86E64 /* AppModel.swift */; };
+		A89C5DD3C9A2C3D3DDB7AAB9 /* BolaCloneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD43F07A2635F948F1D3571F /* BolaCloneApp.swift */; };
+		437C432C3100F39E7442C5BC /* BolaConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912A78ADFA871F220218F324 /* BolaConfig.swift */; };
+		35EDA72956F1EE78C0A17855 /* ContainerAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E2549EF401BFB50FFC274B6 /* ContainerAccess.swift */; };
+		472765DE89D7161B61898CA1 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0B58EBC283B9F4C88207BF /* Crypto.swift */; };
+		39DA88D20736FE80327BB462 /* ExploitCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D1EC666D2E5EC92E5557CA /* ExploitCoordinator.swift */; };
+		F3453C4B237151F47BB28C20 /* KernelPrimitive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F78CD40B407DFB1063E8A0 /* KernelPrimitive.swift */; };
+		0DA9CD3266AC9E2A12EC8F57 /* Lease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A32A8D5C62C3E67A540F78E /* Lease.swift */; };
+		06A7C87FA4EC6B93E877011E /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BC02BADB300E879C4CD7C7 /* License.swift */; };
+		AFE324F7C2553D67BB552F44 /* LicenseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */; };
+		2E342E3C5B3827190A571800 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73CBD3703BEADE23A6C2CD3C /* Models.swift */; };
+		7E79B7B133BC217AF38E1A9D /* PatchDeployer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6164D9648F03ABD9F711F216 /* PatchDeployer.swift */; };
+		25E18E110327FB1F968D9B32 /* PatchLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */; };
+		A7113739C76913BC201CD5C9 /* PatchTrailer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */; };
+		BC3BE35B1FE202D0AFFB244E /* VersionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B84827DCC99638C943367D22 /* VersionGate.swift */; };
+		C2B0551A4E212408661657E4 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56DE5EEE7AE4D209CEDC85F /* Logger.swift */; };
+		9224FC37474745379BCD1C4D /* Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFEE6B420D90192178D73D1 /* Support.swift */; };
+		0F3C5D78F96DE0E80672E4E6 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934FB1CEF2A979F164AE1474 /* Theme.swift */; };
+		67A1ADAED4CC3ADDABA02E1C /* ConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401B6ADF47F8D72401B8FB7E /* ConfigView.swift */; };
+		5E2CC5163591EB15C7586F0E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0838C3A03DD949CE45F015D1 /* ContentView.swift */; };
+		C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */; };
+		B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */; };
+		304576793ED93A1E112B8781 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D36B6949BFD8789DD96772 /* SettingsView.swift */; };
+		2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21B2256B51CB3ED234E5DB3E /* Assets.xcassets */; };
+		F569973B8F7F4C6E58D783A4 /* bola_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* bola_silence.wav */; };
+		94896A6F7E11AC1F032EDB8F /* BolaminhducMenu.bytes in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F5BF48AA40CAD7891EB709FC /* BolaClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BolaClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0DC8447DD7A391C2E5F86E64 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		DD43F07A2635F948F1D3571F /* BolaCloneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolaCloneApp.swift; sourceTree = "<group>"; };
+		912A78ADFA871F220218F324 /* BolaConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolaConfig.swift; sourceTree = "<group>"; };
+		2E2549EF401BFB50FFC274B6 /* ContainerAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerAccess.swift; sourceTree = "<group>"; };
+		3E0B58EBC283B9F4C88207BF /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		D8D1EC666D2E5EC92E5557CA /* ExploitCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploitCoordinator.swift; sourceTree = "<group>"; };
+		49F78CD40B407DFB1063E8A0 /* KernelPrimitive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KernelPrimitive.swift; sourceTree = "<group>"; };
+		1A32A8D5C62C3E67A540F78E /* Lease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lease.swift; sourceTree = "<group>"; };
+		A4BC02BADB300E879C4CD7C7 /* License.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
+		EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseClient.swift; sourceTree = "<group>"; };
+		73CBD3703BEADE23A6C2CD3C /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		6164D9648F03ABD9F711F216 /* PatchDeployer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDeployer.swift; sourceTree = "<group>"; };
+		A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchLibrary.swift; sourceTree = "<group>"; };
+		2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTrailer.swift; sourceTree = "<group>"; };
+		B84827DCC99638C943367D22 /* VersionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionGate.swift; sourceTree = "<group>"; };
+		D56DE5EEE7AE4D209CEDC85F /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		BBFEE6B420D90192178D73D1 /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
+		934FB1CEF2A979F164AE1474 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		401B6ADF47F8D72401B8FB7E /* ConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigView.swift; sourceTree = "<group>"; };
+		0838C3A03DD949CE45F015D1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyScreenView.swift; sourceTree = "<group>"; };
+		B4D36B6949BFD8789DD96772 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		21B2256B51CB3ED234E5DB3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DA6381D5BE520727BA075FAB /* bola_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bola_silence.wav; sourceTree = "<group>"; };
+		5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */ = {isa = PBXFileReference; lastKnownFileType = file; path = BolaminhducMenu.bytes; sourceTree = "<group>"; };
+		4E02752AF53CE1B03E460202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DAF6AA633395B1B76148E35B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B39C039D5EF79C37F66767C6 = {
+			isa = PBXGroup;
+			children = (
+				D56066F8C299F39BECBFBE76 /* Sources */,
+				C09BF40C7BE27721277F534C /* Resources */,
+				0FCE7A2ED6D0B9E02DDCA684 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D56066F8C299F39BECBFBE76 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				0C759652BAAA102BF0D365FB /* App */,
+				FFC54116519E28BC97BDD029 /* Core */,
+				9A24B958BC7DFCD857F6D355 /* Support */,
+				D9992E0E3A5D622486586F64 /* UI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		0C759652BAAA102BF0D365FB /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0DC8447DD7A391C2E5F86E64 /* AppModel.swift */,
+				DD43F07A2635F948F1D3571F /* BolaCloneApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FFC54116519E28BC97BDD029 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				912A78ADFA871F220218F324 /* BolaConfig.swift */,
+				2E2549EF401BFB50FFC274B6 /* ContainerAccess.swift */,
+				3E0B58EBC283B9F4C88207BF /* Crypto.swift */,
+				D8D1EC666D2E5EC92E5557CA /* ExploitCoordinator.swift */,
+				49F78CD40B407DFB1063E8A0 /* KernelPrimitive.swift */,
+				1A32A8D5C62C3E67A540F78E /* Lease.swift */,
+				A4BC02BADB300E879C4CD7C7 /* License.swift */,
+				EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */,
+				73CBD3703BEADE23A6C2CD3C /* Models.swift */,
+				6164D9648F03ABD9F711F216 /* PatchDeployer.swift */,
+				A09263F4E9DE27CAD6C136CA /* PatchLibrary.swift */,
+				2ACA00F2085BE1BD699F1A37 /* PatchTrailer.swift */,
+				B84827DCC99638C943367D22 /* VersionGate.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		9A24B958BC7DFCD857F6D355 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				D56DE5EEE7AE4D209CEDC85F /* Logger.swift */,
+				BBFEE6B420D90192178D73D1 /* Support.swift */,
+				934FB1CEF2A979F164AE1474 /* Theme.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		D9992E0E3A5D622486586F64 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				401B6ADF47F8D72401B8FB7E /* ConfigView.swift */,
+				0838C3A03DD949CE45F015D1 /* ContentView.swift */,
+				E60A313F2324AE0BB8AAB2B0 /* HomeView.swift */,
+				18B6E7B6036B0C85C78E1BD6 /* KeyScreenView.swift */,
+				B4D36B6949BFD8789DD96772 /* SettingsView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		C09BF40C7BE27721277F534C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				21B2256B51CB3ED234E5DB3E /* Assets.xcassets */,
+				DA6381D5BE520727BA075FAB /* bola_silence.wav */,
+				5EDE39C2647E5A19904F2D94 /* BolaminhducMenu.bytes */,
+				4E02752AF53CE1B03E460202 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		0FCE7A2ED6D0B9E02DDCA684 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F5BF48AA40CAD7891EB709FC /* BolaClone.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		42AEFBAE01D2DFD981F7DA7D /* BolaClone */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B02DB3ADAA7BA48B413726A8;
+			buildPhases = (
+				0F78FE532035D122ED352DBA /* Sources */,
+				DAF6AA633395B1B76148E35B /* Frameworks */,
+				943E4BBD9B51C81965501BA3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BolaClone;
+			productName = BolaClone;
+			productReference = F5BF48AA40CAD7891EB709FC /* BolaClone.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					42AEFBAE01D2DFD981F7DA7D = { CreatedOnToolsVersion = 16.0; };
+				};
+			};
+			buildConfigurationList = 9E46753F7FB30AFEC4F4CD75;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = B39C039D5EF79C37F66767C6;
+			productRefGroup = 0FCE7A2ED6D0B9E02DDCA684 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				42AEFBAE01D2DFD981F7DA7D /* BolaClone */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		943E4BBD9B51C81965501BA3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E6610D68BD03B19E57461C7 /* Assets.xcassets in Resources */,
+				F569973B8F7F4C6E58D783A4 /* bola_silence.wav in Resources */,
+				94896A6F7E11AC1F032EDB8F /* BolaminhducMenu.bytes in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0F78FE532035D122ED352DBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				832E7CEFAC9261EEDC816276 /* AppModel.swift in Sources */,
+				A89C5DD3C9A2C3D3DDB7AAB9 /* BolaCloneApp.swift in Sources */,
+				437C432C3100F39E7442C5BC /* BolaConfig.swift in Sources */,
+				35EDA72956F1EE78C0A17855 /* ContainerAccess.swift in Sources */,
+				472765DE89D7161B61898CA1 /* Crypto.swift in Sources */,
+				39DA88D20736FE80327BB462 /* ExploitCoordinator.swift in Sources */,
+				F3453C4B237151F47BB28C20 /* KernelPrimitive.swift in Sources */,
+				0DA9CD3266AC9E2A12EC8F57 /* Lease.swift in Sources */,
+				06A7C87FA4EC6B93E877011E /* License.swift in Sources */,
+				AFE324F7C2553D67BB552F44 /* LicenseClient.swift in Sources */,
+				2E342E3C5B3827190A571800 /* Models.swift in Sources */,
+				7E79B7B133BC217AF38E1A9D /* PatchDeployer.swift in Sources */,
+				25E18E110327FB1F968D9B32 /* PatchLibrary.swift in Sources */,
+				A7113739C76913BC201CD5C9 /* PatchTrailer.swift in Sources */,
+				BC3BE35B1FE202D0AFFB244E /* VersionGate.swift in Sources */,
+				C2B0551A4E212408661657E4 /* Logger.swift in Sources */,
+				9224FC37474745379BCD1C4D /* Support.swift in Sources */,
+				0F3C5D78F96DE0E80672E4E6 /* Theme.swift in Sources */,
+				67A1ADAED4CC3ADDABA02E1C /* ConfigView.swift in Sources */,
+				5E2CC5163591EB15C7586F0E /* ContentView.swift in Sources */,
+				C96CD746E9E5E0E8DE8D8BB6 /* HomeView.swift in Sources */,
+				B9EFD47C3CA8E7D3232DE63D /* KeyScreenView.swift in Sources */,
+				304576793ED93A1E112B8781 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0DAD1609FF21DFE9FCDE033B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_BITCODE = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BE2A70055679D1F0D48906A5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_BITCODE = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B91B4934A1FB728BCC6A5C90 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clone.bola.app;
+				PRODUCT_NAME = BolaClone;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A9AD4BEA15A87FA06F774E16 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clone.bola.app;
+				PRODUCT_NAME = BolaClone;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9E46753F7FB30AFEC4F4CD75 /* Build configuration list for PBXProject */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0DAD1609FF21DFE9FCDE033B /* Debug */,
+				BE2A70055679D1F0D48906A5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B02DB3ADAA7BA48B413726A8 /* Build configuration list for PBXNativeTarget */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B91B4934A1FB728BCC6A5C90 /* Debug */,
+				A9AD4BEA15A87FA06F774E16 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}

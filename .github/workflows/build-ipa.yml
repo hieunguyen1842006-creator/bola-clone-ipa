@@ -1,0 +1,46 @@
+name: BolaClone IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Self-test (core logic)
+        run: swift run -c debug BolaSelfTest
+
+      - name: Build app (unsigned)
+        run: |
+          xcodebuild \
+            -project BolaClone.xcodeproj \
+            -scheme BolaClone \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package IPA
+        run: |
+          rm -rf out BolaClone-unsigned.ipa
+          mkdir -p out/Payload
+          cp -R build/Build/Products/Release-iphoneos/BolaClone.app out/Payload/
+          cd out && zip -qry ../BolaClone-unsigned.ipa Payload
+          ls -lh ../BolaClone-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BolaClone-unsigned-ipa
+          path: BolaClone-unsigned.ipa

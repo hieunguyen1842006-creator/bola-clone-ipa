@@ -1,0 +1,9 @@
+.build/
+.theos/
+packages/
+build/
+out/
+*.ipa
+*.o
+*.swiftmodule
+.DS_Store

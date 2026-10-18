@@ -1,0 +1,214 @@
+ (hay trả -1 nhưng vẫn ghi được — bình thường)
+ bằng tay giúp mình.
+ ngày một lần).
+%tserver_key%
+%tserver_key_count%
+%tserver_key_id%
+%tserver_key_masked%
+%tserver_key_raw_status%
+%tserver_key_remaining%
+%tserver_key_status%
+%tserver_key_type%
+%tserver_keys_count%
+%tserver_timekeyt%
+) — dùng kernel exploit
+. Kiểm tra game đã cài chưa nhé.
+. Mở game để kiểm tra nhé.
+> Cham man hinh de doi key
+APIClientConfirmKey
+Anti-ban off → patch removed (
+AntiHook
+BAD_RESPONSE_SIGNATURE
+Ban da bi ban key
+BolaminhducMenu-OTA
+Bạn đang sử dụng phiên bản cũ. Vui lòng tải bản mới nhất để tiếp tục!
+Bản mới nhất: 
+Bản này đã ngừng hoạt động.
+Bật Đạn Thẳng can thiệp triệt tiêu độ tỏa đạn. Máy chủ có thể từ chối tính sát thương khi xả đạn liên tục dẫn tới SÁT THƯƠNG ẢO / LỖI DAME (bắn trúng địch nhưng không mất máu). Khuyên dùng cẩn trọng!
+Bắn Siêu Tốc (Fast Fire)
+Bắn lệch vẫn bay vào bone đã chọn
+Cho nhap key
+Chưa cài đặt
+Chưa có gì để gỡ.
+Chưa có key? Liên hệ admin để mua.
+Chưa kết nối được với game
+Chưa sẵn sàng — chờ vài giây rồi thử lại nhé.
+Chạy Nhanh x3 (Speed Run)
+Chỉnh chức năng
+Chỉnh chức năng & INJECT
+Chọn game → chỉnh chức năng → bấm INJECT
+Chọn ngôn ngữ
+Chờ một chút rồi inject…
+Có lỗi — thử lại nhé
+CẢNH BÁO NGUY HIỂM:
+Cảm ơn bạn đã sử dụng!
+Cần kết nối mạng để xác thực (
+Da tai key
+Dang cho nhap key...
+Dang kich hoat key...
+Dang kiem tra key
+Dang kiem tra key va thiet bi
+Di chuyển thần tốc, né đạn & lướt nhanh
+Doi key khac
+File tạm trong app
+FileAttributeKey
+FillKey
+Góc Nhìn Rộng (Cam Xa)
+Hiện cả bot (AI)
+Hiện vòng FOV
+Hiện đồng đội (màu xanh)
+HỆ ĐIỀU HÀNH
+Hỗ trợ • thông báo • cập nhật mới
+KHÔNG mở được
+Key da het han
+Key hop le
+Key hết hạn hoặc bị thu hồi — nhập key mới.
+Key khong hop le
+Key nay da bi ban / thu hoi. Lien he nguoi ban de duoc ho tro.
+Key nay da duoc lien ket voi thiet bi khac.
+Key: %@
+KeyScreenView
+Khoá địch gần tâm ngắm nhất
+Khoảng Cách Cam (FOV)
+Khoảng cách tới mục tiêu
+Khung quanh người & bot
+Khung xương người (skeleton)
+Không bắn vào địch đã bị hạ gục
+Không ghi được — mở game 1 lần (để tạo container) rồi thử lại
+Không thấy game
+Không tìm thấy 
+Không tìm thấy thư mục game.
+Khử gia tốc rơi, nhảy giật lùi né đạn
+Kích hoạt nhảy Booyah & Carnival liên tục
+License Key
+License key is empty
+License key is not in configured packageId
+Lỗi ghi file: 
+Menu san sang
+Màu hiển thị
+Mặc định tắt mỗi lần mở app — bật lại khi cần
+Mở Khóa 144 FPS
+Mở khóa tần số quét, hình ảnh siêu mượt
+Mở rộng góc quan sát toàn cảnh chiến trường
+NGỪNG HOẠT ĐỘNG
+NNSFileAttributeKey
+NNSURLResourceKey
+NSJSONSerializatJSONObjectWithData:options:errordataWithJSONObject:options:errorcompleteValidResperformAuthorizeconfirmKey:succeactivateKey:sessionToken:completbootstrapWithComTserverGdismiss
+NUIApplicationOpenExternalURLOptionsKey
+Nhap key
+Nhap key de kich hoat menu
+Nhap key de tiep tuc
+Nhap key khac
+Nhap key moi
+Nhap license key de kich hoat.
+Nhảy Cao (High Jump)
+Nhảy cao 1.2x vượt tường kẹo, leo nóc nhà
+OpenExternalURLOptionsKey
+PHIÊN BẢN CŨ
+Package id does not belong to this member API key
+Patch chưa sẵn sàng — kiểm tra mạng + key rồi mở lại app.
+Patch not ready — check network + key, then reopen the app.
+Phiên bản • thiết bị
+Please enter license key
+Server key dang tam tat. Vui long thu lai sau.
+Set member API key (mk_...) and packageId before using TserverMemberInfo
+Sẵn sàng — bấm INJECT
+Số địch + bot ở trên màn hình
+Thanh HP cho người & bot
+This key is already linked to another device
+Thông Tin Ứng Dụng
+Triệt tiêu delay đổi súng, bắn liền tục
+Triệt tiêu độ tỏa đạn — đạn bay thẳng tắp
+Trợ lý trong game
+Tên người chơi / bot
+Tăng tốc độ nhả đạn của súng liên thanh
+Tỉ lệ vào đầu
+Tốc độ quá cao gây lệch tọa độ giữa máy bạn và server (Desync). Khi vừa chạy vừa xả đạn, server có thể TỪ CHỐI TÍNH SÁT THƯƠNG — đạn trúng địch nhưng không mất máu. Dùng cẩn trọng!
+URLResourceKey
+Vui long nhap key moi de tiep tuc.
+Xong
+Xoá Bộ Nhớ Đệm
+Xoá định danh khách — mở game tạo guest mới (tắt hẳn game trước!)
+_keyHoursLeft
+_keyMaskedName
+activation_returned_need_key
+allowWithoutKey
+antiban: tắt anti → tự gỡ patch 
+auto: mở app → chạy exploit ở nền
+auto: đã truy cập được thư mục game → bỏ qua kernel (an toàn hơn)
+cache: đã xoá 
+cfg: không ghi được bolacfg.bin
+cfg: đã ghi bolacfg.bin
+clientKeyUnavailable
+clientPublicKey
+client_key_unavailable
+cài & mở game
+empty_key
+exploit: thử lại lần 2…
+exploit: xong — để INJECT tự kiểm tra và cài patch
+fa-key
+gỡ khỏi game
+inject: bản đã bị server kill
+inject: chưa có patch cá nhân hoá hợp lệ
+inject: huỷ muộn → gỡ patch vừa cài (
+inject: kernel chưa sẵn sàng, huỷ inject
+inject: kernel sẵn sàng → cài 
+inject: kernel đang chạy — sẽ cài ngay khi xong
+inject: người dùng bấm huỷ
+inject: đã huỷ theo yêu cầu
+invalidApiKey
+invalidClientApiKey
+invalid_key_input
+key
+key.fill
+keyCardTimer
+keyCount
+keyError
+keyText
+key_confirmation_failed
+keys
+lastOkKey
+licenseKey
+licenseKeyMasked
+maskedKey
+mha: không khả dụng (mã 
+mha: đã mở container qua MobileHouseArrest — bỏ qua kernel
+needKey
+nhấn để huỷ
+patch: dùng bản trong app (không tải được OTA)
+patch: đã tải patch mới từ GitHub (
+reset guest: đã đặt cờ localConfig.json vào 
+serverPublicKey
+tserver key info: %@
+ui: bỏ qua thao tác quá nhanh (chống bấm nhầm)
+vui lòng đợi
+Đang chuẩn bị…
+Đang kết nối hệ thống key…
+Điệu Nhảy Booyah
+Đã cài xong cho 
+Đã cài xong nhưng không mở được game — mở 
+Đã cài đặt
+Đã cài — chuẩn bị mở game…
+Đã gỡ xong. Mở lại game để áp dụng nhé.
+Đã huỷ inject
+Đã huỷ — đã gỡ xong
+Đã inject — đang mở game
+Đã phát hiện
+Đã sẵn sàng — không cần chuẩn bị lại
+Đã tắt Anti-ban → tự gỡ patch (
+Đã xoá bộ nhớ đệm (
+Đường kẻ từ tâm ngắm
+Đạn thẳng (No Recoil 0%)
+ĐỂ LỖI DAME
+Đổi Súng Nhanh
+đã gửi lệnh mở game
+Ẩn/hiện vòng tròn FOV trên màn hình
+⛔ Bản này đã ngừng hoạt động.
+⬇️  TẢI BẢN MỚI NHẤT
+🔑 Activate your key before enabling Anti-ban!
+🔑 Activate your key first
+🔑 Nhập key trước để bật
+🔑 Nhập key xong rồi mới bật được Anti-ban nhé!
+🛡️ Anti-ban on — keeps wiping traces (turning off auto-removes the patch)
+🛡️ Đã bật Anti-ban — tự dọn dấu vết liên tục (tắt sẽ tự gỡ patch)
+🧹 Đã đặt cờ reset guest — tắt hẳn game rồi MỞ LẠI để reset!
