@@ -46,6 +46,28 @@ SDK công khai chỉ có `.swiftinterface`; compiler Linux không merge được
 overlay `Dispatch` với clang module cùng tên (SDK 16.5 build bằng Apple Swift 5.8.0).
 `tools/build_theos.sh` sẽ dừng ở bước này — dùng macOS/CI thay thế.
 
+## Key thủ công
+
+Chưa dựng server key: nhập **`1`** ở màn hình key → lease offline 10 năm, không gọi mạng.
+
+## Khi INJECT báo `ContainerAccessError error 0`
+
+App không có quyền đọc/ghi container của Free Fire (sandbox). Ba cách:
+
+1. **Xuất file thủ công** — Settings → “Xuất file patch (thủ công)”, rồi dùng Filza
+   copy `Assembly-CSharp-patch.bytes`, `bolacfg.bin`, `.bola_tok` vào
+   `/var/mobile/Containers/Data/Application/<UUID game>/Documents/`.
+2. **Cài như app jailbreak + entitlements** (thiết bị đã jailbreak):
+   ```bash
+   cp -R BolaClone.app /var/jb/Applications/
+   ldid -SBolaClone.entitlements /var/jb/Applications/BolaClone.app/BolaClone
+   uicache -a
+   ```
+   `BolaClone.entitlements` xin `platform-application`,
+   `AppDataContainers`, `no-sandbox`.
+3. **Cắm primitive** — implement `KernelPrimitive` (xem
+   `Sources/Core/KernelPrimitive.swift`); clone không kèm exploit.
+
 ## Cấu trúc
 
 - `Sources/Core/` — logic: license, patch, trailer, config, container access

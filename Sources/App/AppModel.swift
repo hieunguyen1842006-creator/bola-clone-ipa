@@ -368,6 +368,56 @@ public final class AppModel: ObservableObject {
         log("restore: \(outcome.message)")
     }
 
+    /// Xuất 3 file cài patch ra Documents/BolaExport để copy thủ công (Filza).
+    /// Dùng khi app không có quyền ghi container game (chưa jailbreak/entitlement).
+    public func exportPatchFiles() {
+        guard gate.isAuthorized, let lease = gate.lease else {
+            toast("🔑 Nhập key trước")
+            return
+        }
+        guard let url = Bundle.main.url(forResource: "BolaminhducMenu", withExtension: "bytes"),
+              let raw = try? Data(contentsOf: url) else {
+            toast("Không thấy patch trong app")
+            return
+        }
+        let token = BolaToken(key: lease.key, expiryUnix: lease.expiryUnix, sig: lease.sig)
+        let license = token.encodedString()
+        let body = PatchTrailer.strip(from: raw)
+        guard let signed = try? PatchTrailer.attach(to: body, license: license,
+                                                     expiryUnix: lease.expiryUnix) else {
+            toast("Không ký được trailer")
+            return
+        }
+
+        let fm = FileManager.default
+        guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let dir = docs.appendingPathComponent("BolaExport", isDirectory: true)
+        do {
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            try signed.write(to: dir.appendingPathComponent(PatchLibrary.patchFileName))
+            try Data(config.encoded()).write(to: dir.appendingPathComponent("bolacfg.bin"))
+            try Data(token.encoded()).write(to: dir.appendingPathComponent(".bola_tok"))
+            let readme = """
+            Copy 3 file sau vào Documents của game (dùng Filza):
+              - Assembly-CSharp-patch.bytes
+              - bolacfg.bin
+              - .bola_tok
+
+            Đường dẫn game:
+              /var/mobile/Containers/Data/Application/<UUID>/Documents/
+
+            Sau đó mở game.
+            """
+            try readme.write(to: dir.appendingPathComponent("README.txt"),
+                             atomically: true, encoding: .utf8)
+            log("export: đã xuất patch + cfg + token vào Documents/BolaExport")
+            toast("Đã xuất file — mở Files > Bola Clone > BolaExport")
+        } catch {
+            log("export: lỗi \(error.localizedDescription)")
+            toast("Xuất file lỗi — thử lại")
+        }
+    }
+
     // MARK: setter tương thích bản gốc
 
     public func setEspThick(_ value: Double) { espThick = value; writeConfig() }

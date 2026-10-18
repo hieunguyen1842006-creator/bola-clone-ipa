@@ -58,6 +58,10 @@ public struct SettingsView: View {
                 model.removePatch()
             }
             divider
+            row("Xuất file patch (thủ công)", value: "Cho Filza / không cần quyền container") {
+                model.exportPatchFiles()
+            }
+            divider
             row("Đổi key khác", value: model.keyMaskedName.isEmpty ? "Chưa có key" : model.keyMaskedName) {
                 model.gate.deactivate()
                 dismiss()
