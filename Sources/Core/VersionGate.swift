@@ -64,7 +64,8 @@ public final class VersionGate: ObservableObject {
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.check() }
+            guard let self else { return }
+            Task { @MainActor in self.check() }
         }
     }
 }
