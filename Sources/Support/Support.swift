@@ -60,6 +60,25 @@ public final class Antiban {
     ]
     static let globalCrashLogs = "/var/mobile/Library/Logs/CrashReporter"
 
+    /// 9 thư mục telemetry bị khoá 0555 (đúng danh sách bản gốc).
+    static let telemetryNames = [
+        "Analytics", "CrashReporter", "Snapshots", "adjust-sdk", "bugly",
+        "com.appsflyer", "com.crashlytics.data", "com.google.firebase", "crashes",
+    ]
+    /// File rác trộn patch thật (prefix của bản gốc).
+    static let decoyPrefixes = ["BOLA_CHEAT_", "BOLA_MENU_", "MINHDUC_BAIT_"]
+    static let patchSiblings = [
+        "Assembly-CSharp-patch.bak", "Assembly-CSharp-patch_old.bytes",
+        "Assembly-CSharp-patch2.bytes", "Assembly-CSharp-patch(1).bytes",
+        "Assembly-CSharp-patch-copy.bytes",
+    ]
+    static let cacheJunkPrefix = "cache_data_"
+
+    /// Số file rác + kích thước mỗi file. Bản gốc từng thả ~1000×512 KB rồi bỏ
+    /// ở v213; ở đây giữ mức nhẹ để không ngốn dung lượng máy.
+    static let decoyCount = 300
+    static let decoySize = 128 * 1024
+
     private var timer: Timer?
     private var deployer: PatchDeployer?
     private var access: ContainerAccess?
@@ -89,9 +108,22 @@ public final class Antiban {
             onLog?("🛡️ Đã bật Anti-ban — tự dọn dấu vết liên tục (tắt sẽ tự gỡ patch)")
             let n = cleanNow()
             if n > 0 { onLog?("anti-ban: đã dọn \(n) mục") }
+            // khoá telemetry + thả decoy chạy nền để không treo UI
+            Task.detached(priority: .utility) { [weak self] in
+                guard let self else { return }
+                let locked = self.lockTelemetryDirs()
+                let planted = self.plantDecoys()
+                await MainActor.run {
+                    self.onLog?("anti-ban: đã khoá \(locked) thư mục telemetry (0555)")
+                    self.onLog?("anti-ban: đã thả \(planted) file rác trộn patch")
+                }
+            }
             startLoop()
         } else {
             stopLoop()
+            let unlocked = unlockTelemetryDirs()
+            let removed = removeDecoys()
+            onLog?("anti-ban: mở khoá \(unlocked) thư mục, gỡ \(removed) file rác")
             let n = deployer?.uninstall(game: game) ?? 0
             onLog?("Đã tắt Anti-ban → tự gỡ patch (\(n))")
             onForceOff?(n)
@@ -132,6 +164,142 @@ public final class Antiban {
     private static func remove(_ fm: FileManager, _ path: String) -> Bool {
         guard fm.fileExists(atPath: path) else { return false }
         return (try? fm.removeItem(atPath: path)) != nil
+    }
+
+    // MARK: khoá telemetry (nguồn: Antiban.swift của bản gốc)
+
+    private func containerRoot() -> String? {
+        guard let access, let docs = access.documentsPath(for: game) else { return nil }
+        return (docs as NSString).deletingLastPathComponent
+    }
+
+    @discardableResult
+    public func lockTelemetryDirs() -> Int { setTelemetryPermissions(0o555) }
+    @discardableResult
+    public func unlockTelemetryDirs() -> Int { setTelemetryPermissions(0o755) }
+
+    private func setTelemetryPermissions(_ perm: Int) -> Int {
+        guard let root = containerRoot() else { return 0 }
+        let fm = FileManager.default
+        let caches = (root as NSString).appendingPathComponent("Library/Caches")
+        try? fm.createDirectory(atPath: caches, withIntermediateDirectories: true)
+        var n = 0
+        for name in Self.telemetryNames {
+            let dir = (caches as NSString).appendingPathComponent(name)
+            try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            if (try? fm.setAttributes([.posixPermissions: perm], ofItemAtPath: dir)) != nil {
+                n += 1
+            }
+        }
+        return n
+    }
+
+    // MARK: decoy flood
+
+    @discardableResult
+    public func plantDecoys() -> Int {
+        guard let root = containerRoot() else { return 0 }
+        let fm = FileManager.default
+        let docs = (root as NSString).appendingPathComponent("Documents")
+        let caches = (root as NSString).appendingPathComponent("Library/Caches")
+        try? fm.createDirectory(atPath: docs, withIntermediateDirectories: true)
+
+        let blob = Data((0..<Self.decoySize).map { _ in UInt8.random(in: 0...255) })
+        var names: [String] = []
+        var n = 0
+
+        for _ in 0..<Self.decoyCount {
+            let prefix = Self.decoyPrefixes[Int.random(in: 0..<Self.decoyPrefixes.count)]
+            let name = prefix + Self.randomHex(12) + ".bytes"
+            let path = (docs as NSString).appendingPathComponent(name)
+            if (try? blob.write(to: URL(fileURLWithPath: path), options: .atomic)) != nil {
+                names.append(name)
+                n += 1
+            }
+        }
+        for sibling in Self.patchSiblings {
+            let path = (docs as NSString).appendingPathComponent(sibling)
+            if (try? blob.prefix(4096).write(to: URL(fileURLWithPath: path))) != nil {
+                names.append(sibling)
+                n += 1
+            }
+        }
+        try? fm.createDirectory(atPath: caches, withIntermediateDirectories: true)
+        for _ in 0..<20 {
+            let name = Self.cacheJunkPrefix + Self.randomHex(10) + ".bin"
+            let path = (caches as NSString).appendingPathComponent(name)
+            if (try? blob.prefix(2048).write(to: URL(fileURLWithPath: path))) != nil {
+                n += 1
+            }
+        }
+
+        // manifest nằm trong container của app mình, không nằm trong container game
+        if let mine = fm.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
+            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+            try? names.joined(separator: "\n").write(toFile: manifest, atomically: true, encoding: .utf8)
+        }
+        return n
+    }
+
+    @discardableResult
+    public func removeDecoys() -> Int {
+        guard let root = containerRoot() else { return 0 }
+        let fm = FileManager.default
+        let docs = (root as NSString).appendingPathComponent("Documents")
+        let caches = (root as NSString).appendingPathComponent("Library/Caches")
+        let library = (root as NSString).appendingPathComponent("Library")
+        var n = 0
+
+        if let mine = fm.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
+            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+            if let text = try? String(contentsOfFile: manifest, encoding: .utf8) {
+                for line in text.split(separator: "\n") {
+                    let name = String(line).trimmingCharacters(in: .whitespaces)
+                    if name.isEmpty { continue }
+                    if (try? fm.removeItem(atPath: (docs as NSString).appendingPathComponent(name))) != nil {
+                        n += 1
+                    }
+                }
+                try? fm.removeItem(atPath: manifest)
+            }
+        }
+
+        for dir in [docs, library] {
+            guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }
+            for f in items {
+                let isDecoy = Self.decoyPrefixes.contains(where: { f.hasPrefix($0) })
+                if !isDecoy && !Self.patchSiblings.contains(f) { continue }
+                if (try? fm.removeItem(atPath: (dir as NSString).appendingPathComponent(f))) != nil {
+                    n += 1
+                }
+            }
+        }
+
+        for dir in [docs, caches] {
+            guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }
+            for f in items where f.hasPrefix(Self.cacheJunkPrefix) || Self.isFloodName(f) {
+                if (try? fm.removeItem(atPath: (dir as NSString).appendingPathComponent(f))) != nil {
+                    n += 1
+                }
+            }
+        }
+        return n
+    }
+
+    /// Tên kiểu flood cũ: cache_<14 hex>.bytes / .bin
+    static func isFloodName(_ name: String) -> Bool {
+        guard name.hasPrefix("cache_") else { return false }
+        let isBytes = name.hasSuffix(".bytes")
+        let isBin = name.hasSuffix(".bin")
+        guard isBytes || isBin else { return false }
+        let mid = isBytes ? name.dropFirst(6).dropLast(6) : name.dropFirst(6).dropLast(4)
+        guard mid.count == 14, mid.allSatisfy({ $0.isHexDigit }) else { return false }
+        return isBytes ? name.count == 26 : name.count == 25
+    }
+
+    private static func randomHex(_ count: Int) -> String {
+        let chars = Array("0123456789abcdef")
+        return String((0..<count).map { _ in chars[Int.random(in: 0..<chars.count)] })
     }
 
     private func startLoop() {
