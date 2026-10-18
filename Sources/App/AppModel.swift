@@ -31,7 +31,7 @@ public final class AppModel: ObservableObject {
     @Published public var restoring: Bool = false
     @Published public var toastText: String = ""
     @Published public var toastToken: Int = 0
-    @Published public var cfgFlags: Set<String> = []
+    @Published public var cfgFlags: Set<String> = ["autolaunch"]
     @Published public var aimBone: BolaConfig.Bone = .head
     @Published public var silentFov: Double = 0.01
     @Published public var aimFov: Double = 30
@@ -444,10 +444,12 @@ public final class AppModel: ObservableObject {
     public func launchGame() {
         log("Đã cài — chuẩn bị mở game…")
         #if canImport(UIKit)
-        guard let url = URL(string: "\(game.scheme)://") else { return }
-        UIApplication.shared.open(url, options: [:]) { [weak self] ok in
+        GameLauncher.launch(game) { [weak self] text in
             Task { @MainActor in
-                self?.log(ok ? "đã gửi lệnh mở game" : "KHÔNG mở được — mở \(self?.game.name ?? "game") bằng tay giúp mình.")
+                self?.log(text)
+                if text.hasPrefix("KHÔNG") {
+                    self?.toast("Mở game bằng tay giúp mình.")
+                }
             }
         }
         #endif

@@ -9,6 +9,7 @@
 //
 
 #import "mcm_bridge.h"
+#import "launcher_bridge.h"
 #import "kexploit/kexploit_opa334.h"
 #import "kexploit/kutils.h"
 #import "kexploit/sandbox_escape.h"
