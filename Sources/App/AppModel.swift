@@ -28,6 +28,7 @@ public final class AppModel: ObservableObject {
             guard game != oldValue else { return }
             if access.isAvailable(for: game) {
                 patchInstalled = isPatchPresent()
+                syncConfigFromDisk()
             } else {
                 patchInstalled = Self.persistedInjected(for: game)
             }
@@ -192,6 +193,7 @@ public final class AppModel: ObservableObject {
         } else {
             patchInstalled = Self.persistedInjected(for: game)
         }
+        syncConfigFromDisk()
         if !found.values.contains(true) {
             log("Không thấy game. Kiểm tra game đã cài chưa nhé.")
         }
@@ -218,6 +220,76 @@ public final class AppModel: ObservableObject {
         let patch = ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) != nil
         let cfg = ((try? access.read(PatchLibrary.configFileName, in: game)) ?? nil) != nil
         return patch && cfg
+    }
+
+    // MARK: đồng bộ UI ← nvhcfg.bin trong container game
+
+    /// Đọc cfg thật trong Documents game và áp lên UI — app và game phải cùng một cấu hình.
+    public func syncConfigFromDisk(using provider: ContainerAccess? = nil) {
+        let box = provider ?? access
+        guard box.isAvailable(for: game) else { return }
+        guard let raw = ((try? box.read(PatchLibrary.configFileName, in: game)) ?? nil) else {
+            return
+        }
+        guard let cfg = try? BolaConfig.decode([UInt8](raw)) else {
+            log("cfg: không đọc được nvhcfg.bin — giữ cấu hình đang hiển thị")
+            return
+        }
+        applyConfig(cfg)
+    }
+
+    private func applyConfig(_ cfg: BolaConfig) {
+        var flags: Set<String> = []
+        if cfg.flags.contains(.box) { flags.insert("box") }
+        if cfg.flags.contains(.line) { flags.insert("line") }
+        if cfg.flags.contains(.hp) { flags.insert("hp") }
+        if cfg.flags.contains(.name) { flags.insert("name") }
+        if cfg.flags.contains(.dist) { flags.insert("dist") }
+        if cfg.flags.contains(.bot) { flags.insert("bot") }
+        if cfg.flags.contains(.count) { flags.insert("count") }
+        if cfg.extra.contains(.aim) { flags.insert("aim") }
+        if cfg.extra.contains(.bones) { flags.insert("bone") }
+        if cfg.extra.contains(.silent) { flags.insert("silent") }
+        if cfg.extra.contains(.skipknock) { flags.insert("skipknock") }
+        if cfg.extra.contains(.showfov) { flags.insert("showfov") }
+        if cfg.extra.contains(.team) { flags.insert("team") }
+        if cfg.extra.contains(.straight) { flags.insert("straight") }
+        if cfg.misc1.contains(.fastfire) { flags.insert("fastfire") }
+        if cfg.misc1.contains(.fastswap) { flags.insert("fastswap") }
+        if cfg.misc1.contains(.emote) { flags.insert("emote") }
+        if cfg.misc1.contains(.highjump) { flags.insert("highjump") }
+        if cfg.misc1.contains(.fps144) { flags.insert("fps144") }
+        if cfg.misc2.contains(.camwide) { flags.insert("camwide") }
+        if cfg.misc2.contains(.backjump) { flags.insert("backjump") }
+        if cfg.misc2.contains(.speedrun) { flags.insert("speedrun") }
+        // autolaunch là tuỳ chọn phía app, không nằm trong cfg — giữ nguyên.
+        if cfgFlags.contains("autolaunch") { flags.insert("autolaunch") }
+
+        let changed = flags != cfgFlags
+            || aimBone != cfg.bone
+            || espThick != Double(cfg.espThick)
+            || silentFov != Double(cfg.silentFov)
+            || aimFov != Double(cfg.aimFov)
+            || camFov != Double(cfg.camFov)
+            || headRate != Double(cfg.headRate)
+            || featureRGB["box"] != cfg.boxColor
+            || featureRGB["line"] != cfg.lineColor
+            || featureRGB["bone"] != cfg.boneColor
+
+        cfgFlags = flags
+        aimBone = cfg.bone
+        espThick = Double(cfg.espThick)
+        silentFov = Double(cfg.silentFov)
+        aimFov = Double(cfg.aimFov)
+        camFov = Double(cfg.camFov)
+        headRate = Double(cfg.headRate)
+        featureRGB["box"] = cfg.boxColor
+        featureRGB["line"] = cfg.lineColor
+        featureRGB["bone"] = cfg.boneColor
+
+        if changed {
+            log("cfg: đã đồng bộ cấu hình từ nvhcfg.bin trong game")
+        }
     }
 
     // MARK: trạng thái inject bền (sống qua lần kill app)
@@ -318,6 +390,8 @@ public final class AppModel: ObservableObject {
                 return
             }
             let inst = makeInstaller(access: liveAccess)
+            // Có cfg sẵn trong game → lấy cfg làm chuẩn trước khi ghi đè.
+            syncConfigFromDisk(using: liveAccess)
             inst.currentLease = lease
             let req = Installer.Request(game: game, config: config, lease: lease)
             let outcome = await inst.run(req)
