@@ -123,7 +123,6 @@ public final class AppModel: ObservableObject {
     public static let defaultAccess: ContainerAccess = {
         var providers: [ContainerAccess] = [
             DirectContainerAccess(),
-            AppGroupContainerAccess(groupID: "group.bola.clone"),
         ]
         #if canImport(ObjectiveC) && canImport(UIKit)
         // Đường MHA: bundle id phải là com.apple.mobile.MobileHouseArrest

@@ -136,7 +136,21 @@ public final class AppGroupContainerAccess: ContainerAccess {
     }
 
     public func isAvailable(for game: GameTarget) -> Bool {
-        fm.containerURL(forSecurityApplicationGroupIdentifier: groupID) != nil
+        // containerURL chỉ nói group có tồn tại; phải thử GHI thật, vì path
+        // group của app khác (hoặc group không có entitlement) sẽ không ghi được.
+        guard let base = fm.containerURL(forSecurityApplicationGroupIdentifier: groupID) else {
+            return false
+        }
+        let dir = base.appendingPathComponent("\(game.bundleID)/Documents", isDirectory: true)
+        let probe = dir.appendingPathComponent(".bola_probe")
+        do {
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            try Data([0x01]).write(to: probe)
+            try? fm.removeItem(at: probe)
+            return true
+        } catch {
+            return false
+        }
     }
 
     private func dir(for game: GameTarget) throws -> URL {

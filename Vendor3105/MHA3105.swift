@@ -18,9 +18,19 @@ final class MHA3105ContainerAccess: ContainerAccess {
     private let lock = NSLock()
     private var resolved: [GameTarget: String] = [:]
     private var lastDetail: String = ""
+    private var reportedFailures = Set<GameTarget>()
 
     /// Log lần dò gần nhất (coordinator hiển thị khi fail).
     var detail: String { lock.lock(); defer { lock.unlock() }; return lastDetail }
+
+    /// Báo lỗi đúng 1 lần cho mỗi game để log không bị spam.
+    private func reportFailure(_ game: GameTarget) {
+        lock.lock()
+        let first = reportedFailures.insert(game).inserted
+        let text = lastDetail
+        lock.unlock()
+        if first { Logger.shared.log("mha: \(text)") }
+    }
 
     private func containerRoot(for game: GameTarget) -> String? {
         lock.lock(); defer { lock.unlock() }
@@ -52,10 +62,14 @@ final class MHA3105ContainerAccess: ContainerAccess {
     }
 
     func isAvailable(for game: GameTarget) -> Bool {
-        guard let docs = documents(for: game) else { return false }
+        guard let docs = documents(for: game) else {
+            reportFailure(game)
+            return false
+        }
         var isDir: ObjCBool = false
         guard fm.fileExists(atPath: docs, isDirectory: &isDir), isDir.boolValue else {
             lastDetail = "không thấy Documents: \(docs)"
+            reportFailure(game)
             return false
         }
         // kiểm chứng quyền thật: tạo-rồi-xoá 1 file nhỏ
@@ -66,6 +80,7 @@ final class MHA3105ContainerAccess: ContainerAccess {
             return true
         } catch {
             lastDetail = "không ghi được: \(error.localizedDescription)"
+            reportFailure(game)
             return false
         }
     }
