@@ -40,7 +40,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.clone.bola.app
         INFOPLIST_FILE: Resources/Info.plist
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_EMIT_LOC_STRINGS: NO
 schemes:
   BolaClone:
