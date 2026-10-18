@@ -3,81 +3,128 @@ import Foundation
 /// BolaConfig — codec cho `Documents/bolacfg.bin` (file app ghi vào container Free Fire,
 /// patch trong game đọc ở `Application.persistentDataPath + "/bolacfg.bin"`).
 ///
-/// LAYOUT (bóc từ IL của `BolaminhducMenu.bytes`):
-///   vm1 instr 155–480  +  vm4 instr 524–1139  — cùng một reader, hai nơi dùng
+/// Layout lấy đúng từ source gốc (`AppModel.writeConfig`):
+///   24 byte payload + 4 byte CRC32 LE = 28 byte.
 ///
-///   cfg.Length >= 28                                  (gate: 20 → 24 → 28, instr 189–208)
-///   cfg[0..3]  == "BOLA"                              (0x42 0x4F 0x4C 0x41, instr 351–373)
-///   cfg[4]     == version byte                        (instr 374–378, so với hằng '1' = 0x31)
-///   cfg[7]     = flags:  bit0 → bật nhóm ESP          (instr 381–404)
-///                        bit2 → bật aim
-///                        bit3 → cờ phụ
-///   cfg[8]     = bone enum 0..2                       (instr 405–423, range-check 0...2)
-///   cfg[15]    = aim FOV, clamp 5...100               (instr 424–442, mặc định 30)
-///   cfg[19]    = byte clamp 5...100                   (instr 443–461, mặc định 30)
-///   cfg[20]    = byte clamp 10...100                  (instr 462–480, mặc định 100)
-///   cfg[len-4..len-1] = CRC32 LE (poly 0xEDB88320) của cfg[0..<len-4]
-///                (instr 211–226: ba nhánh 16/20/24 = len-4 ứng với len 20/24/28;
-///                 vòng CRC instr 255–307; so sánh instr 308–316)
+///   [0..3]  "BOLA"
+///   [4]     version = 1
+///   [5]     ESP flags: bit0 box, bit1 line, bit2 hp, bit3 name, bit4 dist, bit5 bot, bit7 count
+///   [6]     độ dày ESP, clamp 50...200
+///   [7]     extra: bit0 aim, bit1 skeleton (bone), bit2 silent, bit3 skip-knocked,
+///                bit4 show FOV, bit5 team, bit6 straight bullets
+///   [8]     bone: 0 head, 1 neck, 2 chest
+///   [9..14] RGB565 little-endian: box (9,10), line (11,12), bone (13,14)
+///   [15]    silent FOV, clamp 5...100
+///   [16]    misc1: bit0 fastfire, bit3 fastswap, bit5 emote, bit6 highjump, bit7 fps144
+///   [17]    misc2: bit1 camwide, bit4 backjump, bit5 speedrun
+///   [18]    camera FOV, clamp 50...130
+///   [19]    aimbot FOV, clamp 5...100
+///   [20]    headshot ratio, clamp 10...100
+///   [21..23] 0
 ///
-///   ⚠️ Ở đây patch còn MÃ HOÁ lại từng byte trước khi so magic: vòng lặp instr 323–350
-///   giải mã `dec[j] = mix(cfg[j], j)` với phần cộng đã đọc được là `+ 0x5A + j*0x37`
-///   (90 và 55), rồi so `dec[0..3] == "BOLA"`. Phần trộn còn lại (0xB1/0x93/0x64/0xA4)
-///   CHƯA giải hết — xem `Obfuscation` bên dưới và README.
+/// Toàn bộ 24 byte bị XOR với keystream `(0x5A + i*0x37) ^ (i << 4)`, CRC32 tính trên
+/// **payload đã XOR** rồi ghi 4 byte little-endian ở cuối.
 public struct BolaConfig: Equatable {
 
     public static let magic: [UInt8] = Array("BOLA".utf8)   // 0x42 0x4F 0x4C 0x41
     public static let size = 28
-    public static let version: UInt8 = 0x31                 // '1'
+    public static let payloadSize = 24
+    public static let version: UInt8 = 1
 
-    // Flags bit trong cfg[7]
-    public struct Flags: OptionSet, Equatable {
+    public struct Flags: OptionSet, Equatable {          // byte 5
         public let rawValue: UInt8
         public init(rawValue: UInt8) { self.rawValue = rawValue }
-        public static let esp    = Flags(rawValue: 1 << 0)   // nhóm ESP (khung, HP, tên...)
-        public static let aim    = Flags(rawValue: 1 << 2)   // nhóm aim (khoá mục tiêu)
-        public static let extra  = Flags(rawValue: 1 << 3)   // cờ phụ (đồng đội / bot)
+        public static let box   = Flags(rawValue: 1 << 0)
+        public static let line  = Flags(rawValue: 1 << 1)
+        public static let hp    = Flags(rawValue: 1 << 2)
+        public static let name  = Flags(rawValue: 1 << 3)
+        public static let dist  = Flags(rawValue: 1 << 4)
+        public static let bot   = Flags(rawValue: 1 << 5)
+        public static let count = Flags(rawValue: 1 << 7)
+    }
+
+    public struct Extra: OptionSet, Equatable {          // byte 7
+        public let rawValue: UInt8
+        public init(rawValue: UInt8) { self.rawValue = rawValue }
+        public static let aim       = Extra(rawValue: 1 << 0)
+        public static let bones     = Extra(rawValue: 1 << 1)
+        public static let silent    = Extra(rawValue: 1 << 2)
+        public static let skipknock = Extra(rawValue: 1 << 3)
+        public static let showfov   = Extra(rawValue: 1 << 4)
+        public static let team      = Extra(rawValue: 1 << 5)
+        public static let straight  = Extra(rawValue: 1 << 6)
+    }
+
+    public struct Misc1: OptionSet, Equatable {          // byte 16
+        public let rawValue: UInt8
+        public init(rawValue: UInt8) { self.rawValue = rawValue }
+        public static let fastfire = Misc1(rawValue: 1 << 0)
+        public static let fastswap = Misc1(rawValue: 1 << 3)
+        public static let emote    = Misc1(rawValue: 1 << 5)
+        public static let highjump = Misc1(rawValue: 1 << 6)
+        public static let fps144   = Misc1(rawValue: 1 << 7)
+    }
+
+    public struct Misc2: OptionSet, Equatable {          // byte 17
+        public let rawValue: UInt8
+        public init(rawValue: UInt8) { self.rawValue = rawValue }
+        public static let camwide  = Misc2(rawValue: 1 << 1)
+        public static let backjump = Misc2(rawValue: 1 << 4)
+        public static let speedrun = Misc2(rawValue: 1 << 5)
     }
 
     public enum Bone: UInt8, CaseIterable {
-        case head = 0, neck = 1, spine = 2
+        case head = 0, neck = 1, chest = 2
 
         public var vi: String {
             switch self {
             case .head: return "Đầu"
             case .neck: return "Cổ"
-            case .spine: return "Thân"
+            case .chest: return "Ngực"
             }
         }
     }
 
     public var flags: Flags
+    public var extra: Extra
+    public var misc1: Misc1
+    public var misc2: Misc2
     public var bone: Bone
-    public var aimFov: UInt8      // 5...100
-    public var field19: UInt8     // 5...100
-    public var field20: UInt8     // 10...100
-    /// byte 21..27 — chưa xác minh, giữ nguyên khi parse để không phá file của app gốc
-    public var reservedTail: [UInt8]
+    public var espThick: UInt8     // 50...200
+    public var silentFov: UInt8    // 5...100
+    public var aimFov: UInt8       // 5...100
+    public var camFov: UInt8       // 50...130
+    public var headRate: UInt8     // 10...100
+    public var boxColor: UInt16
+    public var lineColor: UInt16
+    public var boneColor: UInt16
 
-    public init(flags: Flags = [.esp, .aim],
+    public init(flags: Flags = [],
+                extra: Extra = [],
+                misc1: Misc1 = [],
+                misc2: Misc2 = [],
                 bone: Bone = .head,
+                espThick: UInt8 = 100,
+                silentFov: UInt8 = 30,
                 aimFov: UInt8 = 30,
-                field19: UInt8 = 30,
-                field20: UInt8 = 100,
-                reservedTail: [UInt8] = [UInt8](repeating: 0, count: 3)) {   // byte 21..23
+                camFov: UInt8 = 88,
+                headRate: UInt8 = 100,
+                boxColor: UInt16 = 0xF925,
+                lineColor: UInt16 = 0xF925,
+                boneColor: UInt16 = 0xF925) {
         self.flags = flags
+        self.extra = extra
+        self.misc1 = misc1
+        self.misc2 = misc2
         self.bone = bone
+        self.espThick = espThick
+        self.silentFov = silentFov
         self.aimFov = aimFov
-        self.field19 = field19
-        self.field20 = field20
-        self.reservedTail = reservedTail
-    }
-
-    /// Mã hoá từng byte của file. `.plain` = như writer của clone; `.additive` = phần
-    /// đã đọc được từ IL (`cfg[j] = dec[j] - 0x5A - j*0x37`), dùng khi cần khớp file thật.
-    public enum Obfuscation {
-        case plain
-        case additive          // cfg[j] = (dec[j] - 0x5A - j*0x37) & 0xFF
+        self.camFov = camFov
+        self.headRate = headRate
+        self.boxColor = boxColor
+        self.lineColor = lineColor
+        self.boneColor = boneColor
     }
 
     public enum DecodeError: Error, CustomStringConvertible {
@@ -90,96 +137,102 @@ public struct BolaConfig: Equatable {
             switch self {
             case .tooShort(let n): return "bolacfg.bin quá ngắn: \(n) < \(BolaConfig.size)"
             case .badMagic(let m): return "sai magic: \(m.map { String(format: "%02X", $0) }.joined()) ≠ 424F4C41"
-            case .badVersion(let v): return String(format: "sai version: 0x%02X ≠ 0x31", v)
+            case .badVersion(let v): return String(format: "sai version: 0x%02X ≠ 0x01", v)
             case .badCRC(let e, let g): return String(format: "CRC32 lệch: file=0x%08X, tính=0x%08X", e, g)
             }
         }
     }
 
+    // MARK: keystream
+
+    /// XOR keystream đúng như `writeConfig` của bản gốc (đối xứng khi áp 2 lần).
+    public static func obfuscate(_ index: Int, _ byte: UInt8) -> UInt8 {
+        byte ^ UInt8(truncatingIfNeeded: (0x5A + index * 0x37) ^ (index << 4))
+    }
+
     // MARK: encode
 
-    /// Sinh đúng 28 byte mà reader trong patch chấp nhận (magic + version + flags + CRC32).
     public func encoded() -> [UInt8] {
-        var out = [UInt8](repeating: 0, count: BolaConfig.size)
+        var out = [UInt8](repeating: 0, count: BolaConfig.payloadSize)
         out.replaceSubrange(0..<4, with: BolaConfig.magic)
         out[4] = BolaConfig.version
-        out[7] = flags.rawValue
+        out[5] = flags.rawValue
+        out[6] = clamp(espThick, 50, 200)
+        out[7] = extra.rawValue
         out[8] = bone.rawValue
-        out[15] = clamp(aimFov, 5, 100)
-        out[19] = clamp(field19, 5, 100)
-        out[20] = clamp(field20, 10, 100)
-        let idx = BolaConfig.crcOffset(for: BolaConfig.size)   // 24
-        for (i, b) in reservedTail.enumerated() where 21 + i < idx {
-            out[21 + i] = b
+        Self.writeLE16(boxColor, into: &out, at: 9)
+        Self.writeLE16(lineColor, into: &out, at: 11)
+        Self.writeLE16(boneColor, into: &out, at: 13)
+        out[15] = clamp(silentFov, 5, 100)
+        out[16] = misc1.rawValue
+        out[17] = misc2.rawValue
+        out[18] = clamp(camFov, 50, 130)
+        out[19] = clamp(aimFov, 5, 100)
+        out[20] = clamp(headRate, 10, 100)
+
+        for i in 0..<BolaConfig.payloadSize {
+            out[i] = Self.obfuscate(i, out[i])
         }
-        let crc = CRC32.hash(out[0..<idx])
-        Self.writeLE32(crc, into: &out, at: idx)
-        return out
+
+        let crc = CRC32.hash(out)
+        var data = out
+        data.append(UInt8(crc & 0xFF))
+        data.append(UInt8((crc >> 8) & 0xFF))
+        data.append(UInt8((crc >> 16) & 0xFF))
+        data.append(UInt8((crc >> 24) & 0xFF))
+        return data
     }
 
     // MARK: decode
 
     public static func decode(_ bytes: [UInt8]) throws -> BolaConfig {
         guard bytes.count >= BolaConfig.size else { throw DecodeError.tooShort(bytes.count) }
-        guard Array(bytes[0..<4]) == magic else { throw DecodeError.badMagic(Array(bytes[0..<4])) }
-        guard bytes[4] == version else { throw DecodeError.badVersion(bytes[4]) }
 
         let idx = crcOffset(for: bytes.count)
         let stored = readLE32(bytes, at: idx)
-        let calc = CRC32.hash(bytes[0..<idx])
+        let calc = CRC32.hash(Array(bytes[0..<idx]))
         guard stored == calc else { throw DecodeError.badCRC(expected: stored, got: calc) }
 
+        var plain = Array(bytes[0..<idx])
+        for i in plain.indices {
+            plain[i] = obfuscate(i, plain[i])
+        }
+        guard plain.count >= 21 else { throw DecodeError.tooShort(plain.count) }
+        guard Array(plain[0..<4]) == magic else { throw DecodeError.badMagic(Array(plain[0..<4])) }
+        guard plain[4] == version else { throw DecodeError.badVersion(plain[4]) }
+
         return BolaConfig(
-            flags: Flags(rawValue: bytes[7]),
-            bone: Bone(rawValue: bytes[8]) ?? .head,
-            aimFov: clamp(bytes[15], 5, 100),
-            field19: clamp(bytes[19], 5, 100),
-            field20: clamp(bytes[20], 10, 100),
-            reservedTail: Array(bytes[21..<min(bytes.count, crcOffset(for: bytes.count))])
-        )
+            flags: Flags(rawValue: plain[5]),
+            extra: Extra(rawValue: plain[7]),
+            misc1: Misc1(rawValue: plain[16]),
+            misc2: Misc2(rawValue: plain[17]),
+            bone: Bone(rawValue: plain[8]) ?? .head,
+            espThick: plain[6],
+            silentFov: plain[15],
+            aimFov: plain[19],
+            camFov: plain[18],
+            headRate: plain[20],
+            boxColor: readLE16(plain, at: 9),
+            lineColor: readLE16(plain, at: 11),
+            boneColor: readLE16(plain, at: 13))
     }
 
-    /// idx của CRC32 theo độ dài file — đúng nhánh `len>=28 ? 24 : (len>=24 ? 20 : 16)`
-    /// trong IL (instr 211–226): file chuẩn 28 byte ⇒ CRC ở offset 24 (4 byte cuối).
+    /// CRC nằm ở 4 byte cuối (28 → 24).
     public static func crcOffset(for length: Int) -> Int {
-        // Ba nhánh 16/20/24 của reader = "4 byte cuối" cho độ dài 20/24/28.
         max(0, length - 4)
-    }
-
-    /// Nhánh range-check của reader: giá trị ngoài clamp coi như không hợp lệ → dùng default.
-    public static func accepted(_ v: UInt8, in range: ClosedRange<UInt8>) -> UInt8 {
-        range.contains(v) ? v : range.lowerBound
     }
 
     private func clamp(_ v: UInt8, _ lo: UInt8, _ hi: UInt8) -> UInt8 {
         min(max(v, lo), hi)
     }
 
-    private static func clamp(_ v: UInt8, _ lo: UInt8, _ hi: UInt8) -> UInt8 {
-        min(max(v, lo), hi)
+    private static func writeLE16(_ v: UInt16, into out: inout [UInt8], at i: Int) {
+        out[i] = UInt8(v & 0xFF)
+        out[i + 1] = UInt8((v >> 8) & 0xFF)
     }
 
-    /// Đảo của vòng giải mã trong patch (xem doc đầu file).
-    public static func mix(_ decoded: [UInt8], _ mode: Obfuscation) -> [UInt8] {
-        switch mode {
-        case .plain:
-            return decoded
-        case .additive:
-            return decoded.enumerated().map { j, b in
-                UInt8((Int(b) - 0x5A - j * 0x37) & 0xFF)
-            }
-        }
-    }
-
-    public static func unmix(_ raw: [UInt8], _ mode: Obfuscation) -> [UInt8] {
-        switch mode {
-        case .plain:
-            return raw
-        case .additive:
-            return raw.enumerated().map { j, b in
-                UInt8((Int(b) + 0x5A + j * 0x37) & 0xFF)
-            }
-        }
+    private static func readLE16(_ b: [UInt8], at i: Int) -> UInt16 {
+        UInt16(b[i]) | (UInt16(b[i + 1]) << 8)
     }
 
     private static func writeLE32(_ v: UInt32, into out: inout [UInt8], at i: Int) {
@@ -229,13 +282,6 @@ public struct BolaToken: Equatable {
     }
 
     public func encoded() -> [UInt8] { Array(encodedString().utf8) }
-
-    /// Mã hoá từng byte của file. `.plain` = như writer của clone; `.additive` = phần
-    /// đã đọc được từ IL (`cfg[j] = dec[j] - 0x5A - j*0x37`), dùng khi cần khớp file thật.
-    public enum Obfuscation {
-        case plain
-        case additive          // cfg[j] = (dec[j] - 0x5A - j*0x37) & 0xFF
-    }
 
     public enum DecodeError: Error, CustomStringConvertible {
         case badPrefix

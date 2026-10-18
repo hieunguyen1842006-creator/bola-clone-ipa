@@ -90,18 +90,22 @@ public struct ConfigView: View {
     private var espTab: some View {
         VStack(spacing: 12) {
             card("Khung & thông tin") {
-                toggleRowInline("esp", "Khung quanh người & bot", "Khung quanh người & bot")
-                toggleRowInline("skeleton", "Khung xương người (skeleton)", "Khung xương người (skeleton)")
-                toggleRowInline("hp", "Thanh HP cho người & bot", "Thanh HP cho người & bot")
-                toggleRowInline("name", "Tên người chơi / bot", "Tên người chơi / bot")
-                toggleRowInline("distance", "Khoảng cách tới mục tiêu", "Khoảng cách tới mục tiêu")
+                colorFeatureRow("box", "Khung quanh người & bot")
+                colorFeatureRow("line", "Đường kẻ từ tâm ngắm")
+                colorFeatureRow("bone", "Khung xương người (skeleton)")
             }
-            card("Bộ lọc") {
-                toggleRowInline("teammates", "Hiện đồng đội (màu xanh)", "Hiện đồng đội (màu xanh)")
-                toggleRowInline("bots", "Hiện cả bot (AI)", "Hiện cả bot (AI)")
-                toggleRowInline("counter", "Số địch + bot ở trên màn hình", "Số địch + bot ở trên màn hình")
+            card("Hiển thị") {
+                toggleRowInline("hp", "Máu", "Thanh HP cho người & bot")
+                toggleRowInline("name", "Tên", "Tên người chơi / bot")
+                toggleRowInline("dist", "Khoảng cách", "Khoảng cách tới mục tiêu")
+                toggleRowInline("bot", "Bot", "Hiện cả bot (AI)")
+                toggleRowInline("count", "Đếm địch", "Số địch + bot ở trên màn hình")
+                toggleRowInline("team", "ESP đội", "Hiện đồng đội (màu xanh)")
+                sliderRow("Độ dày ESP",
+                          value: Binding(get: { model.espThick },
+                                         set: { model.setEspThick($0) }),
+                          range: 50...200, unit: "%")
             }
-            colorFeatureCard("Màu hiển thị")
         }
     }
 
@@ -109,33 +113,56 @@ public struct ConfigView: View {
 
     private var aimTab: some View {
         VStack(spacing: 12) {
-            card("Mục tiêu") {
-                toggleRowInline("aim", "Khoá địch gần tâm ngắm nhất", "Khoá địch gần tâm ngắm nhất")
-                toggleRowInline("aimline", "Đường kẻ từ tâm ngắm", "Đường kẻ từ tâm ngắm")
-                toggleRowInline("fovcircle", "Hiện vòng FOV", "Ẩn/hiện vòng tròn FOV trên màn hình")
-                toggleRowInline("skipdown", "Không bắn vào địch đã bị hạ gục", "Không bắn vào địch đã bị hạ gục")
-            }
-            card("Bone & thông số") {
-                boneSection
-                sliderRow("Khoảng Cách Cam (FOV)", value: $model.aimFov, range: 5...100, unit: "°")
-                sliderRow("Tỉ lệ vào đầu", value: $model.headRate, range: 0.1...1, unit: "")
-                sliderRow("Silent FOV", value: $model.silentFov, range: 0.001...0.2, unit: "")
-                Text("Bắn lệch vẫn bay vào bone đã chọn").font(.system(size: 11)).foregroundStyle(Theme.dim)
+            card("Aim") {
+                toggleRowInline("aim", "Aimbot", "Khoá địch gần tâm ngắm nhất")
+                toggleRowInline("silent", "Aim Silent", "Bắn lệch vẫn bay vào bone đã chọn")
+
+                if model.cfgFlags.contains("aim") || model.cfgFlags.contains("silent") {
+                    boneSection
+
+                    if model.aimBone == .head {
+                        sliderRow("Tỉ lệ vào đầu",
+                                  value: Binding(get: { model.headRate },
+                                                 set: { model.setHeadRate($0) }),
+                                  range: 10...100, unit: "%")
+                    }
+
+                    if model.cfgFlags.contains("silent") {
+                        sliderRow("FOV",
+                                  value: Binding(get: { model.silentFov },
+                                                 set: { model.setSilentFov($0) }),
+                                  range: 5...100, unit: "%")
+                        toggleRowInline("showfov", "Hiện vòng FOV",
+                                        "Ẩn/hiện vòng tròn FOV trên màn hình")
+                        toggleRowInline("skipknock", "Bỏ qua gục",
+                                        "Không bắn vào địch đã bị hạ gục")
+                    }
+
+                    if model.cfgFlags.contains("aim") {
+                        sliderRow("FOV Aimbot",
+                                  value: Binding(get: { model.aimFov },
+                                                 set: { model.setAimFov($0) }),
+                                  range: 5...100, unit: "%")
+                    }
+                }
             }
         }
     }
 
     private var boneSection: some View {
-        HStack(spacing: 8) {
-            ForEach(BolaConfig.Bone.allCases, id: \.rawValue) { b in
-                Button { model.aimBone = b } label: {
-                    Text(b.vi).font(Theme.bodyFont)
-                        .foregroundStyle(model.aimBone == b ? Color.black : Theme.dim)
-                        .frame(maxWidth: .infinity).padding(.vertical, 8)
-                        .background(RoundedRectangle(cornerRadius: 10)
-                            .fill(model.aimBone == b ? Theme.accent : Theme.cardHi))
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Vị trí khoá").font(Theme.bodyFont).foregroundStyle(Theme.text)
+            HStack(spacing: 8) {
+                ForEach(BolaConfig.Bone.allCases, id: \.rawValue) { b in
+                    Button { model.setBone(b) } label: {
+                        Text(b.vi).font(Theme.bodyFont)
+                            .foregroundStyle(model.aimBone == b ? Color.black : Theme.dim)
+                            .frame(maxWidth: .infinity).padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 10)
+                                .fill(model.aimBone == b ? Theme.accent : Theme.cardHi))
+                    }
+                    .buttonStyle(RowButtonStyle())
                 }
-                .buttonStyle(RowButtonStyle())
             }
         }
     }
@@ -145,20 +172,36 @@ public struct ConfigView: View {
     private var miscTab: some View {
         VStack(spacing: 12) {
             card("Vũ khí") {
-                toggleRowInline("fastfire", "Bắn Siêu Tốc (Fast Fire)", "Tăng tốc độ nhả đạn của súng liên thanh")
-                toggleRowInline("norecoil", "Đạn thẳng (No Recoil 0%)", "Triệt tiêu độ tỏa đạn — đạn bay thẳng tắp")
-                toggleRowInline("fastswap", "Đổi Súng Nhanh", "Triệt tiêu delay đổi súng, bắn liền tục")
+                toggleRowInline("straight", "Đạn thẳng (No Recoil 0%)",
+                                "Triệt tiêu độ tỏa đạn — đạn bay thẳng tắp")
+                toggleRowInline("fastfire", "Bắn Siêu Tốc (Fast Fire)",
+                                "Tăng tốc độ nhả đạn của súng liên thanh")
+                toggleRowInline("fastswap", "Đổi Súng Nhanh",
+                                "Triệt tiêu delay đổi súng, bắn liền tục")
+                toggleRowInline("fps144", "Mở Khóa 144 FPS",
+                                "Mở khoá tần số quét, hình ảnh siêu mượt")
             }
             card("Di chuyển") {
-                toggleRowInline("speedrun", "Chạy Nhanh x3 (Speed Run)", "Di chuyển thần tốc, né đạn & lướt nhanh")
-                toggleRowInline("highjump", "Nhảy Cao (High Jump)", "Nhảy cao 1.2x vượt tường kẹo, leo nóc nhà")
-                toggleRowInline("lowfall", "Khử gia tốc rơi", "Khử gia tốc rơi, nhảy giật lùi né đạn")
-                toggleRowInline("booyah", "Điệu Nhảy Booyah", "Kích hoạt nhảy Booyah & Carnival liên tục")
+                toggleRowInline("speedrun", "Chạy Nhanh x3 (Speed Run)",
+                                "Di chuyển thần tốc, né đạn & lướt nhanh")
+                toggleRowInline("highjump", "Nhảy Cao (High Jump)",
+                                "Nhảy cao 1.2x vượt tường kẹo, leo nóc nhà")
+                toggleRowInline("backjump", "BACKJUMP",
+                                "Khử gia tốc rơi, nhảy giật lùi né đạn")
+                toggleRowInline("emote", "Điệu Nhảy Booyah",
+                                "Kích hoạt nhảy Booyah & Carnival liên tục")
             }
             card("Hiển thị") {
-                toggleRowInline("camfar", "Góc Nhìn Rộng (Cam Xa)", "Mở rộng góc quan sát toàn cảnh chiến trường")
-                toggleRowInline("fps144", "Mở Khóa 144 FPS", "Mở khoá tần số quét, hình ảnh siêu mượt")
-                toggleRowInline("autolaunch", "Tự mở game sau khi inject", "Đã inject — đang mở game")
+                toggleRowInline("camwide", "Góc Nhìn Rộng (Cam Xa)",
+                                "Mở rộng góc quan sát toàn cảnh chiến trường")
+                if model.cfgFlags.contains("camwide") {
+                    sliderRow("Khoảng Cách Cam (FOV)",
+                              value: Binding(get: { model.camFov },
+                                             set: { model.setCamFov($0) }),
+                              range: 50...130, unit: "°")
+                }
+                toggleRowInline("autolaunch", "Tự mở game sau khi inject",
+                                "Đã inject — đang mở game")
             }
         }
     }
@@ -176,7 +219,7 @@ public struct ConfigView: View {
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
     }
 
-    /// toggleRowInline — tên + mô tả + switch
+    /// toggleRowInline — tên + mô tả + switch (setFlag để ghi config ngay)
     private func toggleRowInline(_ key: String, _ title: String, _ subtitle: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
@@ -186,9 +229,7 @@ public struct ConfigView: View {
             Spacer()
             Toggle("", isOn: Binding(
                 get: { model.cfgFlags.contains(key) },
-                set: { on in
-                    if on { model.cfgFlags.insert(key) } else { model.cfgFlags.remove(key) }
-                }))
+                set: { on in model.setFlag(key, on) }))
             .labelsHidden()
             .tint(Theme.accent)
         }
@@ -207,44 +248,54 @@ public struct ConfigView: View {
         }
     }
 
-    private func colorFeatureCard(_ title: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(Theme.headFont).foregroundStyle(Theme.text)
-            ForEach(model.featureRGB.keys.sorted(), id: \.self) { key in
+    /// Một dòng feature có màu: toggle + nút chọn màu (chỉ hiện khi bật).
+    private func colorFeatureRow(_ key: String, _ title: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { model.cfgFlags.contains(key) },
+                    set: { on in model.setFlag(key, on) }))
+                .labelsHidden()
+                .tint(Theme.accent)
+            }
+            if model.cfgFlags.contains(key) {
                 Button {
                     colorPickKey = key
-                    let ui = UIColor(Color(hex: UInt32(model.featureRGB[key] ?? 0)))
+                    let ui = UIColor(color565(model.featureRGB[key] ?? 0))
                     var h: CGFloat = 0, s: CGFloat = 0, v: CGFloat = 0, a: CGFloat = 0
                     ui.getHue(&h, saturation: &s, brightness: &v, alpha: &a)
                     hue = Double(h); sat = Double(s); val = Double(v)
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
+                        Text("Màu hiển thị").font(.system(size: 12)).foregroundStyle(Theme.dim)
+                        Spacer()
                         Circle()
-                            .fill(Color(hex: UInt32(model.featureRGB[key] ?? 0)))
+                            .fill(color565(model.featureRGB[key] ?? 0))
                             .frame(width: 16, height: 16)
                             .overlay(Circle().stroke(Theme.border, lineWidth: 1))
-                        Text(colorTitle(key)).font(Theme.bodyFont).foregroundStyle(Theme.text)
-                        Spacer()
-                        Text(String(format: "#%04X", model.featureRGB[key] ?? 0))
-                            .font(Theme.monoFont).foregroundStyle(Theme.dim)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Theme.dim)
                     }
                 }
                 .buttonStyle(RowButtonStyle())
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
+    }
+
+    private func color565(_ v: UInt16) -> Color {
+        let (r, g, b) = Pack565.unpack(v)
+        return Color(.sRGB, red: Double(r) / 255, green: Double(g) / 255,
+                     blue: Double(b) / 255, opacity: 1)
     }
 
     private func colorTitle(_ key: String) -> String {
         switch key {
-        case "esp_box": return "Khung"
-        case "esp_skeleton": return "Xương"
-        case "esp_hp": return "Thanh HP"
-        case "esp_name": return "Tên"
-        case "fov_circle": return "Vòng FOV"
+        case "box": return "Màu Box"
+        case "line": return "Màu Line"
+        case "bone": return "Màu Bone"
         default: return key
         }
     }

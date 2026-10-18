@@ -31,13 +31,16 @@ public final class AppModel: ObservableObject {
     @Published public var restoring: Bool = false
     @Published public var toastText: String = ""
     @Published public var toastToken: Int = 0
-    @Published public var cfgFlags: Set<String> = ["autolaunch"]
+    /// Key đúng như bản gốc. Mặc định: ESP bật, aim/silent/misc tắt.
+    @Published public var cfgFlags: Set<String> = [
+        "box", "line", "bone", "hp", "name", "dist", "bot", "count", "team", "autolaunch",
+    ]
     @Published public var aimBone: BolaConfig.Bone = .head
-    @Published public var silentFov: Double = 0.01
-    @Published public var aimFov: Double = 30
-    @Published public var headRate: Double = 0.7
-    @Published public var camFov: Double = 60
-    @Published public var espThick: Double = 1
+    @Published public var silentFov: Double = 30       // 5...100 (%)
+    @Published public var aimFov: Double = 30          // 5...100 (%)
+    @Published public var headRate: Double = 100       // 10...100 (%)
+    @Published public var camFov: Double = 88          // 50...130
+    @Published public var espThick: Double = 100       // 50...200
     @Published public var language: Language = .vi
     @Published public var antiban: Bool = false
     @Published public var mhaActive: Bool = false
@@ -145,11 +148,9 @@ public final class AppModel: ObservableObject {
 
 
     public static let defaultColors: [String: UInt16] = [
-        "esp_box": Pack565.pack(r: 0, g: 255, b: 128),
-        "esp_skeleton": Pack565.pack(r: 255, g: 64, b: 64),
-        "esp_hp": Pack565.pack(r: 64, g: 220, b: 64),
-        "esp_name": Pack565.pack(r: 255, g: 255, b: 255),
-        "fov_circle": Pack565.pack(r: 255, g: 210, b: 80),
+        "box": Pack565.pack(r: 255, g: 38, b: 38),
+        "line": Pack565.pack(r: 255, g: 38, b: 38),
+        "bone": Pack565.pack(r: 255, g: 38, b: 38),
     ]
 
     // MARK: vòng đời
@@ -203,14 +204,53 @@ public final class AppModel: ObservableObject {
 
     public var config: BolaConfig {
         var flags: BolaConfig.Flags = []
-        if cfgFlags.contains("esp") { flags.insert(.esp) }
-        if cfgFlags.contains("aim") { flags.insert(.aim) }
-        if cfgFlags.contains("teammates") || cfgFlags.contains("bots") { flags.insert(.extra) }
-        return BolaConfig(flags: flags,
-                          bone: aimBone,
-                          aimFov: UInt8(max(5, min(100, aimFov))),
-                          field19: UInt8(max(5, min(100, headRate * 100))),
-                          field20: UInt8(max(10, min(100, camFov))))
+        if cfgFlags.contains("box") { flags.insert(.box) }
+        if cfgFlags.contains("line") { flags.insert(.line) }
+        if cfgFlags.contains("hp") { flags.insert(.hp) }
+        if cfgFlags.contains("name") { flags.insert(.name) }
+        if cfgFlags.contains("dist") { flags.insert(.dist) }
+        if cfgFlags.contains("bot") { flags.insert(.bot) }
+        if cfgFlags.contains("count") { flags.insert(.count) }
+
+        var extra: BolaConfig.Extra = []
+        if cfgFlags.contains("aim") { extra.insert(.aim) }
+        if cfgFlags.contains("bone") { extra.insert(.bones) }
+        if cfgFlags.contains("silent") { extra.insert(.silent) }
+        if cfgFlags.contains("skipknock") { extra.insert(.skipknock) }
+        if cfgFlags.contains("showfov") { extra.insert(.showfov) }
+        if cfgFlags.contains("team") { extra.insert(.team) }
+        if cfgFlags.contains("straight") { extra.insert(.straight) }
+
+        var misc1: BolaConfig.Misc1 = []
+        if cfgFlags.contains("fastfire") { misc1.insert(.fastfire) }
+        if cfgFlags.contains("fastswap") { misc1.insert(.fastswap) }
+        if cfgFlags.contains("emote") { misc1.insert(.emote) }
+        if cfgFlags.contains("highjump") { misc1.insert(.highjump) }
+        if cfgFlags.contains("fps144") { misc1.insert(.fps144) }
+
+        var misc2: BolaConfig.Misc2 = []
+        if cfgFlags.contains("camwide") { misc2.insert(.camwide) }
+        if cfgFlags.contains("backjump") { misc2.insert(.backjump) }
+        if cfgFlags.contains("speedrun") { misc2.insert(.speedrun) }
+
+        func u8(_ v: Double, _ lo: UInt8, _ hi: UInt8) -> UInt8 {
+            UInt8(min(max(v, Double(lo)), Double(hi)))
+        }
+
+        return BolaConfig(
+            flags: flags,
+            extra: extra,
+            misc1: misc1,
+            misc2: misc2,
+            bone: aimBone,
+            espThick: u8(espThick, 50, 200),
+            silentFov: u8(silentFov, 5, 100),
+            aimFov: u8(aimFov, 5, 100),
+            camFov: u8(camFov, 50, 130),
+            headRate: u8(headRate, 10, 100),
+            boxColor: featureRGB["box"] ?? 0xF925,
+            lineColor: featureRGB["line"] ?? 0xF925,
+            boneColor: featureRGB["bone"] ?? 0xF925)
     }
 
     /// Nút INJECT — kiểm tra → ghi patch/cfg/token → mở game.
@@ -439,10 +479,24 @@ public final class AppModel: ObservableObject {
 
     // MARK: setter tương thích bản gốc
 
-    public func setEspThick(_ value: Double) { espThick = value; writeConfig() }
-    public func setHeadRate(_ value: Double) { headRate = value; writeConfig() }
-    public func setSilentFov(_ value: Double) { silentFov = value; writeConfig() }
-    public func setCamFov(_ value: Double) { camFov = value; writeConfig() }
+    /// Bật/tắt feature đúng key của bản gốc; aim và silent loại trừ nhau.
+    public func setFlag(_ key: String, _ on: Bool) {
+        if on && key == "aim" { cfgFlags.remove("silent") }
+        if on && key == "silent" { cfgFlags.remove("aim") }
+        if on { cfgFlags.insert(key) } else { cfgFlags.remove(key) }
+        writeConfig()
+    }
+
+    public func setBone(_ bone: BolaConfig.Bone) {
+        aimBone = bone
+        writeConfig()
+    }
+
+    public func setEspThick(_ value: Double) { espThick = min(max(value, 50), 200); writeConfig() }
+    public func setHeadRate(_ value: Double) { headRate = min(max(value, 10), 100); writeConfig() }
+    public func setSilentFov(_ value: Double) { silentFov = min(max(value, 5), 100); writeConfig() }
+    public func setAimFov(_ value: Double) { aimFov = min(max(value, 5), 100); writeConfig() }
+    public func setCamFov(_ value: Double) { camFov = min(max(value, 50), 130); writeConfig() }
 
     /// Alias log/showToast đúng tên field bản gốc.
     public func append(_ text: String) { log(text) }

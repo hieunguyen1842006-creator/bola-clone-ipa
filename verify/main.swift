@@ -42,17 +42,39 @@ check("unpack(0x07E0) ≈ (0,255,0)", r_ == 0 && g_ == 255 && b_ == 0,
       "got (\(r_),\(g_),\(b_))")
 
 print("=== BolaConfig — writer phải khớp reader của patch ===")
-var cfg = BolaConfig(flags: [.esp, .aim], bone: .neck, aimFov: 45, field19: 60, field20: 80)
+let cfg = BolaConfig(flags: [.box, .hp],
+                     extra: [.aim, .silent],
+                     misc1: [.fastfire],
+                     misc2: [.speedrun],
+                     bone: .neck,
+                     espThick: 120,
+                     silentFov: 45,
+                     aimFov: 60,
+                     camFov: 95,
+                     headRate: 80,
+                     boxColor: 0xF800,
+                     lineColor: 0x07E0,
+                     boneColor: 0x001F)
 let bytes = cfg.encoded()
+let plain: [UInt8] = bytes[0..<24].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
 check("độ dài == 28 (ngưỡng đọc của patch)", bytes.count == BolaConfig.size, "got \(bytes.count)")
-check("magic \"BOLA\" ở offset 0",
-      Array(bytes[0..<4]) == Array("BOLA".utf8),
-      hex(Array(bytes[0..<4])))
-check("version '1' ở offset 4", bytes[4] == 0x31, String(format: "%02X", bytes[4]))
-check("flags ở offset 7 = 0b101", bytes[7] == 0b101, String(format: "%02X", bytes[7]))
-check("bone ở offset 8 = 1 (neck)", bytes[8] == 1)
-check("aimFov ở offset 15 = 45", bytes[15] == 45)
-check("field19/20 ở offset 19/20", bytes[19] == 60 && bytes[20] == 80)
+check("magic \"BOLA\" sau khi bỏ XOR",
+      Array(plain[0..<4]) == Array("BOLA".utf8),
+      hex(Array(plain[0..<4])))
+check("version == 1 ở offset 4", plain[4] == 1, String(format: "%02X", plain[4]))
+check("ESP flags offset 5 = box|hp", plain[5] == 0b101, String(format: "%02X", plain[5]))
+check("espThick offset 6 = 120", plain[6] == 120)
+check("extra offset 7 = aim|silent", plain[7] == 0b101, String(format: "%02X", plain[7]))
+check("bone offset 8 = 1 (neck)", plain[8] == 1)
+check("RGB565 little-endian ở 9..14",
+      plain[9] == 0x00 && plain[10] == 0xF8
+      && plain[11] == 0xE0 && plain[12] == 0x07
+      && plain[13] == 0x1F && plain[14] == 0x00)
+check("silentFov offset 15 = 45", plain[15] == 45)
+check("misc1 offset 16 = fastfire", plain[16] == 1)
+check("misc2 offset 17 = speedrun", plain[17] == 32)
+check("camFov/aimFov/headRate ở 18/19/20",
+      plain[18] == 95 && plain[19] == 60 && plain[20] == 80)
 check("CRC32 ở 4 byte CUỐI (offset 24, LE)",
       UInt32(bytes[24]) | UInt32(bytes[25]) << 8 | UInt32(bytes[26]) << 16 | UInt32(bytes[27]) << 24
         == CRC32.hash(Array(bytes[0..<24])))
@@ -60,10 +82,9 @@ check("CRC32 ở 4 byte CUỐI (offset 24, LE)",
 let back = try? BolaConfig.decode(bytes)
 check("decode(encode(x)) == x", back == cfg, "got \(String(describing: back))")
 
-// reader trong patch từ chối khi sai magic/version/crc
-var bad = bytes; bad[0] = 0x41
+var bad = bytes; bad[0] ^= 0xFF
 check("decode từ chối magic sai", (try? BolaConfig.decode(bad)) == nil)
-var bad2 = bytes; bad2[4] = 0x32
+var bad2 = bytes; bad2[4] ^= 0xFF
 check("decode từ chối version sai", (try? BolaConfig.decode(bad2)) == nil)
 var bad3 = bytes; bad3[10] ^= 0xFF
 check("decode từ chối CRC sai", (try? BolaConfig.decode(bad3)) == nil)
@@ -71,10 +92,12 @@ check("decode từ chối file < 28 byte", (try? BolaConfig.decode(Array(bytes[0
 check("crcOffset = len-4 (28→24, 24→20, 20→16)",
       BolaConfig.crcOffset(for: 28) == 24 && BolaConfig.crcOffset(for: 24) == 20
         && BolaConfig.crcOffset(for: 20) == 16)
-check("obfuscation additive: mix/unmix đối xứng",
-      BolaConfig.unmix(BolaConfig.mix(bytes, .additive), .additive) == bytes
-      && BolaConfig.mix(bytes, .additive) != bytes)
-check("clamp FOV ngoài 5…100", BolaConfig(flags: [], bone: .head, aimFov: 250).encoded()[15] == 100)
+check("XOR keystream đối xứng",
+      (0..<24).allSatisfy { BolaConfig.obfuscate($0, BolaConfig.obfuscate($0, 0x42)) == 0x42 })
+let clamped = BolaConfig(espThick: 250, silentFov: 250).encoded()
+let clampedPlain: [UInt8] = clamped[0..<24].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
+check("clamp espThick 50…200 / silentFov 5…100",
+      clampedPlain[6] == 200 && clampedPlain[15] == 100)
 
 print("=== BolaToken — khớp gate trong game (vm4) ===")
 let key = "BOLA-TEST-0001"
