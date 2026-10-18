@@ -53,25 +53,31 @@ public enum FeatureTab: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - GameTarget (freefireTH / freefireMAX)
+// MARK: - GameTarget (freefireTH / freefireMAX / lienquan)
 
 public enum GameTarget: String, CaseIterable, Identifiable {
     case freefireTH
     case freefireMAX
+    case lienquan
 
     public var id: String { rawValue }
 
-    public var bundleID: String {
+    /// Bundle chính + biến thể. LQ iOS có cả `kgvn` và `kgvnbig`.
+    public var bundleIDs: [String] {
         switch self {
-        case .freefireTH: return "com.dts.freefireth"
-        case .freefireMAX: return "com.dts.freefiremax"
+        case .freefireTH: return ["com.dts.freefireth"]
+        case .freefireMAX: return ["com.dts.freefiremax"]
+        case .lienquan: return ["com.garena.game.kgvn", "com.garena.game.kgvnbig"]
         }
     }
+
+    public var bundleID: String { bundleIDs[0] }
 
     public var scheme: String {
         switch self {
         case .freefireTH: return "freefire"
         case .freefireMAX: return "freefiremax"
+        case .lienquan: return "lienquan"
         }
     }
 
@@ -79,8 +85,21 @@ public enum GameTarget: String, CaseIterable, Identifiable {
         switch self {
         case .freefireTH: return "Free Fire"
         case .freefireMAX: return "Free Fire MAX"
+        case .lienquan: return "Liên Quân Mobile"
         }
     }
+
+    /// Icon hiển thị trong danh sách game.
+    public var symbol: String {
+        switch self {
+        case .freefireTH: return "flame"
+        case .freefireMAX: return "flame.fill"
+        case .lienquan: return "shield.lefthalf.filled"
+        }
+    }
+
+    /// LQ dùng hotfix payload (`HeroSkin_2.bytes`) thay vì IFix patch + cfg của FF.
+    public var isLienQuan: Bool { self == .lienquan }
 
     /// Info.plist của bản gốc khai báo LSApplicationQueriesSchemes = [freefire];
     /// bản clone khai báo cả 3 scheme để dò được cả MAX.

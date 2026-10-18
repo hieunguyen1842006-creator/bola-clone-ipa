@@ -26,6 +26,7 @@ let package = Package(
                 "Core/PatchGuard.swift",
                 "Core/PatchLibrary.swift",
                 "Core/PatchVault.swift",
+                "Core/LienQuanDeployer.swift",
                 "Support/Logger.swift",
             ]
         ),

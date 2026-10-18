@@ -34,6 +34,9 @@ public final class AppModel: ObservableObject {
             }
         }
     }
+    /// Gói hotfix đang chọn cho Liên Quân (Full HUD / Unlock skin).
+    @Published public var lqPack: LQPack =
+        LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .hudFull
     @Published public var installedInfo: [GameTarget: Bool] = [:]
     @Published public var patchInstalled: Bool = false
     @Published public var logText: String = ""
@@ -216,7 +219,11 @@ public final class AppModel: ObservableObject {
     }
 
     /// Đã inject = có ĐỦ `Assembly-CSharp-patch.bytes` + `nvhcfg.bin` trong Documents game.
+    /// Với Liên Quân: `Resources/<ver>/Thanos/HeroSkin_2.bytes` khớp payload mình đã ghi.
     private func isPatchPresent() -> Bool {
+        if game.isLienQuan {
+            return LienQuanDeployer(access: access, game: game).isInstalled()
+        }
         let patch = ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) != nil
         let cfg = ((try? access.read(PatchLibrary.configFileName, in: game)) ?? nil) != nil
         return patch && cfg
@@ -226,6 +233,7 @@ public final class AppModel: ObservableObject {
 
     /// Đọc cfg thật trong Documents game và áp lên UI — app và game phải cùng một cấu hình.
     public func syncConfigFromDisk(using provider: ContainerAccess? = nil) {
+        guard !game.isLienQuan else { return }   // LQ không có file cfg runtime
         let box = provider ?? access
         guard box.isAvailable(for: game) else { return }
         guard let raw = ((try? box.read(PatchLibrary.configFileName, in: game)) ?? nil) else {
@@ -370,6 +378,11 @@ public final class AppModel: ObservableObject {
             toast("🔑 Nhập key trước để bật")
             return
         }
+        // Liên Quân: ghi hotfix payload (không dùng IFix patch + cfg của FF).
+        if game.isLienQuan {
+            injectLQ()
+            return
+        }
         busy = true
         cancelRequested = false
         log("Chờ một chút rồi inject…")
@@ -412,6 +425,83 @@ public final class AppModel: ObservableObject {
         }
     }
 
+    /// Nút INJECT cho Liên Quân — ghi hotfix payload vào Resources/<ver>/Thanos.
+    private func injectLQ() {
+        guard let payload = PatchVault.load(resource: lqPack.vaultResource) else {
+            toast("Không thấy gói LQ trong app")
+            log("lq: thiếu \(lqPack.vaultResource).vault")
+            return
+        }
+        busy = true
+        cancelRequested = false
+        log("lq: chuẩn bị container…")
+        Task {
+            let ready = await coordinator.ensureReady(for: game)
+            switch ready {
+            case .success(let live):
+                mhaActive = coordinator.lastMessage == "mha"
+                let dep = LienQuanDeployer(access: live, game: game)
+                dep.onLog = { [weak self] in self?.log($0) }
+                let outcome = dep.install(payload, pack: lqPack)
+                await MainActor.run {
+                    self.busy = false
+                    self.markInjected(outcome.ok)
+                    self.statusText = outcome.message
+                    self.toast(outcome.message)
+                    self.writeOK = outcome.ok
+                    if outcome.ok, self.cfgFlags.contains("autolaunch") {
+                        self.launchGame()
+                    }
+                }
+            case .failure(let err):
+                await MainActor.run {
+                    self.busy = false
+                    self.phase = .failed
+                    self.statusText = "\(err)"
+                    self.toast("Không mở được thư mục Liên Quân.")
+                    self.log("lq: \(err)")
+                }
+            }
+        }
+    }
+
+    /// Gỡ hotfix LQ + khôi phục bản gốc đã backup.
+    private func removeLQ() {
+        busy = true
+        log("lq: đang gỡ…")
+        Task {
+            let ready = await coordinator.ensureReady(for: game)
+            switch ready {
+            case .success(let live):
+                let dep = LienQuanDeployer(access: live, game: game)
+                dep.onLog = { [weak self] in self?.log($0) }
+                let outcome = dep.uninstall()
+                await MainActor.run {
+                    self.busy = false
+                    if outcome.ok { self.markInjected(false); self.phase = .idle }
+                    self.statusText = outcome.message
+                    self.toast(outcome.message)
+                    if !outcome.ok { self.log("lq: \(outcome.message)") }
+                }
+            case .failure(let err):
+                await MainActor.run {
+                    self.busy = false
+                    self.phase = .failed
+                    self.toast("Không mở được thư mục Liên Quân.")
+                    self.log("lq: \(err)")
+                }
+            }
+        }
+    }
+
+    /// Chọn gói LQ (Full HUD / Unlock skin).
+    public func setLQPack(_ pack: LQPack) {
+        guard pack != lqPack else { return }
+        lqPack = pack
+        UserDefaults.standard.set(pack.rawValue, forKey: "nvh.lq.pack")
+        toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
+    }
+
     /// Tạo Installer cho một đường ghi cụ thể (coordinator có thể trả đường khác nhau
     /// giữa các lần chạy: direct / MHA / primitive).
     private func makeInstaller(access: ContainerAccess) -> Installer {
@@ -425,6 +515,10 @@ public final class AppModel: ObservableObject {
     public func cancelInject() {
         cancelRequested = true
         log("inject: người dùng bấm huỷ")
+        if game.isLienQuan {
+            removeLQ()
+            return
+        }
         Task { @MainActor in
             let n = (installer as Installer).deployerUninstall(game: game)
             log("inject: huỷ muộn → gỡ patch vừa cài (\(n))")
@@ -436,6 +530,10 @@ public final class AppModel: ObservableObject {
 
     public func removePatch() {
         guard throttle() else { return }
+        if game.isLienQuan {
+            removeLQ()
+            return
+        }
         let n = installer.deployerUninstall(game: game)
         markInjected(false)
         phase = .idle
@@ -448,6 +546,10 @@ public final class AppModel: ObservableObject {
     /// Chỉ ghi lại `nvhcfg.bin` (không tải lại patch), dùng khi đổi toggle/slider.
     public func writeConfig() {
         guard throttle() else { return }
+        if game.isLienQuan {
+            toast("LQ dùng gói cố định — không có cấu hình riêng")
+            return
+        }
         guard gate.isAuthorized, let lease = gate.lease else {
             toast("🔑 Nhập key trước để lưu cấu hình")
             return
@@ -465,6 +567,7 @@ public final class AppModel: ObservableObject {
 
     /// Token/trailer cũ hết hạn hoặc key đổi → ký lại tại chỗ, không cần bơm patch mới.
     public func selfHealToken() {
+        guard !game.isLienQuan else { return }
         guard gate.isAuthorized, let lease = gate.lease else { return }
         keyMaskedName = KeyMask.mask(lease.key)
         keyHoursLeft = BolaToken(key: lease.key, expiryUnix: lease.expiryUnix,
@@ -527,6 +630,10 @@ public final class AppModel: ObservableObject {
 
     /// Gỡ toàn bộ và trả về trạng thái nghỉ (bản gốc: AppModel.restore).
     public func restore() {
+        if game.isLienQuan {
+            removeLQ()
+            return
+        }
         let outcome = installer.restore(game: game)
         markInjected(false)
         phase = .idle

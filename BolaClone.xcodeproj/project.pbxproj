@@ -16,6 +16,7 @@
 		0DA9CD3266AC9E2A12EC8F57 /* Lease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A32A8D5C62C3E67A540F78E /* Lease.swift */; };
 		06A7C87FA4EC6B93E877011E /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BC02BADB300E879C4CD7C7 /* License.swift */; };
 		AFE324F7C2553D67BB552F44 /* LicenseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */; };
+		03AC9A43C4DABB69B53B6463 /* LienQuanDeployer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0085ED1BD5F78581CD6EA26 /* LienQuanDeployer.swift */; };
 		2E342E3C5B3827190A571800 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73CBD3703BEADE23A6C2CD3C /* Models.swift */; };
 		7E79B7B133BC217AF38E1A9D /* PatchDeployer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6164D9648F03ABD9F711F216 /* PatchDeployer.swift */; };
 		54B579EFF4FA9EE1320F2BE9 /* PatchGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E608A29613B34BD5EFDA64 /* PatchGuard.swift */; };
@@ -47,6 +48,8 @@
 		38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */ = {isa = PBXBuildFile; fileRef = DA6381D5BE520727BA075FAB /* nvh_silence.wav */; };
 		CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */ = {isa = PBXBuildFile; fileRef = 5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */; };
 		B91D6A02ED4AB9E1BE3681ED /* NeutralPatch.vault in Resources */ = {isa = PBXBuildFile; fileRef = F531AE29667F167DB1304929 /* NeutralPatch.vault */; };
+		FC653B04FB113D8A9B94B1BF /* LQHud.vault in Resources */ = {isa = PBXBuildFile; fileRef = 342EC6E8381E03875CC2F9F2 /* LQHud.vault */; };
+		1A9A5591C3A9BCCF1DE99C2D /* LQUnlock.vault in Resources */ = {isa = PBXBuildFile; fileRef = CBE4AABCD4AD83A295D35D60 /* LQUnlock.vault */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +64,7 @@
 		1A32A8D5C62C3E67A540F78E /* Lease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lease.swift; sourceTree = "<group>"; };
 		A4BC02BADB300E879C4CD7C7 /* License.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = License.swift; sourceTree = "<group>"; };
 		EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseClient.swift; sourceTree = "<group>"; };
+		D0085ED1BD5F78581CD6EA26 /* LienQuanDeployer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LienQuanDeployer.swift; sourceTree = "<group>"; };
 		73CBD3703BEADE23A6C2CD3C /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		6164D9648F03ABD9F711F216 /* PatchDeployer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDeployer.swift; sourceTree = "<group>"; };
 		87E608A29613B34BD5EFDA64 /* PatchGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchGuard.swift; sourceTree = "<group>"; };
@@ -104,6 +108,8 @@
 		DA6381D5BE520727BA075FAB /* nvh_silence.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = nvh_silence.wav; sourceTree = "<group>"; };
 		5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = NVHMenu.vault; sourceTree = "<group>"; };
 		F531AE29667F167DB1304929 /* NeutralPatch.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = NeutralPatch.vault; sourceTree = "<group>"; };
+		342EC6E8381E03875CC2F9F2 /* LQHud.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = LQHud.vault; sourceTree = "<group>"; };
+		CBE4AABCD4AD83A295D35D60 /* LQUnlock.vault */ = {isa = PBXFileReference; lastKnownFileType = file; path = LQUnlock.vault; sourceTree = "<group>"; };
 		4E02752AF53CE1B03E460202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -159,6 +165,7 @@
 				1A32A8D5C62C3E67A540F78E /* Lease.swift */,
 				A4BC02BADB300E879C4CD7C7 /* License.swift */,
 				EDA99C620AE27F08AB2A5022 /* LicenseClient.swift */,
+				D0085ED1BD5F78581CD6EA26 /* LienQuanDeployer.swift */,
 				73CBD3703BEADE23A6C2CD3C /* Models.swift */,
 				6164D9648F03ABD9F711F216 /* PatchDeployer.swift */,
 				87E608A29613B34BD5EFDA64 /* PatchGuard.swift */,
@@ -300,6 +307,8 @@
 				38F30AB2711F696B7DF3969C /* nvh_silence.wav in Resources */,
 				CE76B295B3D5F6AFA9F5F74F /* NVHMenu.vault in Resources */,
 				B91D6A02ED4AB9E1BE3681ED /* NeutralPatch.vault in Resources */,
+				FC653B04FB113D8A9B94B1BF /* LQHud.vault in Resources */,
+				1A9A5591C3A9BCCF1DE99C2D /* LQUnlock.vault in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,6 +329,7 @@
 				0DA9CD3266AC9E2A12EC8F57 /* Lease.swift in Sources */,
 				06A7C87FA4EC6B93E877011E /* License.swift in Sources */,
 				AFE324F7C2553D67BB552F44 /* LicenseClient.swift in Sources */,
+				03AC9A43C4DABB69B53B6463 /* LienQuanDeployer.swift in Sources */,
 				2E342E3C5B3827190A571800 /* Models.swift in Sources */,
 				7E79B7B133BC217AF38E1A9D /* PatchDeployer.swift in Sources */,
 				54B579EFF4FA9EE1320F2BE9 /* PatchGuard.swift in Sources */,

@@ -40,7 +40,15 @@ final class MHA3105ContainerAccess: ContainerAccess {
         }
 
         var error: NSString?
-        guard let raw = MCMActivateContainerPath(2, game.bundleID, false, &error) else {
+        var raw = MCMActivateContainerPath(2, game.bundleID, false, &error)
+        if raw == nil {
+            // LQ có thể là kgvn hoặc kgvnbig — thử biến thể còn lại.
+            for alt in game.bundleIDs.dropFirst() {
+                raw = MCMActivateContainerPath(2, alt, false, &error)
+                if raw != nil { break }
+            }
+        }
+        guard let raw else {
             lastDetail = (error as String?) ?? "MCMActivateContainerPath trả nil"
             return nil
         }

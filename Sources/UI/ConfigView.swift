@@ -26,9 +26,13 @@ public struct ConfigView: View {
         ScrollView {
             VStack(spacing: 14) {
                 header
-                segment
-                tabContent
-                warningCard
+                if model.game.isLienQuan {
+                    lqContent
+                } else {
+                    segment
+                    tabContent
+                    warningCard
+                }
                 injectArea
             }
             .padding(.horizontal, 16)
@@ -52,7 +56,9 @@ public struct ConfigView: View {
                     .font(Theme.bodyFont)
                     .foregroundStyle(gate.isAuthorized ? Theme.accent : Theme.danger)
             }
-            Text("Đã cài xong cho \(model.game.name)").font(Theme.monoFont)
+            Text(model.patchInstalled ? "Đã inject cho \(model.game.name)"
+                                      : "Chưa inject cho \(model.game.name)")
+                .font(Theme.monoFont)
                 .foregroundStyle(model.patchInstalled ? Theme.accent : Theme.dim)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -302,6 +308,47 @@ public struct ConfigView: View {
         }
     }
 
+    // MARK: LQ
+
+    /// Liên Quân dùng hotfix payload đóng sẵn — chọn gói thay vì bật/tắt từng tính năng.
+    private var lqContent: some View {
+        VStack(spacing: 12) {
+            card("Gói hotfix") {
+                ForEach(LQPack.allCases) { p in
+                    Button { model.setLQPack(p) } label: {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: p.symbol)
+                                .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.dim)
+                                .frame(width: 22)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(p.title).font(Theme.bodyFont).foregroundStyle(Theme.text)
+                                Text(p.subtitle).font(.system(size: 10))
+                                    .foregroundStyle(Theme.dim)
+                            }
+                            Spacer()
+                            Image(systemName: model.lqPack == p
+                                  ? "largecircle.fill.circle" : "circle")
+                                .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.border)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(RowButtonStyle())
+                }
+            }
+            card("Đích ghi") {
+                Text("Documents/Resources/<ver>/Thanos/HeroSkin_2.bytes")
+                    .font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
+                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
+            }
+            card("Lưu ý") {
+                Text("Payload LQ là gói đóng sẵn (HUD/skin), không có file cfg runtime như Free Fire. "
+                     + "App chọn gói rồi ghi — muốn thêm toggle từng tính năng thì phải build payload mới.")
+                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
+            }
+        }
+    }
+
     // MARK: warning + inject
 
     private var warningCard: some View {
@@ -323,20 +370,34 @@ public struct ConfigView: View {
 
     private var injectArea: some View {
         VStack(spacing: 8) {
-            Button { model.inject() } label: {
-                Text(model.busy ? "Đang inject…" : "INJECT")
+            Button {
+                if model.patchInstalled { model.removePatch() } else { model.inject() }
+            } label: {
+                HStack(spacing: 10) {
+                    if model.busy {
+                        ProgressView().tint(model.patchInstalled ? .white : .black)
+                    }
+                    Text(model.busy
+                         ? "Đang xử lý…"
+                         : (model.patchInstalled ? "UN INJECT" : "INJECT"))
+                }
             }
-            .buttonStyle(InjectButtonStyle(enabled: !model.busy && gate.isAuthorized))
+            .buttonStyle(InjectButtonStyle(enabled: !model.busy && gate.isAuthorized,
+                                           danger: model.patchInstalled))
             .disabled(model.busy)
 
-            Button { model.writeConfig() } label: {
-                Text("Lưu cấu hình (không cần inject lại)")
-                    .font(Theme.bodyFont)
+            if !model.game.isLienQuan {
+                Button { model.writeConfig() } label: {
+                    Text("Lưu cấu hình (không cần inject lại)")
+                        .font(Theme.bodyFont)
+                }
+                .foregroundStyle(model.patchInstalled ? Theme.accent : Theme.dim)
+                .disabled(!model.patchInstalled)
             }
-            .foregroundStyle(model.patchInstalled ? Theme.accent : Theme.dim)
-            .disabled(!model.patchInstalled)
 
-            Text("Mặc định tắt mỗi lần mở app — bật lại khi cần")
+            Text(model.game.isLienQuan
+                 ? "Gói LQ đã đóng sẵn — bấm INJECT để ghi vào game"
+                 : "Mặc định tắt mỗi lần mở app — bật lại khi cần")
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
         }
     }

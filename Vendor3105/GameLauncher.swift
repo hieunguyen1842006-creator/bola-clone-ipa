@@ -10,20 +10,25 @@ enum GameLauncher {
 
     static func launch(_ game: GameTarget, log: @escaping (String) -> Void) {
         // IFix chỉ nạp patch lúc process khởi động → tắt bản đang chạy trước.
-        let killed = BolaTerminateApplication(game.bundleID)
+        var killed = false
+        for id in game.bundleIDs where BolaTerminateApplication(id) {
+            killed = true
+        }
         if killed {
             log("đã tắt game cũ — mở lại để nạp patch")
         }
         let delay: TimeInterval = killed ? 0.8 : 0
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            if BolaOpenApplication(game.bundleID) {
+            for id in game.bundleIDs where BolaOpenApplication(id) {
                 log("đã gửi lệnh mở game (LSApplicationWorkspace)")
                 return
             }
             let schemes: [String] = {
                 var seen = Set<String>()
-                return [game.scheme, "freefire", "ff", "freefireth", "freefiremax"]
-                    .filter { seen.insert($0).inserted }
+                let base: [String] = game.isLienQuan
+                    ? [game.scheme, "kgvn", "lqmb", "lienquanmobile"]
+                    : [game.scheme, "freefire", "ff", "freefireth", "freefiremax"]
+                return base.filter { seen.insert($0).inserted }
             }()
             tryScheme(schemes, at: 0, game: game, log: log)
         }

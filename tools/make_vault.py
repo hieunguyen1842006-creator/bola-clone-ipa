@@ -24,6 +24,8 @@ MAGIC = b"NVHV1"
 TARGETS = [
     ("NVHMenu.bytes", "NVHMenu.vault"),
     ("NeutralPatch.bytes", "NeutralPatch.vault"),
+    ("LQHud.bytes", "LQHud.vault"),
+    ("LQUnlock.bytes", "LQUnlock.vault"),
 ]
 
 

@@ -124,7 +124,7 @@ public struct HomeView: View {
             ForEach(GameTarget.allCases) { g in
                 Button { model.game = g } label: {
                     HStack(spacing: 12) {
-                        Image(systemName: g == .freefireMAX ? "flame.fill" : "flame")
+                        Image(systemName: g.symbol)
                             .font(.system(size: 20))
                             .foregroundStyle(model.game == g ? Theme.accent : Theme.dim)
                             .frame(width: 34)
@@ -168,6 +168,8 @@ public struct HomeView: View {
             }
             .buttonStyle(CardButtonStyle())
 
+            if model.game.isLienQuan { lqPackPicker }
+
             Button {
                 if model.patchInstalled { model.removePatch() } else { model.inject() }
             } label: {
@@ -185,10 +187,43 @@ public struct HomeView: View {
             .disabled(model.busy)
 
             Text(model.patchInstalled
-                 ? "Đang inject — bấm UN INJECT để gỡ patch"
-                 : "Chọn game → chỉnh chức năng → bấm INJECT")
+                 ? (model.game.isLienQuan
+                    ? "Đang inject — bấm UN INJECT để khôi phục file gốc"
+                    : "Đang inject — bấm UN INJECT để gỡ patch")
+                 : (model.game.isLienQuan
+                    ? "Chọn gói Liên Quân → bấm INJECT"
+                    : "Chọn game → chỉnh chức năng → bấm INJECT"))
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
         }
+    }
+
+    /// Chọn gói hotfix cho Liên Quân (payload đóng sẵn, không có cfg runtime).
+    private var lqPackPicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("GÓI LIÊN QUÂN").font(Theme.monoFont).foregroundStyle(Theme.dim)
+            HStack(spacing: 8) {
+                ForEach(LQPack.allCases) { p in
+                    Button { model.setLQPack(p) } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: p.symbol)
+                                .font(.system(size: 14, weight: .bold))
+                            Text(p.title).font(Theme.bodyFont)
+                        }
+                        .foregroundStyle(model.lqPack == p ? Color.black : Theme.dim)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 10)
+                            .fill(model.lqPack == p ? Theme.accent : Theme.cardHi))
+                    }
+                    .buttonStyle(RowButtonStyle())
+                }
+            }
+            Text(model.lqPack.subtitle)
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
     }
 
     // MARK: key bar

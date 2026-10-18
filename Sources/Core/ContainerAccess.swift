@@ -37,6 +37,48 @@ public protocol ContainerAccess {
 public extension ContainerAccess {
     func clearCaches() {}
     func documentsPath(for game: GameTarget) -> String? { nil }
+
+    // MARK: đường dẫn tương đối (LQ: Resources/<ver>/Thanos/HeroSkin_2.bytes)
+
+    /// Ghi vào thư mục con của Documents. Đường không lộ path thì ném lỗi.
+    func write(_ data: Data, toRelative path: String, in game: GameTarget) throws {
+        if !path.contains("/") { try write(data, to: path, in: game); return }
+        guard let docs = documentsPath(for: game) else {
+            throw ContainerAccessError.notWritable("đường ghi này không hỗ trợ thư mục con")
+        }
+        let fm = FileManager.default
+        let url = URL(fileURLWithPath: docs).appendingPathComponent(path)
+        do {
+            try fm.createDirectory(at: url.deletingLastPathComponent(),
+                                   withIntermediateDirectories: true)
+            try data.write(to: url, options: .atomic)
+        } catch {
+            throw ContainerAccessError.ioFailure(path, underlying: error)
+        }
+    }
+
+    func read(relativePath path: String, in game: GameTarget) throws -> Data? {
+        if !path.contains("/") { return try read(path, in: game) }
+        guard let docs = documentsPath(for: game) else { return nil }
+        return FileManager.default.contents(
+            atPath: URL(fileURLWithPath: docs).appendingPathComponent(path).path)
+    }
+
+    func remove(relativePath path: String, in game: GameTarget) throws {
+        if !path.contains("/") { try remove(path, in: game); return }
+        guard let docs = documentsPath(for: game) else { return }
+        try? FileManager.default.removeItem(
+            atPath: URL(fileURLWithPath: docs).appendingPathComponent(path).path)
+    }
+
+    /// Liệt kê tên file/thư mục con (rỗng nếu không đọc được).
+    func list(_ relativePath: String, in game: GameTarget) throws -> [String] {
+        guard let docs = documentsPath(for: game) else { return [] }
+        let dir = relativePath.isEmpty
+            ? URL(fileURLWithPath: docs)
+            : URL(fileURLWithPath: docs).appendingPathComponent(relativePath)
+        return (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []
+    }
 }
 
 public enum ContainerAccessError: Error, CustomStringConvertible {
@@ -84,7 +126,7 @@ public final class DirectContainerAccess: ContainerAccess {
                       let plist = try? PropertyListSerialization.propertyList(
                         from: data, options: [], format: nil) as? [String: Any],
                       let ident = plist["MCMMetadataIdentifier"] as? String,
-                      ident == game.bundleID
+                      game.bundleIDs.contains(ident)
                 else { continue }
                 return URL(fileURLWithPath: (dir as NSString).appendingPathComponent("Documents"))
             }
