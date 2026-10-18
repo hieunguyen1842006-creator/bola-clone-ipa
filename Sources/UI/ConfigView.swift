@@ -345,8 +345,20 @@ public struct ConfigView: View {
                 card("NVH Beta — cấu hình") {
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 3) {
+                            Text("HUD máu / tên / CD").font(Theme.bodyFont)
+                                .foregroundStyle(Theme.text)
+                            Text("Máu, tên hero và CD 3 chiêu trên đầu (hiện vẽ cả đội).")
+                                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(get: { model.lqHud },
+                                                 set: { model.setLQHud($0) }))
+                        .labelsHidden().tint(Theme.accent)
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 3) {
                             Text("ESP line").font(Theme.bodyFont).foregroundStyle(Theme.text)
-                            Text("Vẽ line từ chân lên đầu hero (hiện đang vẽ cả đội).")
+                            Text("Vẽ line từ chân lên đầu hero.")
                                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
                         }
                         Spacer()

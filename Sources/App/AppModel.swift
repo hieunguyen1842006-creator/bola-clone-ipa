@@ -39,6 +39,8 @@ public final class AppModel: ObservableObject {
         LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .hudFull
     /// Cấu hình cho payload NVH Beta (đọc từ Documents/lqcfg.txt).
     @Published public var lqEsp: Bool = UserDefaults.standard.bool(forKey: "nvh.lq.esp")
+    @Published public var lqHud: Bool =
+        (UserDefaults.standard.object(forKey: "nvh.lq.hud") as? Bool) ?? true
     @Published public var lqFov: Double =
         (UserDefaults.standard.object(forKey: "nvh.lq.fov") as? Double) ?? 88
     @Published public var installedInfo: [GameTarget: Bool] = [:]
@@ -519,6 +521,12 @@ public final class AppModel: ObservableObject {
         pushLQConfig()
     }
 
+    public func setLQHud(_ on: Bool) {
+        lqHud = on
+        UserDefaults.standard.set(on, forKey: "nvh.lq.hud")
+        pushLQConfig()
+    }
+
     public func setLQFov(_ value: Double) {
         lqFov = min(max(value, 50), 130)
         UserDefaults.standard.set(lqFov, forKey: "nvh.lq.fov")
@@ -526,7 +534,7 @@ public final class AppModel: ObservableObject {
     }
 
     private func lqConfigText() -> String {
-        "esp=\(lqEsp ? 1 : 0)\nfov=\(Int(lqFov))\n"
+        "esp=\(lqEsp ? 1 : 0)\nhud=\(lqHud ? 1 : 0)\nfov=\(Int(lqFov))\n"
     }
 
     /// Ghi lqcfg.txt ngay nếu đang mở được container (payload đọc mỗi ~16 frame).
