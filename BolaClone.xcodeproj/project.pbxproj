@@ -237,6 +237,8 @@
 				DA6381D5BE520727BA075FAB /* nvh_silence.wav */,
 				5EDE39C2647E5A19904F2D94 /* NVHMenu.vault */,
 				F531AE29667F167DB1304929 /* NeutralPatch.vault */,
+				342EC6E8381E03875CC2F9F2 /* LQHud.vault */,
+				CBE4AABCD4AD83A295D35D60 /* LQUnlock.vault */,
 				4E02752AF53CE1B03E460202 /* Info.plist */,
 			);
 			path = Resources;

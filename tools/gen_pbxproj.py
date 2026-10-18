@@ -178,6 +178,8 @@ def main() -> int:
     w("\t\t\t\t%s /* nvh_silence.wav */," % oid("fr-Wav"))
     w("\t\t\t\t%s /* NVHMenu.vault */," % oid("fr-Patch"))
     w("\t\t\t\t%s /* NeutralPatch.vault */," % oid("fr-Neutral"))
+    w("\t\t\t\t%s /* LQHud.vault */," % oid("fr-LQHud"))
+    w("\t\t\t\t%s /* LQUnlock.vault */," % oid("fr-LQUnlock"))
     w("\t\t\t\t%s /* Info.plist */," % oid("fr-Info"))
     w("\t\t\t);")
     w("\t\t\tpath = Resources;")
