@@ -24,6 +24,7 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Vendor3105
       - path: Resources
         excludes:
           - "Info.plist"
@@ -38,8 +39,9 @@ targets:
         CFBundleDisplayName: Bola Clone
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.clone.bola.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.apple.mobile.MobileHouseArrest
         INFOPLIST_FILE: Resources/Info.plist
+        SWIFT_OBJC_BRIDGING_HEADER: Vendor3105/BolaClone-Bridging-Header.h
         SWIFT_EMIT_LOC_STRINGS: NO
 schemes:
   BolaClone:

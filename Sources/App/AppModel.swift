@@ -120,10 +120,18 @@ public final class AppModel: ObservableObject {
             otaPatchURL: nil)
     }()
 
-    public static let defaultAccess: ContainerAccess = ContainerAccessChain([
-        DirectContainerAccess(),
-        AppGroupContainerAccess(groupID: "group.bola.clone"),
-    ])
+    public static let defaultAccess: ContainerAccess = {
+        var providers: [ContainerAccess] = [
+            DirectContainerAccess(),
+            AppGroupContainerAccess(groupID: "group.bola.clone"),
+        ]
+        #if canImport(ObjectiveC) && canImport(UIKit)
+        // Đường MHA: bundle id phải là com.apple.mobile.MobileHouseArrest
+        // (xem Vendor3105/ — port từ 3105, GPL-3.0).
+        providers.append(MHA3105ContainerAccess())
+        #endif
+        return ContainerAccessChain(providers)
+    }()
 
     /// Primitive cắm ngoài. `nil` = chỉ dùng đường hợp lệ (jailbreak / app group / MHA).
     /// Muốn cắm: set biến này trước khi tạo AppModel, hoặc dùng `MockContainerPrimitive`

@@ -28,6 +28,26 @@ def main() -> int:
                 swift_files.append(rel)
     swift_files.sort()
 
+    # Vendor3105: Swift + ObjC/C (MHA bridge) — chỉ dựng trong Xcode, không vào SwiftPM.
+    vendor_dir = os.path.join(ROOT, "Vendor3105")
+    vendor_sources = []
+    vendor_headers = []
+    if os.path.isdir(vendor_dir):
+        for f in sorted(os.listdir(vendor_dir)):
+            if f.endswith((".swift", ".m", ".c")):
+                vendor_sources.append("Vendor3105/" + f)
+            elif f.endswith(".h"):
+                vendor_headers.append("Vendor3105/" + f)
+
+    def file_type(p: str) -> str:
+        if p.endswith(".swift"): return "sourcecode.swift"
+        if p.endswith(".m"): return "sourcecode.c.objc"
+        if p.endswith(".c"): return "sourcecode.c.c"
+        if p.endswith(".h"): return "sourcecode.c.h"
+        return "text"
+
+    all_sources = swift_files + vendor_sources
+
     group_of = lambda p: "/".join(p.split("/")[:-1])
     groups = sorted({group_of(p) for p in swift_files})
 
@@ -48,7 +68,7 @@ def main() -> int:
 
     # ---- PBXBuildFile
     w("/* Begin PBXBuildFile section */")
-    for p in swift_files:
+    for p in all_sources:
         w("\t\t%s /* %s in Sources */ = {isa = PBXBuildFile; fileRef = %s /* %s */; };"
           % (oid("bf" + p), os.path.basename(p), oid("fr" + p), os.path.basename(p)))
     for p in res_files:
@@ -63,9 +83,13 @@ def main() -> int:
       "wrapper.application; includeInIndex = 0; path = BolaClone.app; "
       "sourceTree = BUILT_PRODUCTS_DIR; };" % oid("product"))
     for p in swift_files:
-        w("\t\t%s /* %s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; "
+        w("\t\t%s /* %s */ = {isa = PBXFileReference; lastKnownFileType = %s; "
           "path = %s; sourceTree = \"<group>\"; };"
-          % (oid("fr" + p), os.path.basename(p), os.path.basename(p)))
+          % (oid("fr" + p), os.path.basename(p), file_type(p), os.path.basename(p)))
+    for p in vendor_sources + vendor_headers:
+        w("\t\t%s /* %s */ = {isa = PBXFileReference; lastKnownFileType = %s; "
+          "path = %s; sourceTree = \"<group>\"; };"
+          % (oid("fr" + p), os.path.basename(p), file_type(p), os.path.basename(p)))
     w("\t\t%s /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = "
       "folder.assetcatalog; path = Assets.xcassets; sourceTree = \"<group>\"; };"
       % oid("fr-Assets"))
@@ -95,6 +119,8 @@ def main() -> int:
     w("\t\t\tisa = PBXGroup;")
     w("\t\t\tchildren = (")
     w("\t\t\t\t%s /* Sources */," % oid("grp-Sources"))
+    if vendor_sources or vendor_headers:
+        w("\t\t\t\t%s /* Vendor3105 */," % oid("grp-Vendor3105"))
     w("\t\t\t\t%s /* Resources */," % oid("grp-Resources"))
     w("\t\t\t\t%s /* Products */," % oid("grp-Products"))
     w("\t\t\t);")
@@ -118,6 +144,16 @@ def main() -> int:
             w("\t\t\t\t%s /* %s */," % (oid("fr" + p), os.path.basename(p)))
         w("\t\t\t);")
         w("\t\t\tpath = %s;" % g.split("/")[-1])
+        w("\t\t\tsourceTree = \"<group>\";")
+        w("\t\t};")
+    if vendor_sources or vendor_headers:
+        w("\t\t%s /* Vendor3105 */ = {" % oid("grp-Vendor3105"))
+        w("\t\t\tisa = PBXGroup;")
+        w("\t\t\tchildren = (")
+        for p in vendor_sources + vendor_headers:
+            w("\t\t\t\t%s /* %s */," % (oid("fr" + p), os.path.basename(p)))
+        w("\t\t\t);")
+        w("\t\t\tpath = Vendor3105;")
         w("\t\t\tsourceTree = \"<group>\";")
         w("\t\t};")
     w("\t\t%s /* Resources */ = {" % oid("grp-Resources"))
@@ -210,7 +246,7 @@ def main() -> int:
     w("\t\t\tisa = PBXSourcesBuildPhase;")
     w("\t\t\tbuildActionMask = 2147483647;")
     w("\t\t\tfiles = (")
-    for p in swift_files:
+    for p in all_sources:
         w("\t\t\t\t%s /* %s in Sources */," % (oid("bf" + p), os.path.basename(p)))
     w("\t\t\t);")
     w("\t\t\trunOnlyForDeploymentPostprocessing = 0;")
@@ -247,8 +283,9 @@ def main() -> int:
         "INFOPLIST_FILE": "Resources/Info.plist",
         "LD_RUNPATH_SEARCH_PATHS": "(\"@executable_path/Frameworks\")",
         "MARKETING_VERSION": "1.0.0",
-        "PRODUCT_BUNDLE_IDENTIFIER": "com.clone.bola.app",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.apple.mobile.MobileHouseArrest",
         "PRODUCT_NAME": "BolaClone",
+        "SWIFT_OBJC_BRIDGING_HEADER": "Vendor3105/BolaClone-Bridging-Header.h",
         "SWIFT_EMIT_LOC_STRINGS": "NO",
         "SWIFT_VERSION": "5.9",
         "TARGETED_DEVICE_FAMILY": "\"1,2\"",

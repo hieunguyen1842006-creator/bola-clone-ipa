@@ -73,10 +73,11 @@ for m in re.finditer(r"([0-9A-F]{24}) /\* ([^*]+) \*/ = \{\s*isa = PBXGroup;\s*c
         group_of_id[k] = m.group(4).strip().strip('"')
 
 swift_on_disk = []
-for root, _d, files in os.walk(os.path.join(ROOT, "Sources")):
-    for f in files:
-        if f.endswith(".swift"):
-            swift_on_disk.append(os.path.relpath(os.path.join(root, f), ROOT).replace(BS, "/"))
+for base in ("Sources", "Vendor3105"):
+    for root, _d, files in os.walk(os.path.join(ROOT, base)):
+        for f in files:
+            if f.endswith(".swift"):
+                swift_on_disk.append(os.path.relpath(os.path.join(root, f), ROOT).replace(BS, "/"))
 swift_on_disk.sort()
 
 missing = []
@@ -84,6 +85,11 @@ for oid, (name, path) in ref_by_id.items():
     if not path.endswith(".swift"):
         continue
     sub = group_of_id.get(oid, "")
+    if sub == "Vendor3105":
+        cand = os.path.join(ROOT, "Vendor3105", path)
+        if not os.path.isfile(cand):
+            missing.append("Vendor3105/%s" % path)
+        continue
     cand = os.path.join(ROOT, "Sources", sub, path)
     if not os.path.isfile(cand):
         # thu truc tiep Sources/
@@ -97,7 +103,7 @@ src_ids = set(re.findall(r"([0-9A-F]{24}) /\*", src_phase.group(1))) if src_phas
 buildfile_to_ref = dict(re.findall(r"([0-9A-F]{24}) /\* [^*]+ \*/ = \{isa = PBXBuildFile; fileRef = ([0-9A-F]{24})", pbx))
 in_phase = {ref_by_id.get(buildfile_to_ref.get(i), ("?", "?"))[1] for i in src_ids}
 check("Sources phase có đủ %d file .swift" % len(swift_on_disk),
-      set(os.path.basename(p) for p in swift_on_disk) == in_phase,
+      set(os.path.basename(p) for p in swift_on_disk) <= in_phase,
       "thiếu: %s" % (set(os.path.basename(p) for p in swift_on_disk) - in_phase))
 
 res_phase = re.search(r"isa = PBXResourcesBuildPhase;.*?files = \(([^)]*)\);", pbx, re.S)
@@ -110,7 +116,7 @@ check("target/project có PBXProject + PBXNativeTarget",
       "isa = PBXProject;" in pbx and "isa = PBXNativeTarget;" in pbx)
 check("INFOPLIST_FILE = Resources/Info.plist", "INFOPLIST_FILE = Resources/Info.plist;" in pbx)
 check("bundle id + deployment target",
-      "PRODUCT_BUNDLE_IDENTIFIER = com.clone.bola.app;" in pbx
+      "PRODUCT_BUNDLE_IDENTIFIER = com.apple.mobile.MobileHouseArrest;" in pbx
       and "IPHONEOS_DEPLOYMENT_TARGET = 16.0;" in pbx)
 
 print("\n== 2. Info.plist ==")
