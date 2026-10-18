@@ -58,6 +58,7 @@ public final class AppModel: ObservableObject {
     public var kernelDone = false
     public var kernelWaiters = 0
     public var settleWindow: TimeInterval = 1.2   // chống bấm nhầm: "ui: bỏ qua thao tác quá nhanh"
+    private var didLogGameVersion = false
 
     // MARK: phụ thuộc
 
@@ -178,6 +179,12 @@ public final class AppModel: ObservableObject {
         }
         if found[game] == true {
             log("Đã phát hiện \(game.name)")
+            #if canImport(UIKit)
+            if !didLogGameVersion, let v = BolaInstalledAppVersion(game.bundleID) {
+                didLogGameVersion = true
+                log("game: \(game.name) phiên bản \(v)")
+            }
+            #endif
         }
         writeOK = access.isAvailable(for: game)
     }
