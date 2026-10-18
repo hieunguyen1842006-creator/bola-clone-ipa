@@ -487,7 +487,7 @@ public final class AppModel: ObservableObject {
 
     public func setAntiban(_ on: Bool) {
         antiban = on
-        antibanEngine.configure(deployer: installer.deployer, game: game)
+        antibanEngine.configure(deployer: installer.deployer, game: game, access: access)
         antibanEngine.setEnabled(on, hasKey: gate.isAuthorized)
         if !gate.isAuthorized && on {
             antiban = false
