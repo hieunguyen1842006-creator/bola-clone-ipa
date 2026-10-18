@@ -341,6 +341,10 @@ public struct ConfigView: View {
                 Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
                     .font(.system(size: 11)).foregroundStyle(Theme.dim)
             }
+            card("Tuỳ chọn") {
+                toggleRowInline("autolaunch", "Tự mở game sau khi inject",
+                                "Inject xong tự tắt game cũ và mở lại")
+            }
             card("Lưu ý") {
                 Text("Payload LQ là gói đóng sẵn (HUD/skin), không có file cfg runtime như Free Fire. "
                      + "App chọn gói rồi ghi — muốn thêm toggle từng tính năng thì phải build payload mới.")

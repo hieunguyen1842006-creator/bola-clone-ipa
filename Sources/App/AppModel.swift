@@ -184,7 +184,13 @@ public final class AppModel: ObservableObject {
     public func refreshDetected() {
         var found: [GameTarget: Bool] = [:]
         for g in GameTarget.allCases {
-            found[g] = Self.canOpen(scheme: g.scheme) || access.isAvailable(for: g)
+            var installed = Self.canOpen(scheme: g.scheme) || access.isAvailable(for: g)
+            #if canImport(UIKit)
+            if !installed, g.isLienQuan {
+                installed = g.bundleIDs.contains { BolaInstalledAppVersion($0) != nil }
+            }
+            #endif
+            found[g] = installed
         }
         installedInfo = found
         // Màu nút = file thật trong Documents của game: có patch + config = đỏ.
@@ -699,7 +705,8 @@ public final class AppModel: ObservableObject {
         if on && key == "aim" { cfgFlags.remove("silent") }
         if on && key == "silent" { cfgFlags.remove("aim") }
         if on { cfgFlags.insert(key) } else { cfgFlags.remove(key) }
-        writeConfig()
+        // autolaunch là tuỳ chọn phía app — LQ không có cfg để ghi.
+        if !game.isLienQuan { writeConfig() }
     }
 
     public func setBone(_ bone: BolaConfig.Bone) {
