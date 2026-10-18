@@ -85,7 +85,8 @@ public final class Antiban {
     private func startKeepalive() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 90, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.onTick?() }
+            guard let self else { return }
+            Task { @MainActor in self.onTick?() }
         }
     }
 

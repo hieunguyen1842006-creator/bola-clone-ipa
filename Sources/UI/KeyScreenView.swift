@@ -84,7 +84,7 @@ public struct KeyScreenView: View {
     private var keyField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("License Key").font(Theme.monoFont).foregroundStyle(Theme.dim)
-            TextField("", text: $keyText, prompt: Text("Nhap key").foregroundStyle(Theme.dim))
+            TextField("", text: $keyText, prompt: Text("Nhap key").foregroundColor(Theme.dim))
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled(true)
                 .font(Theme.bodyFont)
