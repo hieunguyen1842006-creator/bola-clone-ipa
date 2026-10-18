@@ -23,6 +23,7 @@ let package = Package(
                 "Core/KernelPrimitive.swift",
                 "Core/ExploitCoordinator.swift",
                 "Core/PatchDeployer.swift",
+                "Core/PatchGuard.swift",
                 "Core/PatchLibrary.swift",
                 "Support/Logger.swift",
             ]
