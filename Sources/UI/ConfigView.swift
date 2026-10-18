@@ -341,6 +341,34 @@ public struct ConfigView: View {
                 Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
                     .font(.system(size: 11)).foregroundStyle(Theme.dim)
             }
+            if model.lqPack == .nvhBeta {
+                card("NVH Beta — cấu hình") {
+                    HStack(alignment: .top, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("ESP line").font(Theme.bodyFont).foregroundStyle(Theme.text)
+                            Text("Vẽ line từ chân lên đầu hero (hiện đang vẽ cả đội).")
+                                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(get: { model.lqEsp },
+                                                 set: { model.setLQEsp($0) }))
+                        .labelsHidden().tint(Theme.accent)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Camera FOV").font(Theme.bodyFont).foregroundStyle(Theme.text)
+                            Spacer()
+                            Text("\(Int(model.lqFov))°")
+                                .font(Theme.monoFont).foregroundStyle(Theme.accent)
+                        }
+                        Slider(value: Binding(get: { model.lqFov },
+                                              set: { model.setLQFov($0) }),
+                               in: 50...130).tint(Theme.accent)
+                    }
+                    Text("Payload đọc Documents/lqcfg.txt mỗi ~16 frame. Đang inject thì đổi là áp dụng ngay.")
+                        .font(.system(size: 10)).foregroundStyle(Theme.dim)
+                }
+            }
             card("Tuỳ chọn") {
                 toggleRowInline("autolaunch", "Tự mở game sau khi inject",
                                 "Inject xong tự tắt game cũ và mở lại")

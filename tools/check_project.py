@@ -124,9 +124,9 @@ check("Sources phase có đủ %d file .swift" % len(swift_on_disk),
 res_phase = re.search(r"isa = PBXResourcesBuildPhase;.*?files = \(([^)]*)\);", pbx, re.S)
 res_ids = set(re.findall(r"([0-9A-F]{24}) /\*", res_phase.group(1))) if res_phase else set()
 res_names = {ref_by_id.get(buildfile_to_ref.get(i), ("?", "?"))[1] for i in res_ids}
-check("Resources phase có Assets.xcassets + wav + 4 vault",
+check("Resources phase có Assets.xcassets + wav + 5 vault",
       {"Assets.xcassets", "nvh_silence.wav", "NVHMenu.vault", "NeutralPatch.vault",
-       "LQHud.vault", "LQUnlock.vault"} <= res_names,
+       "LQHud.vault", "LQUnlock.vault", "NVHLQ.vault"} <= res_names,
       str(res_names))
 check("target/project có PBXProject + PBXNativeTarget",
       "isa = PBXProject;" in pbx and "isa = PBXNativeTarget;" in pbx)
@@ -171,7 +171,7 @@ yml = open(os.path.join(ROOT, "project.yml"), encoding="utf-8").read()
 for p in ("Sources", "Resources", "Resources/Info.plist", "Resources/Assets.xcassets",
           "Resources/nvh_silence.wav", "Resources/NVHMenu.vault",
           "Resources/NeutralPatch.vault", "Resources/LQHud.vault",
-          "Resources/LQUnlock.vault"):
+          "Resources/LQUnlock.vault", "Resources/NVHLQ.vault"):
     check("project.yml path %s tồn tại" % p, os.path.exists(os.path.join(ROOT, p)))
 check("project.yml có target BolaClone", "BolaClone:" in yml)
 
@@ -231,6 +231,24 @@ for name in ("LQHud", "LQUnlock"):
               bytes.fromhex("d0db2c0e465fd41f") not in blob[:64])
         check("%s.vault giải mã đúng payload" % name,
               os.path.isfile(src) and vault_decode(blob) == open(src, "rb").read())
+
+# NVH Beta: payload nhỏ, tự build (2 hook: skin + ESP/FOV).
+src = os.path.join(ROOT, "Resources", "NVHLQ.bytes")
+vp = os.path.join(ROOT, "Resources", "NVHLQ.vault")
+if os.path.isfile(src):
+    raw = open(src, "rb").read()
+    check("NVHLQ là payload LQMB (wrapper 0x4A22)",
+          raw[:2] == b"\x22\x4a" and raw[8:16] == bytes.fromhex("d0db2c0e465fd41f"),
+          raw[:16].hex())
+    check("NVHLQ > 4 KB (%d B)" % len(raw), len(raw) > 4_000)
+    check("NVHLQ có chuỗi lqcfg.txt", b"/lqcfg.txt" in raw)
+if os.path.isfile(vp):
+    blob = open(vp, "rb").read()
+    check("NVHLQ.vault có magic NVHV1", blob[:5] == b"NVHV1")
+    check("NVHLQ.vault không lộ magic LQMB",
+          bytes.fromhex("d0db2c0e465fd41f") not in blob[:64])
+    check("NVHLQ.vault giải mã đúng payload",
+          os.path.isfile(src) and vault_decode(blob) == open(src, "rb").read())
 
 print("\n== 6. Cân bằng ngoặc trong nguồn Swift ==")
 PAIRS = {"{": "}", "(": ")", "[": "]"}

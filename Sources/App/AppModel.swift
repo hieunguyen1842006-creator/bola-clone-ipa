@@ -34,9 +34,13 @@ public final class AppModel: ObservableObject {
             }
         }
     }
-    /// Gói hotfix đang chọn cho Liên Quân (Full HUD / Unlock skin).
+    /// Gói hotfix đang chọn cho Liên Quân (Full HUD / NVH Beta / Unlock skin).
     @Published public var lqPack: LQPack =
         LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .hudFull
+    /// Cấu hình cho payload NVH Beta (đọc từ Documents/lqcfg.txt).
+    @Published public var lqEsp: Bool = UserDefaults.standard.bool(forKey: "nvh.lq.esp")
+    @Published public var lqFov: Double =
+        (UserDefaults.standard.object(forKey: "nvh.lq.fov") as? Double) ?? 88
     @Published public var installedInfo: [GameTarget: Bool] = [:]
     @Published public var patchInstalled: Bool = false
     @Published public var logText: String = ""
@@ -448,7 +452,8 @@ public final class AppModel: ObservableObject {
                 mhaActive = coordinator.lastMessage == "mha"
                 let dep = LienQuanDeployer(access: live, game: game)
                 dep.onLog = { [weak self] in self?.log($0) }
-                let outcome = dep.install(payload, pack: lqPack)
+                let outcome = dep.install(payload, pack: lqPack,
+                                          config: lqPack == .nvhBeta ? lqConfigText() : nil)
                 await MainActor.run {
                     self.busy = false
                     self.markInjected(outcome.ok)
@@ -500,12 +505,34 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Chọn gói LQ (Full HUD / Unlock skin).
+    /// Chọn gói LQ (Full HUD / NVH Beta / Unlock skin).
     public func setLQPack(_ pack: LQPack) {
         guard pack != lqPack else { return }
         lqPack = pack
         UserDefaults.standard.set(pack.rawValue, forKey: "nvh.lq.pack")
         toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
+    }
+
+    public func setLQEsp(_ on: Bool) {
+        lqEsp = on
+        UserDefaults.standard.set(on, forKey: "nvh.lq.esp")
+        pushLQConfig()
+    }
+
+    public func setLQFov(_ value: Double) {
+        lqFov = min(max(value, 50), 130)
+        UserDefaults.standard.set(lqFov, forKey: "nvh.lq.fov")
+        pushLQConfig()
+    }
+
+    private func lqConfigText() -> String {
+        "esp=\(lqEsp ? 1 : 0)\nfov=\(Int(lqFov))\n"
+    }
+
+    /// Ghi lqcfg.txt ngay nếu đang mở được container (payload đọc mỗi ~16 frame).
+    private func pushLQConfig() {
+        guard game.isLienQuan, patchInstalled, access.isAvailable(for: game) else { return }
+        _ = LienQuanDeployer(access: access, game: game).writeConfig(lqConfigText())
     }
 
     /// Tạo Installer cho một đường ghi cụ thể (coordinator có thể trả đường khác nhau

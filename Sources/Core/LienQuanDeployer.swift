@@ -3,6 +3,7 @@ import Foundation
 /// Gói hotfix của Liên Quân. Mỗi gói là một payload IFix LQMB đóng trong vault.
 public enum LQPack: String, CaseIterable, Identifiable {
     case hudFull = "hud"
+    case nvhBeta = "nvhbeta"
     case unlockSkin = "unlock"
 
     public var id: String { rawValue }
@@ -10,6 +11,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
     public var title: String {
         switch self {
         case .hudFull: return "Full HUD"
+        case .nvhBeta: return "NVH Beta"
         case .unlockSkin: return "Unlock skin"
         }
     }
@@ -18,6 +20,8 @@ public enum LQPack: String, CaseIterable, Identifiable {
         switch self {
         case .hudFull:
             return "HUD địch: máu, tên, CD chiêu, vòng + icon 5 hero, kèm unlock skin"
+        case .nvhBeta:
+            return "ESP line + FOV + unlock skin, đọc cấu hình lqcfg.txt"
         case .unlockSkin:
             return "Chỉ hook GetActorSkinID — payload gọn, ít can thiệp hơn"
         }
@@ -26,6 +30,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
     public var symbol: String {
         switch self {
         case .hudFull: return "rectangle.on.rectangle"
+        case .nvhBeta: return "bolt.fill"
         case .unlockSkin: return "paintpalette"
         }
     }
@@ -33,6 +38,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
     public var vaultResource: String {
         switch self {
         case .hudFull: return "LQHud"
+        case .nvhBeta: return "NVHLQ"
         case .unlockSkin: return "LQUnlock"
         }
     }
@@ -137,7 +143,7 @@ public final class LienQuanDeployer {
     // MARK: - cài / gỡ
 
     @discardableResult
-    public func install(_ payload: Data, pack: LQPack) -> InstallOutcome {
+    public func install(_ payload: Data, pack: LQPack, config: String? = nil) -> InstallOutcome {
         do {
             let target = try resolveTarget()
             let current = (try? access.read(relativePath: target.filePath, in: game)) ?? nil
@@ -148,6 +154,12 @@ public final class LienQuanDeployer {
             }
 
             try access.write(payload, toRelative: target.filePath, in: game)
+
+            if let config {
+                try access.write(Data(config.utf8), to: "lqcfg.txt", in: game)
+            } else {
+                try? access.remove("lqcfg.txt", in: game)
+            }
 
             guard let back = (try? access.read(relativePath: target.filePath, in: game)) ?? nil else {
                 return .bad("Ghi xong nhưng không đọc lại được — thử lại")
@@ -192,6 +204,7 @@ public final class LienQuanDeployer {
 
             d.removeObject(forKey: Self.shaKey + game.bundleID)
             d.removeObject(forKey: Self.versionKey + game.bundleID)
+            try? access.remove("lqcfg.txt", in: game)
             log(restored ? "lq: đã khôi phục \(target.filePath) gốc"
                          : "lq: đã xoá \(target.filePath)")
             return .good(restored
@@ -201,6 +214,19 @@ public final class LienQuanDeployer {
             let msg = (error as? LQError)?.description ?? error.localizedDescription
             log("lq: lỗi gỡ — \(msg)")
             return .bad(msg)
+        }
+    }
+
+    // MARK: - config cho patch NVH Beta (lqcfg.txt)
+
+    @discardableResult
+    public func writeConfig(_ text: String) -> Bool {
+        do {
+            try access.write(Data(text.utf8), to: "lqcfg.txt", in: game)
+            return true
+        } catch {
+            log("lq: không ghi được lqcfg.txt — \(error.localizedDescription)")
+            return false
         }
     }
 

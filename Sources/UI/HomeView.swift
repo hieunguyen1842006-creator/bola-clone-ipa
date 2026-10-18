@@ -201,19 +201,24 @@ public struct HomeView: View {
     private var lqPackPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("GÓI LIÊN QUÂN").font(Theme.monoFont).foregroundStyle(Theme.dim)
-            HStack(spacing: 8) {
+            VStack(spacing: 4) {
                 ForEach(LQPack.allCases) { p in
                     Button { model.setLQPack(p) } label: {
-                        VStack(spacing: 4) {
+                        HStack(spacing: 10) {
                             Image(systemName: p.symbol)
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
+                                .frame(width: 18)
                             Text(p.title).font(Theme.bodyFont)
+                            Spacer()
+                            if model.lqPack == p {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 11, weight: .bold))
+                            }
                         }
-                        .foregroundStyle(model.lqPack == p ? Color.black : Theme.dim)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.dim)
+                        .padding(.vertical, 7).padding(.horizontal, 10)
                         .background(RoundedRectangle(cornerRadius: 10)
-                            .fill(model.lqPack == p ? Theme.accent : Theme.cardHi))
+                            .fill(model.lqPack == p ? Theme.cardHi : Color.clear))
                     }
                     .buttonStyle(RowButtonStyle())
                 }

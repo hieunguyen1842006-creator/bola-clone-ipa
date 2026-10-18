@@ -60,10 +60,12 @@ def main() -> int:
 
     res_files = ["Resources/Assets.xcassets", "Resources/nvh_silence.wav",
                  "Resources/NVHMenu.vault", "Resources/NeutralPatch.vault",
-                 "Resources/LQHud.vault", "Resources/LQUnlock.vault"]
+                 "Resources/LQHud.vault", "Resources/LQUnlock.vault",
+                 "Resources/NVHLQ.vault"]
     ref_key = {"Resources/Assets.xcassets": "fr-Assets", "Resources/nvh_silence.wav": "fr-Wav",
                "Resources/NVHMenu.vault": "fr-Patch", "Resources/NeutralPatch.vault": "fr-Neutral",
-               "Resources/LQHud.vault": "fr-LQHud", "Resources/LQUnlock.vault": "fr-LQUnlock"}
+               "Resources/LQHud.vault": "fr-LQHud", "Resources/LQUnlock.vault": "fr-LQUnlock",
+               "Resources/NVHLQ.vault": "fr-NVHLQ"}
 
     L: list[str] = []
     w = L.append
@@ -112,6 +114,8 @@ def main() -> int:
       "file; path = LQHud.vault; sourceTree = \"<group>\"; };" % oid("fr-LQHud"))
     w("\t\t%s /* LQUnlock.vault */ = {isa = PBXFileReference; lastKnownFileType = "
       "file; path = LQUnlock.vault; sourceTree = \"<group>\"; };" % oid("fr-LQUnlock"))
+    w("\t\t%s /* NVHLQ.vault */ = {isa = PBXFileReference; lastKnownFileType = "
+      "file; path = NVHLQ.vault; sourceTree = \"<group>\"; };" % oid("fr-NVHLQ"))
     w("\t\t%s /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; "
       "path = Info.plist; sourceTree = \"<group>\"; };" % oid("fr-Info"))
     w("/* End PBXFileReference section */")
@@ -180,6 +184,7 @@ def main() -> int:
     w("\t\t\t\t%s /* NeutralPatch.vault */," % oid("fr-Neutral"))
     w("\t\t\t\t%s /* LQHud.vault */," % oid("fr-LQHud"))
     w("\t\t\t\t%s /* LQUnlock.vault */," % oid("fr-LQUnlock"))
+    w("\t\t\t\t%s /* NVHLQ.vault */," % oid("fr-NVHLQ"))
     w("\t\t\t\t%s /* Info.plist */," % oid("fr-Info"))
     w("\t\t\t);")
     w("\t\t\tpath = Resources;")

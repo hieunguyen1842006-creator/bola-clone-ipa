@@ -26,6 +26,7 @@ TARGETS = [
     ("NeutralPatch.bytes", "NeutralPatch.vault"),
     ("LQHud.bytes", "LQHud.vault"),
     ("LQUnlock.bytes", "LQUnlock.vault"),
+    ("NVHLQ.bytes", "NVHLQ.vault"),
 ]
 
 
