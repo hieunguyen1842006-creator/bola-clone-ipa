@@ -241,7 +241,9 @@ public struct ConfigView: View {
             HStack {
                 Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
                 Spacer()
-                Text(String(format: range.upperBound <= 1 ? "%.3f%s" : "%.0f%s", value.wrappedValue, unit))
+                // Không dùng "%s" với String của Swift — đó là crash EXC_BAD_ACCESS.
+                let fmt = range.upperBound <= 1 ? "%.3f" : "%.0f"
+                Text(String(format: fmt, value.wrappedValue) + unit)
                     .font(Theme.monoFont).foregroundStyle(Theme.accent)
             }
             Slider(value: value, in: range).tint(Theme.accent)
