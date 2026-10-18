@@ -38,7 +38,29 @@ public final class BackgroundAudio {
 }
 #endif
 
-// MARK: - Antiban (UI + hành vi "tắt = gỡ patch"; phần dọn dấu vết KHÔNG clone)
+// MARK: - Antiban (UI + hành vi "tắt = gỡ patch"; dọn dấu vết + decoy)
+
+/// Hằng số dùng chung, đặt ngoài @MainActor để gọi được từ background.
+enum AntibanDecoy {
+    /// 9 thư mục telemetry bị khoá 0555 (đúng danh sách bản gốc).
+    static let telemetryNames = [
+        "Analytics", "CrashReporter", "Snapshots", "adjust-sdk", "bugly",
+        "com.appsflyer", "com.crashlytics.data", "com.google.firebase", "crashes",
+    ]
+    /// File rác trộn patch thật (prefix của bản gốc).
+    static let prefixes = ["BOLA_CHEAT_", "BOLA_MENU_", "MINHDUC_BAIT_"]
+    static let patchSiblings = [
+        "Assembly-CSharp-patch.bak", "Assembly-CSharp-patch_old.bytes",
+        "Assembly-CSharp-patch2.bytes", "Assembly-CSharp-patch(1).bytes",
+        "Assembly-CSharp-patch-copy.bytes",
+    ]
+    static let cachePrefix = "cache_data_"
+
+    /// Số file rác + kích thước mỗi file. Bản gốc từng thả ~1000×512 KB rồi bỏ
+    /// ở v213; ở đây giữ mức nhẹ để không ngốn dung lượng máy.
+    static let count = 300
+    static let size = 128 * 1024
+}
 
 @MainActor
 public final class Antiban {
@@ -59,25 +81,6 @@ public final class Antiban {
         "report", "shadow_tracker", "tdlog",
     ]
     static let globalCrashLogs = "/var/mobile/Library/Logs/CrashReporter"
-
-    /// 9 thư mục telemetry bị khoá 0555 (đúng danh sách bản gốc).
-    static let telemetryNames = [
-        "Analytics", "CrashReporter", "Snapshots", "adjust-sdk", "bugly",
-        "com.appsflyer", "com.crashlytics.data", "com.google.firebase", "crashes",
-    ]
-    /// File rác trộn patch thật (prefix của bản gốc).
-    static let decoyPrefixes = ["BOLA_CHEAT_", "BOLA_MENU_", "MINHDUC_BAIT_"]
-    static let patchSiblings = [
-        "Assembly-CSharp-patch.bak", "Assembly-CSharp-patch_old.bytes",
-        "Assembly-CSharp-patch2.bytes", "Assembly-CSharp-patch(1).bytes",
-        "Assembly-CSharp-patch-copy.bytes",
-    ]
-    static let cacheJunkPrefix = "cache_data_"
-
-    /// Số file rác + kích thước mỗi file. Bản gốc từng thả ~1000×512 KB rồi bỏ
-    /// ở v213; ở đây giữ mức nhẹ để không ngốn dung lượng máy.
-    static let decoyCount = 300
-    static let decoySize = 128 * 1024
 
     private var timer: Timer?
     private var deployer: PatchDeployer?
@@ -109,10 +112,16 @@ public final class Antiban {
             let n = cleanNow()
             if n > 0 { onLog?("anti-ban: đã dọn \(n) mục") }
             // khoá telemetry + thả decoy chạy nền để không treo UI
-            Task.detached(priority: .utility) { [weak self] in
-                guard let self else { return }
-                let locked = self.lockTelemetryDirs()
-                let planted = self.plantDecoys()
+            let root = containerRoot()
+            let manifestDir = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask).first?.path
+            let gameRaw = game.rawValue
+            Task.detached(priority: .utility) {
+                var locked = 0, planted = 0
+                if let root {
+                    locked = Antiban.lockTelemetryDirs(root: root)
+                    planted = Antiban.plantDecoys(root: root, manifestDir: manifestDir, gameRaw: gameRaw)
+                }
                 await MainActor.run {
                     self.onLog?("anti-ban: đã khoá \(locked) thư mục telemetry (0555)")
                     self.onLog?("anti-ban: đã thả \(planted) file rác trộn patch")
@@ -174,17 +183,32 @@ public final class Antiban {
     }
 
     @discardableResult
-    public func lockTelemetryDirs() -> Int { setTelemetryPermissions(0o555) }
-    @discardableResult
-    public func unlockTelemetryDirs() -> Int { setTelemetryPermissions(0o755) }
-
-    private func setTelemetryPermissions(_ perm: Int) -> Int {
+    public func lockTelemetryDirs() -> Int {
         guard let root = containerRoot() else { return 0 }
+        return Self.lockTelemetryDirs(root: root)
+    }
+
+    @discardableResult
+    public func unlockTelemetryDirs() -> Int {
+        guard let root = containerRoot() else { return 0 }
+        return Self.unlockTelemetryDirs(root: root)
+    }
+
+    /// Bản nonisolated để gọi từ background (không đụng state của actor).
+    nonisolated static func lockTelemetryDirs(root: String) -> Int {
+        setTelemetryPermissions(root: root, perm: 0o555)
+    }
+
+    nonisolated static func unlockTelemetryDirs(root: String) -> Int {
+        setTelemetryPermissions(root: root, perm: 0o755)
+    }
+
+    nonisolated private static func setTelemetryPermissions(root: String, perm: Int) -> Int {
         let fm = FileManager.default
         let caches = (root as NSString).appendingPathComponent("Library/Caches")
         try? fm.createDirectory(atPath: caches, withIntermediateDirectories: true)
         var n = 0
-        for name in Self.telemetryNames {
+        for name in AntibanDecoy.telemetryNames {
             let dir = (caches as NSString).appendingPathComponent(name)
             try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
             if (try? fm.setAttributes([.posixPermissions: perm], ofItemAtPath: dir)) != nil {
@@ -199,25 +223,30 @@ public final class Antiban {
     @discardableResult
     public func plantDecoys() -> Int {
         guard let root = containerRoot() else { return 0 }
+        let mine = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
+        return Self.plantDecoys(root: root, manifestDir: mine, gameRaw: game.rawValue)
+    }
+
+    nonisolated static func plantDecoys(root: String, manifestDir: String?, gameRaw: String) -> Int {
         let fm = FileManager.default
         let docs = (root as NSString).appendingPathComponent("Documents")
         let caches = (root as NSString).appendingPathComponent("Library/Caches")
         try? fm.createDirectory(atPath: docs, withIntermediateDirectories: true)
 
-        let blob = Data((0..<Self.decoySize).map { _ in UInt8.random(in: 0...255) })
+        let blob = Data((0..<AntibanDecoy.size).map { _ in UInt8.random(in: 0...255) })
         var names: [String] = []
         var n = 0
 
-        for _ in 0..<Self.decoyCount {
-            let prefix = Self.decoyPrefixes[Int.random(in: 0..<Self.decoyPrefixes.count)]
-            let name = prefix + Self.randomHex(12) + ".bytes"
+        for _ in 0..<AntibanDecoy.count {
+            let prefix = AntibanDecoy.prefixes[Int.random(in: 0..<AntibanDecoy.prefixes.count)]
+            let name = prefix + randomHex(12) + ".bytes"
             let path = (docs as NSString).appendingPathComponent(name)
             if (try? blob.write(to: URL(fileURLWithPath: path), options: .atomic)) != nil {
                 names.append(name)
                 n += 1
             }
         }
-        for sibling in Self.patchSiblings {
+        for sibling in AntibanDecoy.patchSiblings {
             let path = (docs as NSString).appendingPathComponent(sibling)
             if (try? blob.prefix(4096).write(to: URL(fileURLWithPath: path))) != nil {
                 names.append(sibling)
@@ -226,7 +255,7 @@ public final class Antiban {
         }
         try? fm.createDirectory(atPath: caches, withIntermediateDirectories: true)
         for _ in 0..<20 {
-            let name = Self.cacheJunkPrefix + Self.randomHex(10) + ".bin"
+            let name = AntibanDecoy.cachePrefix + randomHex(10) + ".bin"
             let path = (caches as NSString).appendingPathComponent(name)
             if (try? blob.prefix(2048).write(to: URL(fileURLWithPath: path))) != nil {
                 n += 1
@@ -234,8 +263,8 @@ public final class Antiban {
         }
 
         // manifest nằm trong container của app mình, không nằm trong container game
-        if let mine = fm.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
-            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(game.rawValue).txt")
+        if let mine = manifestDir {
+            let manifest = (mine as NSString).appendingPathComponent("bola_junk_\(gameRaw).txt")
             try? names.joined(separator: "\n").write(toFile: manifest, atomically: true, encoding: .utf8)
         }
         return n
@@ -267,8 +296,8 @@ public final class Antiban {
         for dir in [docs, library] {
             guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }
             for f in items {
-                let isDecoy = Self.decoyPrefixes.contains(where: { f.hasPrefix($0) })
-                if !isDecoy && !Self.patchSiblings.contains(f) { continue }
+                let isDecoy = AntibanDecoy.prefixes.contains(where: { f.hasPrefix($0) })
+                if !isDecoy && !AntibanDecoy.patchSiblings.contains(f) { continue }
                 if (try? fm.removeItem(atPath: (dir as NSString).appendingPathComponent(f))) != nil {
                     n += 1
                 }
@@ -277,7 +306,7 @@ public final class Antiban {
 
         for dir in [docs, caches] {
             guard let items = try? fm.contentsOfDirectory(atPath: dir) else { continue }
-            for f in items where f.hasPrefix(Self.cacheJunkPrefix) || Self.isFloodName(f) {
+            for f in items where f.hasPrefix(AntibanDecoy.cachePrefix) || Self.isFloodName(f) {
                 if (try? fm.removeItem(atPath: (dir as NSString).appendingPathComponent(f))) != nil {
                     n += 1
                 }
@@ -287,7 +316,7 @@ public final class Antiban {
     }
 
     /// Tên kiểu flood cũ: cache_<14 hex>.bytes / .bin
-    static func isFloodName(_ name: String) -> Bool {
+    nonisolated static func isFloodName(_ name: String) -> Bool {
         guard name.hasPrefix("cache_") else { return false }
         let isBytes = name.hasSuffix(".bytes")
         let isBin = name.hasSuffix(".bin")
@@ -297,7 +326,7 @@ public final class Antiban {
         return isBytes ? name.count == 26 : name.count == 25
     }
 
-    private static func randomHex(_ count: Int) -> String {
+    nonisolated private static func randomHex(_ count: Int) -> String {
         let chars = Array("0123456789abcdef")
         return String((0..<count).map { _ in chars[Int.random(in: 0..<chars.count)] })
     }
