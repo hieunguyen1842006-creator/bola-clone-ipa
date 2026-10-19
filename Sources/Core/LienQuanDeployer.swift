@@ -21,9 +21,9 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .hudFull:
             return "HUD địch: máu, tên, CD chiêu, vòng + icon 5 hero, kèm unlock skin"
         case .nvhBeta:
-            return "ESP line/box + HUD máu/tên/CD địch + FOV + unlock skin, đọc lqcfg.txt"
+            return "Full skin + kill notify + ESP line/box + HUD máu/tên/CD địch + FOV"
         case .unlockSkin:
-            return "Chỉ hook GetActorSkinID — payload gọn, ít can thiệp hơn"
+            return "Mở khoá toàn bộ tủ skin + kill notify + chặn check MD5/không báo server"
         }
     }
 
