@@ -347,7 +347,7 @@ public struct ConfigView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("HUD máu / tên / CD").font(Theme.bodyFont)
                                 .foregroundStyle(Theme.text)
-                            Text("Máu, tên hero và CD 3 chiêu trên đầu (hiện vẽ cả đội).")
+                            Text("Máu, tên hero địch và CD 3 chiêu trên đầu.")
                                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
                         }
                         Spacer()
@@ -358,7 +358,7 @@ public struct ConfigView: View {
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("ESP line").font(Theme.bodyFont).foregroundStyle(Theme.text)
-                            Text("Vẽ line từ chân lên đầu hero.")
+                            Text("Line + box quanh hero địch.")
                                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
                         }
                         Spacer()

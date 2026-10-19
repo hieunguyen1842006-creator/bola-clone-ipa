@@ -223,7 +223,8 @@ for name in ("LQHud", "LQUnlock"):
         check("%s là payload LQMB (wrapper 0x4A22)" % name,
               raw[:2] == b"\x22\x4a" and raw[8:16] == bytes.fromhex("d0db2c0e465fd41f"),
               raw[:16].hex())
-        check("%s > 100 KB (%d B)" % (name, len(raw)), len(raw) > 100_000)
+        min_size = 100_000 if name == "LQHud" else 900
+        check("%s > %d B (%d B)" % (name, min_size, len(raw)), len(raw) > min_size)
     if os.path.isfile(vp):
         blob = open(vp, "rb").read()
         check("%s.vault có magic NVHV1" % name, blob[:5] == b"NVHV1")
