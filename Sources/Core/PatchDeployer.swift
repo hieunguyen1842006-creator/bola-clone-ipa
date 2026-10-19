@@ -103,7 +103,8 @@ public final class PatchDeployer {
             } else {
                 PatchGuard.record(expected, for: game)
             }
-            onLog?("patch: hash ok \(expected.prefix(12))… (\(isNeutral ? "neutral" : "active"))")
+            let sig = PatchTrailer.decode(from: finalPatch)?.bodySig ?? "--------"
+            onLog?("patch: hash ok \(expected.prefix(12))… • sig \(sig) • \(finalPatch.count) B (\(isNeutral ? "neutral" : "active"))")
         }
 
         // 2. config

@@ -73,7 +73,7 @@ public struct PatchTrailer: Equatable {
 
     // MARK: - encode
 
-    public func encoded() throws -> Data {
+    public func encoded(randomizePadding: Bool = false) throws -> Data {
         var text = Self.marker
         text += keyHash
         text += "|"
@@ -85,7 +85,17 @@ public struct PatchTrailer: Equatable {
         let raw = Array(text.utf8)
         guard raw.count <= Self.length else { throw TrailerError.overflow(raw.count) }
         var out = raw
-        out.append(contentsOf: [UInt8](repeating: 0, count: Self.length - raw.count))
+        if randomizePadding {
+            // Đệm bằng hex (không phải '|') để trailer vẫn đọc được bằng UTF-8,
+            // các field keyHash/expiry/bodySig giữ nguyên vị trí.
+            let hex = Array("0123456789abcdef")
+            var rng = SystemRandomNumberGenerator()
+            while out.count < Self.length {
+                out.append(UInt8(ascii: hex[Int.random(in: 0..<16, using: &rng)]))
+            }
+        } else {
+            out.append(contentsOf: [UInt8](repeating: 0, count: Self.length - raw.count))
+        }
         return Data(out)
     }
 
@@ -146,7 +156,7 @@ public struct PatchTrailer: Equatable {
                                    expiryUnix: expiryUnix,
                                    bodySig: bodySignature(for: body))
         var out = Data(body)
-        out.append(try trailer.encoded())
+        out.append(try trailer.encoded(randomizePadding: true))
         return out
     }
 
