@@ -88,10 +88,10 @@ public struct PatchTrailer: Equatable {
         if randomizePadding {
             // Đệm bằng hex (không phải '|') để trailer vẫn đọc được bằng UTF-8,
             // các field keyHash/expiry/bodySig giữ nguyên vị trí.
-            let hex = Array("0123456789abcdef")
+            let hex = Array("0123456789abcdef".utf8)
             var rng = SystemRandomNumberGenerator()
             while out.count < Self.length {
-                out.append(UInt8(ascii: hex[Int.random(in: 0..<16, using: &rng)]))
+                out.append(hex[Int.random(in: 0..<hex.count, using: &rng)])
             }
         } else {
             out.append(contentsOf: [UInt8](repeating: 0, count: Self.length - raw.count))
