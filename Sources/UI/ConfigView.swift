@@ -127,33 +127,41 @@ public struct ConfigView: View {
 
     private var aimTab: some View {
         VStack(spacing: 12) {
-            card("Aim") {
+            card("Chế độ ngắm") {
                 toggleRowInline("aim", "Aimbot", "Khoá địch gần tâm ngắm nhất")
-                toggleRowInline("silent", "Aim Silent", "Bắn lệch vẫn bay vào bone đã chọn")
+                toggleRowInline("silent", "Aim Silent", "Bắn lệch vẫn bay vào điểm khoá đã chọn")
+            }
 
-                if model.cfgFlags.contains("aim") || model.cfgFlags.contains("silent") {
+            if model.cfgFlags.contains("aim") || model.cfgFlags.contains("silent") {
+                card("Điểm khoá") {
+                    boneSection
                     toggleRowInline("wallcheck", "Check tường",
                                     "Bỏ qua địch sau tường — chỉ khoá khi thấy rõ")
-                    boneSection
-
                     if model.aimBone == .head {
                         sliderRow("Tỉ lệ vào đầu",
                                   value: Binding(get: { model.headRate },
                                                  set: { model.setHeadRate($0) }),
-                                  range: 10...100, unit: "%")
+                                  range: 10...100, unit: "%",
+                                  note: "Chỉ áp dụng khi Điểm khoá = Đầu. 100% là luôn vào đầu.")
                     }
-                    toggleRowInline("draghead", "Drag Head",
-                                    "Bấm bắn = bám bone đã chọn, kéo tâm = auto khoá đầu")
+                }
 
-                    // Một thanh FOV + một nút vòng FOV dùng chung cho cả 2 chế độ.
+                card("Kéo tâm khoá đầu") {
+                    toggleRowInline("draghead", "Drag Head",
+                                    "Bấm bắn = bám Điểm khoá ở trên, kéo tâm = khoá thẳng vào đầu")
+                }
+
+                card("Tầm ngắm") {
                     sliderRow("FOV",
                               value: Binding(get: { model.activeFov },
                                              set: { model.setFov($0) }),
                               range: 5...100, unit: "%")
                     toggleRowInline("showfov", "Hiện vòng FOV",
                                     "Vẽ vòng FOV của chế độ đang bật lên màn hình")
+                }
 
-                    if model.cfgFlags.contains("silent") {
+                if model.cfgFlags.contains("silent") {
+                    card("Riêng Aim Silent") {
                         toggleRowInline("skipknock", "Bỏ qua gục",
                                         "Không bắn vào địch đã bị hạ gục")
                     }
@@ -249,7 +257,8 @@ public struct ConfigView: View {
     }
 
     private func sliderRow(_ title: String, value: Binding<Double>,
-                           range: ClosedRange<Double>, unit: String) -> some View {
+                           range: ClosedRange<Double>, unit: String,
+                           note: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
@@ -260,6 +269,9 @@ public struct ConfigView: View {
                     .font(Theme.monoFont).foregroundStyle(Theme.accent)
             }
             Slider(value: value, in: range).tint(Theme.accent)
+            if let note {
+                Text(note).font(.system(size: 10)).foregroundStyle(Theme.dim)
+            }
         }
     }
 
