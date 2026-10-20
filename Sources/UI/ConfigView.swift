@@ -111,6 +111,14 @@ public struct ConfigView: View {
                           value: Binding(get: { model.espThick },
                                          set: { model.setEspThick($0) }),
                           range: 50...200, unit: "%")
+                sliderRow("Cỡ chữ ESP",
+                          value: Binding(get: { model.textScale },
+                                         set: { model.setTextScale($0) }),
+                          range: 50...200, unit: "%")
+                sliderRow("Khoảng cách vẽ",
+                          value: Binding(get: { model.drawDist },
+                                         set: { model.setDrawDist($0) }),
+                          range: 100...400, unit: "m")
             }
         }
     }

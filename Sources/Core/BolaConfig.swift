@@ -4,7 +4,7 @@ import Foundation
 /// patch trong game đọc ở `Application.persistentDataPath + "/nvhcfg.bin"`).
 ///
 /// Layout lấy đúng từ source gốc (`AppModel.writeConfig`):
-///   24 byte payload + 4 byte CRC32 LE = 28 byte.
+///   26 byte payload + 4 byte CRC32 LE = 30 byte.
 ///
 ///   [0..3]  "BOLA"
 ///   [4]     version = 1
@@ -23,14 +23,19 @@ import Foundation
 ///   [21]    drag head: 0/1 — patch chỉ snap vào bone khi ngón tay đang kéo tâm ngắm.
 ///           Patch gốc không đọc byte này (nó đọc 0..20), nên đây là byte trống thật.
 ///   [22]    check tường: 0/1 — bỏ qua địch không có line-of-sight (raycast trong patch)
+///   [23]    cỡ chữ ESP (%), clamp 50...200 — nhân vào font tên / khoảng cách / số đếm
+///   [24]    khoảng cách vẽ ESP, đơn vị 2 m (100 = 200 m), clamp 25...200
+///   [25]    dự phòng = 0
 ///
-/// Toàn bộ 24 byte bị XOR với keystream `(0x5A + i*0x37) ^ (i << 4)`, CRC32 tính trên
+/// Toàn bộ 26 byte bị XOR với keystream `(0x5A + i*0x37) ^ (i << 4)`, CRC32 tính trên
 /// **payload đã XOR** rồi ghi 4 byte little-endian ở cuối.
 public struct BolaConfig: Equatable {
 
     public static let magic: [UInt8] = Array("BOLA".utf8)   // 0x42 0x4F 0x4C 0x41
-    public static let size = 28
-    public static let payloadSize = 24
+    public static let size = 30
+    public static let payloadSize = 26
+    /// Bản cũ ghi 28 byte (24 payload). Vẫn đọc được — byte 21..24 khuyết thì lấy mặc định.
+    public static let minSize = 28
     public static let version: UInt8 = 1
 
     public struct Flags: OptionSet, Equatable {          // byte 5
@@ -99,6 +104,8 @@ public struct BolaConfig: Equatable {
     public var headRate: UInt8     // 10...100
     public var dragHead: Bool      // byte 21
     public var wallCheck: Bool     // byte 22
+    public var textScale: UInt8    // byte 23 — 50...200 (%)
+    public var drawDist: UInt8     // byte 24 — 25...200 (x2 met)
     public var boxColor: UInt16
     public var lineColor: UInt16
     public var boneColor: UInt16
@@ -115,6 +122,8 @@ public struct BolaConfig: Equatable {
                 headRate: UInt8 = 100,
                 dragHead: Bool = false,
                 wallCheck: Bool = false,
+                textScale: UInt8 = 100,
+                drawDist: UInt8 = 100,
                 boxColor: UInt16 = 0xF925,
                 lineColor: UInt16 = 0xF925,
                 boneColor: UInt16 = 0xF925) {
@@ -130,6 +139,8 @@ public struct BolaConfig: Equatable {
         self.headRate = headRate
         self.dragHead = dragHead
         self.wallCheck = wallCheck
+        self.textScale = textScale
+        self.drawDist = drawDist
         self.boxColor = boxColor
         self.lineColor = lineColor
         self.boneColor = boneColor
@@ -143,7 +154,7 @@ public struct BolaConfig: Equatable {
 
         public var description: String {
             switch self {
-            case .tooShort(let n): return "nvhcfg.bin quá ngắn: \(n) < \(BolaConfig.size)"
+            case .tooShort(let n): return "nvhcfg.bin quá ngắn: \(n) < \(BolaConfig.minSize)"
             case .badMagic(let m): return "sai magic: \(m.map { String(format: "%02X", $0) }.joined()) ≠ 424F4C41"
             case .badVersion(let v): return String(format: "sai version: 0x%02X ≠ 0x01", v)
             case .badCRC(let e, let g): return String(format: "CRC32 lệch: file=0x%08X, tính=0x%08X", e, g)
@@ -179,6 +190,8 @@ public struct BolaConfig: Equatable {
         out[20] = clamp(headRate, 10, 100)
         out[21] = dragHead ? 1 : 0
         out[22] = wallCheck ? 1 : 0
+        out[23] = clamp(textScale, 50, 200)
+        out[24] = clamp(drawDist, 25, 200)
 
         for i in 0..<BolaConfig.payloadSize {
             out[i] = Self.obfuscate(i, out[i])
@@ -196,7 +209,7 @@ public struct BolaConfig: Equatable {
     // MARK: decode
 
     public static func decode(_ bytes: [UInt8]) throws -> BolaConfig {
-        guard bytes.count >= BolaConfig.size else { throw DecodeError.tooShort(bytes.count) }
+        guard bytes.count >= BolaConfig.minSize else { throw DecodeError.tooShort(bytes.count) }
 
         let idx = crcOffset(for: bytes.count)
         let stored = readLE32(bytes, at: idx)
@@ -224,12 +237,14 @@ public struct BolaConfig: Equatable {
             headRate: plain[20],
             dragHead: plain.count > 21 ? plain[21] != 0 : false,
             wallCheck: plain.count > 22 ? plain[22] != 0 : false,
+            textScale: (plain.count > 23 && plain[23] >= 50) ? plain[23] : 100,
+            drawDist: (plain.count > 24 && plain[24] >= 25) ? plain[24] : 100,
             boxColor: readLE16(plain, at: 9),
             lineColor: readLE16(plain, at: 11),
             boneColor: readLE16(plain, at: 13))
     }
 
-    /// CRC nằm ở 4 byte cuối (28 → 24).
+    /// CRC nằm ở 4 byte cuối (30 → 26, 28 → 24).
     public static func crcOffset(for length: Int) -> Int {
         max(0, length - 4)
     }

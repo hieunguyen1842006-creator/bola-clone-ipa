@@ -60,6 +60,8 @@ public final class AppModel: ObservableObject {
     @Published public var headRate: Double = 100       // 10...100 (%)
     @Published public var camFov: Double = 88          // 50...130
     @Published public var espThick: Double = 100       // 50...200
+    @Published public var textScale: Double = 100      // 50...200 (%)
+    @Published public var drawDist: Double = 200       // 100...400 (m)
     @Published public var language: Language = .vi
     @Published public var antiban: Bool = false
     @Published public var mhaActive: Bool = false
@@ -290,6 +292,8 @@ public final class AppModel: ObservableObject {
         let changed = flags != cfgFlags
             || aimBone != cfg.bone
             || espThick != Double(cfg.espThick)
+            || textScale != Double(cfg.textScale)
+            || drawDist != Double(cfg.drawDist) * 2
             || silentFov != Double(cfg.silentFov)
             || aimFov != Double(cfg.aimFov)
             || camFov != Double(cfg.camFov)
@@ -301,6 +305,8 @@ public final class AppModel: ObservableObject {
         cfgFlags = flags
         aimBone = cfg.bone
         espThick = Double(cfg.espThick)
+        textScale = Double(cfg.textScale)
+        drawDist = Double(cfg.drawDist) * 2
         silentFov = Double(cfg.silentFov)
         aimFov = Double(cfg.aimFov)
         // một thanh FOV chung — giữ 2 byte luôn bằng nhau
@@ -382,6 +388,8 @@ public final class AppModel: ObservableObject {
             headRate: u8(headRate, 10, 100),
             dragHead: cfgFlags.contains("draghead"),
             wallCheck: cfgFlags.contains("wallcheck"),
+            textScale: u8(textScale, 50, 200),
+            drawDist: u8(drawDist / 2, 25, 200),
             boxColor: featureRGB["box"] ?? 0xF925,
             lineColor: featureRGB["line"] ?? 0xF925,
             boneColor: featureRGB["bone"] ?? 0xF925)
@@ -757,6 +765,11 @@ public final class AppModel: ObservableObject {
     }
 
     public func setEspThick(_ value: Double) { espThick = min(max(value, 50), 200); writeConfig() }
+    public func setTextScale(_ value: Double) { textScale = min(max(value.rounded(), 50), 200); writeConfig() }
+    public func setDrawDist(_ value: Double) {
+        drawDist = min(max((value / 10).rounded() * 10, 100), 400)
+        writeConfig()
+    }
     public func setHeadRate(_ value: Double) { headRate = min(max(value, 10), 100); writeConfig() }
     /// Một thanh FOV dùng chung cho cả Aimbot và Silent.
     /// Patch đọc byte 19 khi Aimbot, byte 15 khi Silent — nên ghi cả hai cùng giá trị.

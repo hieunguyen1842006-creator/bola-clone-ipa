@@ -56,8 +56,8 @@ let cfg = BolaConfig(flags: [.box, .hp],
                      lineColor: 0x07E0,
                      boneColor: 0x001F)
 let bytes = cfg.encoded()
-let plain: [UInt8] = bytes[0..<24].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
-check("độ dài == 28 (ngưỡng đọc của patch)", bytes.count == BolaConfig.size, "got \(bytes.count)")
+let plain: [UInt8] = bytes[0..<BolaConfig.payloadSize].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
+check("độ dài == BolaConfig.size", bytes.count == BolaConfig.size, "got \(bytes.count)")
 check("magic \"BOLA\" sau khi bỏ XOR",
       Array(plain[0..<4]) == Array("BOLA".utf8),
       hex(Array(plain[0..<4])))
@@ -75,9 +75,14 @@ check("misc1 offset 16 = fastfire", plain[16] == 1)
 check("misc2 offset 17 = speedrun", plain[17] == 32)
 check("camFov/aimFov/headRate ở 18/19/20",
       plain[18] == 95 && plain[19] == 60 && plain[20] == 80)
-check("CRC32 ở 4 byte CUỐI (offset 24, LE)",
-      UInt32(bytes[24]) | UInt32(bytes[25]) << 8 | UInt32(bytes[26]) << 16 | UInt32(bytes[27]) << 24
-        == CRC32.hash(Array(bytes[0..<24])))
+check("textScale/drawDist ở 23/24 = 100/100",
+      plain[23] == 100 && plain[24] == 100)
+let cStart = BolaConfig.payloadSize
+let cEnd = bytes.count - 4
+check("CRC32 ở 4 byte CUỐI, LE",
+      UInt32(bytes[cStart]) | UInt32(bytes[cStart + 1]) << 8
+        | UInt32(bytes[cStart + 2]) << 16 | UInt32(bytes[cStart + 3]) << 24
+        == CRC32.hash(Array(bytes[0..<cStart])) && cEnd == cStart)
 
 let back = try? BolaConfig.decode(bytes)
 check("decode(encode(x)) == x", back == cfg, "got \(String(describing: back))")
@@ -88,14 +93,29 @@ var bad2 = bytes; bad2[4] ^= 0xFF
 check("decode từ chối version sai", (try? BolaConfig.decode(bad2)) == nil)
 var bad3 = bytes; bad3[10] ^= 0xFF
 check("decode từ chối CRC sai", (try? BolaConfig.decode(bad3)) == nil)
-check("decode từ chối file < 28 byte", (try? BolaConfig.decode(Array(bytes[0..<20]))) == nil)
-check("crcOffset = len-4 (28→24, 24→20, 20→16)",
+check("decode từ chối file ngắn (< BolaConfig.minSize)",
+      (try? BolaConfig.decode(Array(bytes[0..<20]))) == nil)
+
+// Bản cũ ghi 28 byte (24 payload): byte 21/22/23 = 0, không có byte 24.
+var legacy = Array(bytes[0..<24])
+for i in 21...23 { legacy[i] = BolaConfig.obfuscate(i, 0) }
+let lcrc = CRC32.hash(legacy)
+var legacyFile = legacy
+legacyFile.append(contentsOf: [UInt8(lcrc & 0xFF), UInt8((lcrc >> 8) & 0xFF),
+                               UInt8((lcrc >> 16) & 0xFF), UInt8((lcrc >> 24) & 0xFF)])
+let legacyCfg = try? BolaConfig.decode(legacyFile)
+check("decode file 28 byte cũ ⇒ textScale/drawDist về 100, drag/wall tắt",
+      legacyCfg?.textScale == 100 && legacyCfg?.drawDist == 100
+        && legacyCfg?.dragHead == false && legacyCfg?.wallCheck == false,
+      String(describing: legacyCfg))
+
+check("crcOffset = len-4 (30→26, 28→24, 20→16)",
       BolaConfig.crcOffset(for: 28) == 24 && BolaConfig.crcOffset(for: 24) == 20
         && BolaConfig.crcOffset(for: 20) == 16)
 check("XOR keystream đối xứng",
-      (0..<24).allSatisfy { BolaConfig.obfuscate($0, BolaConfig.obfuscate($0, 0x42)) == 0x42 })
+      (0..<BolaConfig.payloadSize).allSatisfy { BolaConfig.obfuscate($0, BolaConfig.obfuscate($0, 0x42)) == 0x42 })
 let clamped = BolaConfig(espThick: 250, silentFov: 250).encoded()
-let clampedPlain: [UInt8] = clamped[0..<24].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
+let clampedPlain: [UInt8] = clamped[0..<BolaConfig.payloadSize].enumerated().map { i, b in BolaConfig.obfuscate(i, b) }
 check("clamp espThick 50…200 / silentFov 5…100",
       clampedPlain[6] == 200 && clampedPlain[15] == 100)
 
@@ -183,7 +203,8 @@ check("trailer khớp token đã ghi",
       mem.store["Assembly-CSharp-patch.bytes"].map {
           PatchTrailer.isValid(patch: $0, license: token.encodedString())
       } ?? false)
-check("nvhcfg.bin ghi đúng 28 byte", mem.store[PatchLibrary.configFileName]?.count == 28)
+check("nvhcfg.bin ghi đúng BolaConfig.size",
+      mem.store[PatchLibrary.configFileName]?.count == BolaConfig.size)
 check("nvhcfg.bin decode lại được",
       (try? BolaConfig.decode([UInt8](mem.store[PatchLibrary.configFileName]!))) != nil)
 check(".nvhtok ghi đúng nội dung",

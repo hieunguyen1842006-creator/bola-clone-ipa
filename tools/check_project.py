@@ -214,40 +214,77 @@ if os.path.isfile(neutral_vault):
     check("vault neutral giải mã ra đúng NeutralPatch.bytes",
           vault_decode(nv) == ndata)
 
-# Liên Quân: payload LQMB (wrapper 0x4A22), chỉ nằm trong vault.
+LQ_MAGIC = bytes.fromhex("d0db2c0e465fd41f")
+
+
+def lq2_names(raw):
+    """Ten file trong bundle LQ2 ('LQ2\\0' + u32 so file + [u8 len][ten][u32 size][data]...)."""
+    if len(raw) < 9 or raw[:4] != b"LQ2\x00":
+        return None
+    n = int.from_bytes(raw[4:8], "little")
+    if not 0 < n <= 8:
+        return None
+    o, out = 8, []
+    for _ in range(n):
+        if o >= len(raw):
+            return None
+        ln = raw[o]
+        o += 1
+        if not 0 < ln <= 64 or o + ln + 4 > len(raw):
+            return None
+        out.append(raw[o:o + ln].decode("utf-8", "replace"))
+        o += ln
+        sz = int.from_bytes(raw[o:o + 4], "little")
+        o += 4
+        if not 0 < sz <= len(raw) - o:
+            return None
+        o += sz
+    return out
+
+
+def lq_kind(raw):
+    if lq2_names(raw) is not None:
+        return "bundle LQ2"
+    if raw[:2] == b"\x22\x4a" and raw[8:16] == LQ_MAGIC:
+        return "LQMB 0x4A22"
+    return None
+
+
+# Liên Quân: payload LQMB hoặc bundle LQ2, chỉ nằm trong vault.
 for name in ("LQHud", "LQUnlock"):
     src = os.path.join(ROOT, "Resources", name + ".bytes")
     vp = os.path.join(ROOT, "Resources", name + ".vault")
     if os.path.isfile(src):
         raw = open(src, "rb").read()
-        check("%s là payload LQMB (wrapper 0x4A22)" % name,
-              raw[:2] == b"\x22\x4a" and raw[8:16] == bytes.fromhex("d0db2c0e465fd41f"),
-              raw[:16].hex())
+        check("%s là payload LQ (%s)" % (name, lq_kind(raw) or "?"),
+              lq_kind(raw) is not None, raw[:16].hex())
         min_size = 100_000 if name == "LQHud" else 900
         check("%s > %d B (%d B)" % (name, min_size, len(raw)), len(raw) > min_size)
     if os.path.isfile(vp):
         blob = open(vp, "rb").read()
         check("%s.vault có magic NVHV1" % name, blob[:5] == b"NVHV1")
-        check("%s.vault không lộ magic LQMB" % name,
-              bytes.fromhex("d0db2c0e465fd41f") not in blob[:64])
+        check("%s.vault không lộ magic LQ" % name,
+              LQ_MAGIC not in blob[:64] and b"LQ2\x00" not in blob[:64])
         check("%s.vault giải mã đúng payload" % name,
               os.path.isfile(src) and vault_decode(blob) == open(src, "rb").read())
 
-# NVH Beta: payload nhỏ, tự build (2 hook: skin + ESP/FOV).
+# NVH Beta: payload nguyên gói vendor (bundle LQ2: HeroSkin_1 + HeroSkin_2).
 src = os.path.join(ROOT, "Resources", "NVHLQ.bytes")
 vp = os.path.join(ROOT, "Resources", "NVHLQ.vault")
 if os.path.isfile(src):
     raw = open(src, "rb").read()
-    check("NVHLQ là payload LQMB (wrapper 0x4A22)",
-          raw[:2] == b"\x22\x4a" and raw[8:16] == bytes.fromhex("d0db2c0e465fd41f"),
+    names = lq2_names(raw)
+    check("NVHLQ là payload LQ (%s)" % (lq_kind(raw) or "?"), lq_kind(raw) is not None,
           raw[:16].hex())
     check("NVHLQ > 4 KB (%d B)" % len(raw), len(raw) > 4_000)
-    check("NVHLQ có chuỗi lqcfg.txt", b"/lqcfg.txt" in raw)
+    if names is not None:
+        check("NVHLQ bundle có HeroSkin_1 + HeroSkin_2 (%s)" % ",".join(names),
+              "HeroSkin_1.bytes" in names and "HeroSkin_2.bytes" in names)
 if os.path.isfile(vp):
     blob = open(vp, "rb").read()
     check("NVHLQ.vault có magic NVHV1", blob[:5] == b"NVHV1")
-    check("NVHLQ.vault không lộ magic LQMB",
-          bytes.fromhex("d0db2c0e465fd41f") not in blob[:64])
+    check("NVHLQ.vault không lộ magic LQ",
+          LQ_MAGIC not in blob[:64] and b"LQ2\x00" not in blob[:64])
     check("NVHLQ.vault giải mã đúng payload",
           os.path.isfile(src) and vault_decode(blob) == open(src, "rb").read())
 
