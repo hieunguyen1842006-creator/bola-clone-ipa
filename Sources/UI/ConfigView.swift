@@ -137,25 +137,18 @@ public struct ConfigView: View {
                                         "Bấm bắn = bắn thân, kéo tâm = auto khoá đầu")
                     }
 
+                    // Một thanh FOV + một nút vòng FOV dùng chung cho cả 2 chế độ.
+                    sliderRow("FOV",
+                              value: Binding(get: { model.activeFov },
+                                             set: { model.setFov($0) }),
+                              range: 5...100, unit: "%")
+                    toggleRowInline("showfov", "Hiện vòng FOV",
+                                    "Vẽ vòng FOV của chế độ đang bật lên màn hình")
+
                     if model.cfgFlags.contains("silent") {
-                        sliderRow("FOV",
-                                  value: Binding(get: { model.silentFov },
-                                                 set: { model.setSilentFov($0) }),
-                                  range: 5...100, unit: "%")
                         toggleRowInline("skipknock", "Bỏ qua gục",
                                         "Không bắn vào địch đã bị hạ gục")
                     }
-
-                    if model.cfgFlags.contains("aim") {
-                        sliderRow("FOV Aimbot",
-                                  value: Binding(get: { model.aimFov },
-                                                 set: { model.setAimFov($0) }),
-                                  range: 5...100, unit: "%")
-                    }
-
-                    // Vòng FOV vẽ theo chế độ đang bật: silent → FOV, aimbot → FOV Aimbot
-                    toggleRowInline("showfov", "Hiện vòng FOV",
-                                    "Vẽ vòng FOV của chế độ đang bật lên màn hình")
                 }
             }
         }

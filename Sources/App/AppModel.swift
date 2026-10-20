@@ -303,6 +303,10 @@ public final class AppModel: ObservableObject {
         espThick = Double(cfg.espThick)
         silentFov = Double(cfg.silentFov)
         aimFov = Double(cfg.aimFov)
+        // một thanh FOV chung — giữ 2 byte luôn bằng nhau
+        let fov = cfgFlags.contains("silent") ? silentFov : aimFov
+        silentFov = fov
+        aimFov = fov
         camFov = Double(cfg.camFov)
         headRate = Double(cfg.headRate)
         featureRGB["box"] = cfg.boxColor
@@ -755,8 +759,15 @@ public final class AppModel: ObservableObject {
 
     public func setEspThick(_ value: Double) { espThick = min(max(value, 50), 200); writeConfig() }
     public func setHeadRate(_ value: Double) { headRate = min(max(value, 10), 100); writeConfig() }
-    public func setSilentFov(_ value: Double) { silentFov = min(max(value, 5), 100); writeConfig() }
-    public func setAimFov(_ value: Double) { aimFov = min(max(value, 5), 100); writeConfig() }
+    /// Một thanh FOV dùng chung cho cả Aimbot và Silent.
+    /// Patch đọc byte 19 khi Aimbot, byte 15 khi Silent — nên ghi cả hai cùng giá trị.
+    public var activeFov: Double { cfgFlags.contains("silent") ? silentFov : aimFov }
+    public func setFov(_ value: Double) {
+        let v = min(max(value, 5), 100)
+        silentFov = v
+        aimFov = v
+        writeConfig()
+    }
     public func setCamFov(_ value: Double) { camFov = min(max(value, 50), 130); writeConfig() }
 
     /// Alias log/showToast đúng tên field bản gốc.
