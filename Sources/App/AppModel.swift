@@ -130,6 +130,9 @@ public final class AppModel: ObservableObject {
         Logger.shared.onChange = { [weak self] lines in
             self?.logText = lines.suffix(120).map { "\($0.stamp)  \($0.text)" }.joined(separator: "\n")
         }
+
+        // Setting sống trong app, không phụ thuộc nvhcfg.bin của game.
+        loadSavedSettings()
     }
 
     public static let defaultServer: ServerConfig = {
@@ -245,9 +248,14 @@ public final class AppModel: ObservableObject {
 
     // MARK: đồng bộ UI ← nvhcfg.bin trong container game
 
-    /// Đọc cfg thật trong Documents game và áp lên UI — app và game phải cùng một cấu hình.
+    /// Đọc cfg thật trong Documents game và áp lên UI.
+    ///
+    /// Chỉ dùng file game làm nguồn khi app CHƯA có setting riêng (lần đầu cài app mà
+    /// game đã có patch). Còn lại app là nguồn chân lý — `nvhcfg.bin` chỉ là bản app
+    /// ghi ra để patch đọc, và nó bị xoá mỗi lần uninject.
     public func syncConfigFromDisk(using provider: ContainerAccess? = nil) {
         guard !game.isLienQuan else { return }   // LQ không có file cfg runtime
+        guard !hasSavedSettings else { return }
         let box = provider ?? access
         guard box.isAvailable(for: game) else { return }
         guard let raw = ((try? box.read(PatchLibrary.configFileName, in: game)) ?? nil) else {
@@ -322,6 +330,81 @@ public final class AppModel: ObservableObject {
         if changed {
             log("cfg: đã đồng bộ cấu hình từ nvhcfg.bin trong game")
         }
+        saveSettings()
+    }
+
+    // MARK: setting sống trong app (UserDefaults) — không mất khi uninject
+
+    private static let store = UserDefaults.standard
+
+    private enum StoreKey {
+        static let flags = "nvh.cfg.flags"
+        static let bone = "nvh.cfg.bone"
+        static let espThick = "nvh.cfg.espThick"
+        static let textScale = "nvh.cfg.textScale"
+        static let drawDist = "nvh.cfg.drawDist"
+        static let fov = "nvh.cfg.fov"
+        static let headRate = "nvh.cfg.headRate"
+        static let camFov = "nvh.cfg.camFov"
+        static let color = "nvh.cfg.color."
+    }
+
+    /// App đã có setting lưu riêng chưa (khác hẳn `nvhcfg.bin` trong container game).
+    private var hasSavedSettings: Bool {
+        Self.store.object(forKey: StoreKey.flags) != nil
+    }
+
+    /// Nạp setting đã lưu trong app; field nào chưa từng lưu thì giữ mặc định.
+    private func loadSavedSettings() {
+        let d = Self.store
+        if let v = d.array(forKey: StoreKey.flags) as? [String] { cfgFlags = Set(v) }
+        if let v = d.object(forKey: StoreKey.bone) as? Int,
+           let b = BolaConfig.Bone(rawValue: UInt8(clamping: v)) { aimBone = b }
+        if let v = d.object(forKey: StoreKey.espThick) as? Double {
+            espThick = min(max(v, 50), 200)
+        }
+        if let v = d.object(forKey: StoreKey.textScale) as? Double {
+            textScale = min(max(v, 50), 200)
+        }
+        if let v = d.object(forKey: StoreKey.drawDist) as? Double {
+            drawDist = min(max(v, 100), 400)
+        }
+        if let v = d.object(forKey: StoreKey.fov) as? Double {
+            let f = min(max(v, 5), 100)
+            silentFov = f
+            aimFov = f
+        }
+        if let v = d.object(forKey: StoreKey.headRate) as? Double {
+            headRate = min(max(v, 10), 100)
+        }
+        if let v = d.object(forKey: StoreKey.camFov) as? Double {
+            camFov = min(max(v, 50), 130)
+        }
+        for key in AppModel.defaultColors.keys {
+            if let v = d.object(forKey: StoreKey.color + key) as? Int {
+                featureRGB[key] = UInt16(clamping: v)
+            }
+        }
+    }
+
+    /// Ghi setting vào chính app — gọi ở mọi setter nên uninject cũng không mất.
+    private func saveSettings() {
+        let d = Self.store
+        d.set(Array(cfgFlags).sorted(), forKey: StoreKey.flags)
+        d.set(Int(aimBone.rawValue), forKey: StoreKey.bone)
+        d.set(espThick, forKey: StoreKey.espThick)
+        d.set(textScale, forKey: StoreKey.textScale)
+        d.set(drawDist, forKey: StoreKey.drawDist)
+        d.set(activeFov, forKey: StoreKey.fov)
+        d.set(headRate, forKey: StoreKey.headRate)
+        d.set(camFov, forKey: StoreKey.camFov)
+        for (key, value) in featureRGB { d.set(Int(value), forKey: StoreKey.color + key) }
+    }
+
+    /// Màu từng tính năng (bảng chọn màu gọi cái này để lưu lại trong app).
+    public func setFeatureColor(_ key: String, _ value: UInt16) {
+        featureRGB[key] = value
+        saveSettings()
     }
 
     // MARK: trạng thái inject bền (sống qua lần kill app)
@@ -601,17 +684,19 @@ public final class AppModel: ObservableObject {
 
     /// Chỉ ghi lại `nvhcfg.bin` (không tải lại patch), dùng khi đổi toggle/slider.
     public func writeConfig() {
+        // Setting đã được setter lưu trong app; gọi thẳng hàm này cũng lưu cho chắc.
+        saveSettings()
         guard throttle() else { return }
         if game.isLienQuan {
             toast("LQ dùng gói cố định — không có cấu hình riêng")
             return
         }
         guard gate.isAuthorized, let lease = gate.lease else {
-            toast("🔑 Nhập key trước để lưu cấu hình")
+            toast("Đã lưu trong app — nhập key để áp vào game")
             return
         }
         guard let patch = ((try? access.read(PatchLibrary.patchFileName, in: game)) ?? nil) else {
-            toast("Chưa có patch — bấm INJECT trước")
+            toast("Đã lưu trong app — bấm INJECT để áp vào game")
             return
         }
         let token = BolaToken(key: lease.key, expiryUnix: lease.expiryUnix, sig: lease.sig)
@@ -755,22 +840,41 @@ public final class AppModel: ObservableObject {
         if on && key == "aim" { cfgFlags.remove("silent") }
         if on && key == "silent" { cfgFlags.remove("aim") }
         if on { cfgFlags.insert(key) } else { cfgFlags.remove(key) }
+        saveSettings()
         // autolaunch là tuỳ chọn phía app — LQ không có cfg để ghi.
         if !game.isLienQuan { writeConfig() }
     }
 
     public func setBone(_ bone: BolaConfig.Bone) {
         aimBone = bone
+        saveSettings()
         writeConfig()
     }
 
-    public func setEspThick(_ value: Double) { espThick = min(max(value, 50), 200); writeConfig() }
-    public func setTextScale(_ value: Double) { textScale = min(max(value.rounded(), 50), 200); writeConfig() }
-    public func setDrawDist(_ value: Double) {
-        drawDist = min(max((value / 10).rounded() * 10, 100), 400)
+    public func setEspThick(_ value: Double) {
+        espThick = min(max(value, 50), 200)
+        saveSettings()
         writeConfig()
     }
-    public func setHeadRate(_ value: Double) { headRate = min(max(value, 10), 100); writeConfig() }
+
+    public func setTextScale(_ value: Double) {
+        textScale = min(max(value.rounded(), 50), 200)
+        saveSettings()
+        writeConfig()
+    }
+
+    public func setDrawDist(_ value: Double) {
+        drawDist = min(max((value / 10).rounded() * 10, 100), 400)
+        saveSettings()
+        writeConfig()
+    }
+
+    public func setHeadRate(_ value: Double) {
+        headRate = min(max(value, 10), 100)
+        saveSettings()
+        writeConfig()
+    }
+
     /// Một thanh FOV dùng chung cho cả Aimbot và Silent.
     /// Patch đọc byte 19 khi Aimbot, byte 15 khi Silent — nên ghi cả hai cùng giá trị.
     public var activeFov: Double { cfgFlags.contains("silent") ? silentFov : aimFov }
@@ -778,9 +882,15 @@ public final class AppModel: ObservableObject {
         let v = min(max(value, 5), 100)
         silentFov = v
         aimFov = v
+        saveSettings()
         writeConfig()
     }
-    public func setCamFov(_ value: Double) { camFov = min(max(value, 50), 130); writeConfig() }
+
+    public func setCamFov(_ value: Double) {
+        camFov = min(max(value, 50), 130)
+        saveSettings()
+        writeConfig()
+    }
 
     /// Alias log/showToast đúng tên field bản gốc.
     public func append(_ text: String) { log(text) }

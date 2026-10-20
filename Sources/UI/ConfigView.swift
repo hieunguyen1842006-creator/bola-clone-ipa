@@ -420,7 +420,7 @@ public struct ConfigView: View {
 
             Text(model.game.isLienQuan
                  ? "Gói LQ đã đóng sẵn — bấm INJECT để ghi vào game"
-                 : "Mặc định tắt mỗi lần mở app — bật lại khi cần")
+                 : "Cấu hình được lưu trong app — UN INJECT cũng không mất")
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
         }
     }
@@ -434,7 +434,7 @@ public struct ConfigView: View {
                 title: colorTitle(key),
                 hue: $hue, sat: $sat, val: $val,
                 onChange: { color in
-                    model.featureRGB[key] = color.rgb565
+                    model.setFeatureColor(key, color.rgb565)
                 },
                 onClose: { colorPickKey = nil })
         }
