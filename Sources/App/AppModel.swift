@@ -462,8 +462,7 @@ public final class AppModel: ObservableObject {
                 mhaActive = coordinator.lastMessage == "mha"
                 let dep = LienQuanDeployer(access: live, game: game)
                 dep.onLog = { [weak self] in self?.log($0) }
-                let outcome = dep.install(payload, pack: lqPack,
-                                          config: lqPack == .nvhBeta ? lqConfigText() : nil)
+                let outcome = dep.install(payload, pack: lqPack, config: nil)
                 await MainActor.run {
                     self.busy = false
                     self.markInjected(outcome.ok)
