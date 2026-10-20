@@ -142,8 +142,6 @@ public struct ConfigView: View {
                                   value: Binding(get: { model.silentFov },
                                                  set: { model.setSilentFov($0) }),
                                   range: 5...100, unit: "%")
-                        toggleRowInline("showfov", "Hiện vòng FOV",
-                                        "Ẩn/hiện vòng tròn FOV trên màn hình")
                         toggleRowInline("skipknock", "Bỏ qua gục",
                                         "Không bắn vào địch đã bị hạ gục")
                     }
@@ -154,6 +152,10 @@ public struct ConfigView: View {
                                                  set: { model.setAimFov($0) }),
                                   range: 5...100, unit: "%")
                     }
+
+                    // Vòng FOV vẽ theo chế độ đang bật: silent → FOV, aimbot → FOV Aimbot
+                    toggleRowInline("showfov", "Hiện vòng FOV",
+                                    "Vẽ vòng FOV của chế độ đang bật lên màn hình")
                 }
             }
         }
