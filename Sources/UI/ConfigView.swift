@@ -135,8 +135,6 @@ public struct ConfigView: View {
             if model.cfgFlags.contains("aim") || model.cfgFlags.contains("silent") {
                 card("Điểm khoá") {
                     boneSection
-                    toggleRowInline("wallcheck", "Check tường",
-                                    "Bỏ qua địch sau tường — chỉ khoá khi thấy rõ")
                     if model.aimBone == .head {
                         sliderRow("Tỉ lệ vào đầu",
                                   value: Binding(get: { model.headRate },
@@ -144,6 +142,13 @@ public struct ConfigView: View {
                                   range: 10...100, unit: "%",
                                   note: "Chỉ áp dụng khi Điểm khoá = Đầu. 100% là luôn vào đầu.")
                     }
+                }
+
+                card("Lọc mục tiêu") {
+                    toggleRowInline("wallcheck", "Check tường",
+                                    "Bỏ qua địch sau tường — chỉ khoá khi thấy rõ")
+                    toggleRowInline("skipknock", "Bỏ qua gục",
+                                    "Không khoá địch đã bị hạ gục")
                 }
 
                 card("Kéo tâm khoá đầu") {
@@ -158,13 +163,6 @@ public struct ConfigView: View {
                               range: 5...100, unit: "%")
                     toggleRowInline("showfov", "Hiện vòng FOV",
                                     "Vẽ vòng FOV của chế độ đang bật lên màn hình")
-                }
-
-                if model.cfgFlags.contains("silent") {
-                    card("Riêng Aim Silent") {
-                        toggleRowInline("skipknock", "Bỏ qua gục",
-                                        "Không bắn vào địch đã bị hạ gục")
-                    }
                 }
             }
         }
