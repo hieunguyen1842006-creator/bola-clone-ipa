@@ -141,9 +141,9 @@ public struct ConfigView: View {
                                   value: Binding(get: { model.headRate },
                                                  set: { model.setHeadRate($0) }),
                                   range: 10...100, unit: "%")
-                        toggleRowInline("draghead", "Drag Head",
-                                        "Bấm bắn = bắn thân, kéo tâm = auto khoá đầu")
                     }
+                    toggleRowInline("draghead", "Drag Head",
+                                    "Bấm bắn = bám bone đã chọn, kéo tâm = auto khoá đầu")
 
                     // Một thanh FOV + một nút vòng FOV dùng chung cho cả 2 chế độ.
                     sliderRow("FOV",
