@@ -282,7 +282,7 @@ public final class AppModel: ObservableObject {
         if cfg.misc2.contains(.camwide) { flags.insert("camwide") }
         if cfg.misc2.contains(.backjump) { flags.insert("backjump") }
         if cfg.misc2.contains(.speedrun) { flags.insert("speedrun") }
-        if cfg.misc2.contains(.draghead) { flags.insert("draghead") }
+        if cfg.dragHead { flags.insert("draghead") }
         // autolaunch là tuỳ chọn phía app, không nằm trong cfg — giữ nguyên.
         if cfgFlags.contains("autolaunch") { flags.insert("autolaunch") }
 
@@ -359,7 +359,6 @@ public final class AppModel: ObservableObject {
         if cfgFlags.contains("camwide") { misc2.insert(.camwide) }
         if cfgFlags.contains("backjump") { misc2.insert(.backjump) }
         if cfgFlags.contains("speedrun") { misc2.insert(.speedrun) }
-        if cfgFlags.contains("draghead") { misc2.insert(.draghead) }
 
         func u8(_ v: Double, _ lo: UInt8, _ hi: UInt8) -> UInt8 {
             UInt8(min(max(v, Double(lo)), Double(hi)))
@@ -376,6 +375,7 @@ public final class AppModel: ObservableObject {
             aimFov: u8(aimFov, 5, 100),
             camFov: u8(camFov, 50, 130),
             headRate: u8(headRate, 10, 100),
+            dragHead: cfgFlags.contains("draghead"),
             boxColor: featureRGB["box"] ?? 0xF925,
             lineColor: featureRGB["line"] ?? 0xF925,
             boneColor: featureRGB["bone"] ?? 0xF925)

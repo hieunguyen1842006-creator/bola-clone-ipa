@@ -16,11 +16,13 @@ import Foundation
 ///   [9..14] RGB565 little-endian: box (9,10), line (11,12), bone (13,14)
 ///   [15]    silent FOV, clamp 5...100
 ///   [16]    misc1: bit0 fastfire, bit3 fastswap, bit5 emote, bit6 highjump, bit7 fps144
-///   [17]    misc2: bit1 camwide, bit4 backjump, bit5 speedrun, bit6 draghead
+///   [17]    misc2: bit1 camwide, bit4 backjump, bit5 speedrun
 ///   [18]    camera FOV, clamp 50...130
 ///   [19]    aimbot FOV, clamp 5...100
 ///   [20]    headshot ratio, clamp 10...100
-///   [21..23] 0
+///   [21]    drag head: 0/1 — patch chỉ snap vào bone khi ngón tay đang kéo tâm ngắm.
+///           Patch gốc không đọc byte này (nó đọc 0..20), nên đây là byte trống thật.
+///   [22..23] 0
 ///
 /// Toàn bộ 24 byte bị XOR với keystream `(0x5A + i*0x37) ^ (i << 4)`, CRC32 tính trên
 /// **payload đã XOR** rồi ghi 4 byte little-endian ở cuối.
@@ -71,10 +73,6 @@ public struct BolaConfig: Equatable {
         public static let camwide  = Misc2(rawValue: 1 << 1)
         public static let backjump = Misc2(rawValue: 1 << 4)
         public static let speedrun = Misc2(rawValue: 1 << 5)
-        /// Drag Head — patch chỉ snap vào bone khi ngón tay đang KÉO tâm ngắm
-        /// (`Event.MouseDrag` ở nửa phải màn hình). Bấm bắn không kéo thì trả về
-        /// aim gốc của game (bắn thân), đúng kiểu aim-assist "legit".
-        public static let draghead = Misc2(rawValue: 1 << 6)
     }
 
     public enum Bone: UInt8, CaseIterable {
@@ -99,6 +97,7 @@ public struct BolaConfig: Equatable {
     public var aimFov: UInt8       // 5...100
     public var camFov: UInt8       // 50...130
     public var headRate: UInt8     // 10...100
+    public var dragHead: Bool      // byte 21
     public var boxColor: UInt16
     public var lineColor: UInt16
     public var boneColor: UInt16
@@ -113,6 +112,7 @@ public struct BolaConfig: Equatable {
                 aimFov: UInt8 = 30,
                 camFov: UInt8 = 88,
                 headRate: UInt8 = 100,
+                dragHead: Bool = false,
                 boxColor: UInt16 = 0xF925,
                 lineColor: UInt16 = 0xF925,
                 boneColor: UInt16 = 0xF925) {
@@ -126,6 +126,7 @@ public struct BolaConfig: Equatable {
         self.aimFov = aimFov
         self.camFov = camFov
         self.headRate = headRate
+        self.dragHead = dragHead
         self.boxColor = boxColor
         self.lineColor = lineColor
         self.boneColor = boneColor
@@ -173,6 +174,7 @@ public struct BolaConfig: Equatable {
         out[18] = clamp(camFov, 50, 130)
         out[19] = clamp(aimFov, 5, 100)
         out[20] = clamp(headRate, 10, 100)
+        out[21] = dragHead ? 1 : 0
 
         for i in 0..<BolaConfig.payloadSize {
             out[i] = Self.obfuscate(i, out[i])
@@ -216,6 +218,7 @@ public struct BolaConfig: Equatable {
             aimFov: plain[19],
             camFov: plain[18],
             headRate: plain[20],
+            dragHead: plain.count > 21 ? plain[21] != 0 : false,
             boxColor: readLE16(plain, at: 9),
             lineColor: readLE16(plain, at: 11),
             boneColor: readLE16(plain, at: 13))
