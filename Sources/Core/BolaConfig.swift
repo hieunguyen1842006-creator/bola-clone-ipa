@@ -16,7 +16,7 @@ import Foundation
 ///   [9..14] RGB565 little-endian: box (9,10), line (11,12), bone (13,14)
 ///   [15]    silent FOV, clamp 5...100
 ///   [16]    misc1: bit0 fastfire, bit3 fastswap, bit5 emote, bit6 highjump, bit7 fps144
-///   [17]    misc2: bit1 camwide, bit4 backjump, bit5 speedrun
+///   [17]    misc2: bit1 camwide, bit4 backjump, bit5 speedrun, bit6 draghead
 ///   [18]    camera FOV, clamp 50...130
 ///   [19]    aimbot FOV, clamp 5...100
 ///   [20]    headshot ratio, clamp 10...100
@@ -71,6 +71,10 @@ public struct BolaConfig: Equatable {
         public static let camwide  = Misc2(rawValue: 1 << 1)
         public static let backjump = Misc2(rawValue: 1 << 4)
         public static let speedrun = Misc2(rawValue: 1 << 5)
+        /// Drag Head — patch chỉ snap vào bone khi ngón tay đang KÉO tâm ngắm
+        /// (`Event.MouseDrag` ở nửa phải màn hình). Bấm bắn không kéo thì trả về
+        /// aim gốc của game (bắn thân), đúng kiểu aim-assist "legit".
+        public static let draghead = Misc2(rawValue: 1 << 6)
     }
 
     public enum Bone: UInt8, CaseIterable {

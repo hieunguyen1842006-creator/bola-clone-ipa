@@ -131,6 +131,8 @@ public struct ConfigView: View {
                                   value: Binding(get: { model.headRate },
                                                  set: { model.setHeadRate($0) }),
                                   range: 10...100, unit: "%")
+                        toggleRowInline("draghead", "Drag Head",
+                                        "Bấm bắn = bắn thân, kéo tâm = auto khoá đầu")
                     }
 
                     if model.cfgFlags.contains("silent") {
