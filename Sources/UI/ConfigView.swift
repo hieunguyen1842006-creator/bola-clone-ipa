@@ -211,14 +211,6 @@ public struct ConfigView: View {
                                 "Kích hoạt nhảy Booyah & Carnival liên tục")
             }
             card("Hiển thị") {
-                toggleRowInline("camwide", "Góc Nhìn Rộng (Cam Xa)",
-                                "Mở rộng góc quan sát toàn cảnh chiến trường")
-                if model.cfgFlags.contains("camwide") {
-                    sliderRow("Khoảng Cách Cam (FOV)",
-                              value: Binding(get: { model.camFov },
-                                             set: { model.setCamFov($0) }),
-                              range: 50...130, unit: "°")
-                }
                 toggleRowInline("autolaunch", "Tự mở game sau khi inject",
                                 "Đã inject — đang mở game")
             }
