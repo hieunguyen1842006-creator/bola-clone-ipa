@@ -283,6 +283,7 @@ public final class AppModel: ObservableObject {
         if cfg.misc2.contains(.backjump) { flags.insert("backjump") }
         if cfg.misc2.contains(.speedrun) { flags.insert("speedrun") }
         if cfg.dragHead { flags.insert("draghead") }
+        if cfg.wallCheck { flags.insert("wallcheck") }
         // autolaunch là tuỳ chọn phía app, không nằm trong cfg — giữ nguyên.
         if cfgFlags.contains("autolaunch") { flags.insert("autolaunch") }
 
@@ -376,6 +377,7 @@ public final class AppModel: ObservableObject {
             camFov: u8(camFov, 50, 130),
             headRate: u8(headRate, 10, 100),
             dragHead: cfgFlags.contains("draghead"),
+            wallCheck: cfgFlags.contains("wallcheck"),
             boxColor: featureRGB["box"] ?? 0xF925,
             lineColor: featureRGB["line"] ?? 0xF925,
             boneColor: featureRGB["bone"] ?? 0xF925)

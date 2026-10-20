@@ -124,6 +124,8 @@ public struct ConfigView: View {
                 toggleRowInline("silent", "Aim Silent", "Bắn lệch vẫn bay vào bone đã chọn")
 
                 if model.cfgFlags.contains("aim") || model.cfgFlags.contains("silent") {
+                    toggleRowInline("wallcheck", "Check tường",
+                                    "Bỏ qua địch sau tường — chỉ khoá khi thấy rõ")
                     boneSection
 
                     if model.aimBone == .head {

@@ -22,7 +22,7 @@ import Foundation
 ///   [20]    headshot ratio, clamp 10...100
 ///   [21]    drag head: 0/1 — patch chỉ snap vào bone khi ngón tay đang kéo tâm ngắm.
 ///           Patch gốc không đọc byte này (nó đọc 0..20), nên đây là byte trống thật.
-///   [22..23] 0
+///   [22]    check tường: 0/1 — bỏ qua địch không có line-of-sight (raycast trong patch)
 ///
 /// Toàn bộ 24 byte bị XOR với keystream `(0x5A + i*0x37) ^ (i << 4)`, CRC32 tính trên
 /// **payload đã XOR** rồi ghi 4 byte little-endian ở cuối.
@@ -98,6 +98,7 @@ public struct BolaConfig: Equatable {
     public var camFov: UInt8       // 50...130
     public var headRate: UInt8     // 10...100
     public var dragHead: Bool      // byte 21
+    public var wallCheck: Bool     // byte 22
     public var boxColor: UInt16
     public var lineColor: UInt16
     public var boneColor: UInt16
@@ -113,6 +114,7 @@ public struct BolaConfig: Equatable {
                 camFov: UInt8 = 88,
                 headRate: UInt8 = 100,
                 dragHead: Bool = false,
+                wallCheck: Bool = false,
                 boxColor: UInt16 = 0xF925,
                 lineColor: UInt16 = 0xF925,
                 boneColor: UInt16 = 0xF925) {
@@ -127,6 +129,7 @@ public struct BolaConfig: Equatable {
         self.camFov = camFov
         self.headRate = headRate
         self.dragHead = dragHead
+        self.wallCheck = wallCheck
         self.boxColor = boxColor
         self.lineColor = lineColor
         self.boneColor = boneColor
@@ -175,6 +178,7 @@ public struct BolaConfig: Equatable {
         out[19] = clamp(aimFov, 5, 100)
         out[20] = clamp(headRate, 10, 100)
         out[21] = dragHead ? 1 : 0
+        out[22] = wallCheck ? 1 : 0
 
         for i in 0..<BolaConfig.payloadSize {
             out[i] = Self.obfuscate(i, out[i])
@@ -219,6 +223,7 @@ public struct BolaConfig: Equatable {
             camFov: plain[18],
             headRate: plain[20],
             dragHead: plain.count > 21 ? plain[21] != 0 : false,
+            wallCheck: plain.count > 22 ? plain[22] != 0 : false,
             boxColor: readLE16(plain, at: 9),
             lineColor: readLE16(plain, at: 11),
             boneColor: readLE16(plain, at: 13))
