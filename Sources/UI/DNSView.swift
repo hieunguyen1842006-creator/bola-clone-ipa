@@ -1,4 +1,6 @@
 import SwiftUI
+import UniformTypeIdentifiers
+import UIKit
 
 /// DNSView — port từ FFDNSViewController (Fl0rkFF clone): chọn DoH preset,
 /// custom template, install/remove qua NEDNSSettingsManager; fallback profile tay.
@@ -9,6 +11,9 @@ public struct DNSView: View {
     @State private var selectedPreset: DNSManager.Preset = DNSManager.presets[0]
     @State private var customTemplate: String = ""
     @State private var shareURL: URL?
+    @State private var showImporter = false
+    @State private var importFailed = false
+    @State private var copied = false
     @Environment(\.dismiss) private var dismiss
 
     public init(model: AppModel) { self.model = model }
@@ -21,6 +26,7 @@ public struct DNSView: View {
                     presetsCard
                     customCard
                     controlsCard
+                    antibanCard
                     manualCard
                     footer
                 }
@@ -118,6 +124,66 @@ public struct DNSView: View {
         }
         .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
+    }
+
+    /// Card Antiban: blocklist từ antiban-nvh.json → denylist cho resolver có lọc.
+    private var antibanCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Antiban blocklist").font(Theme.bodyFont).foregroundStyle(Theme.text)
+                Spacer()
+                Toggle("", isOn: $dns.antibanOn).labelsHidden()
+            }
+            ForEach(dns.antibanRules) { rule in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(rule.enabled ? rule.name : "\(rule.name) (off)")
+                        .font(Theme.monoFont).foregroundStyle(rule.enabled ? Theme.text : Theme.dim)
+                    Text(rule.note).font(.system(size: 9)).foregroundStyle(Theme.dim)
+                }
+            }
+            let domains = dns.antibanDomains
+            if !domains.isEmpty {
+                Text(domains.joined(separator: "  ·  "))
+                    .font(Theme.monoFont).foregroundStyle(Theme.accent)
+            }
+            Text("Regex trong JSON được biên dịch thành denylist domain gốc. Dán denylist vào NextDNS/AdGuard dashboard rồi trỏ DoH về đó (ô Custom). Telemetry còn bị chặn sẵn khi dùng preset AdGuard (ads block). Phần script rewrite trong JSON là của proxy engine — tầng DNS không chạy JS.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            HStack(spacing: 16) {
+                Button {
+                    UIPasteboard.general.string = Antiban.denylistADG(dns.antibanDomains)
+                    copied = true
+                } label: {
+                    Label(copied ? "Đã copy" : "Copy ||domain^", systemImage: "doc.on.doc")
+                        .font(Theme.bodyFont).foregroundStyle(Theme.accent)
+                }
+                .buttonStyle(.plain)
+                .disabled(domains.isEmpty)
+
+                Button {
+                    importFailed = false
+                    showImporter = true
+                } label: {
+                    Label("Nhập JSON khác", systemImage: "square.and.arrow.down")
+                        .font(Theme.bodyFont).foregroundStyle(Theme.accent)
+                }
+                .buttonStyle(.plain)
+
+                if importFailed {
+                    Text("JSON lỗi").font(Theme.monoFont).foregroundStyle(.red)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .data]) { result in
+            if case .success(let url) = result {
+                let scoped = url.startAccessingSecurityScopedResource()
+                importFailed = !dns.loadAntiban(from: url)
+                if scoped { url.stopAccessingSecurityScopedResource() }
+            }
+        }
     }
 
     /// Fallback khi thiếu entitlement: sinh .mobileconfig, user tự cài.

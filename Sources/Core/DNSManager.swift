@@ -42,7 +42,45 @@ public final class DNSManager: ObservableObject {
     @Published public private(set) var statusMessage: String = "DNS-over-HTTPS profile management."
     @Published public private(set) var lastError: String?
 
-    public init() {}
+    // MARK: - Antiban blocklist (antiban-nvh.json)
+
+    @Published public private(set) var antibanRules: [AntibanRule] = []
+    @Published public var antibanOn: Bool {
+        didSet { UserDefaults.standard.set(antibanOn, forKey: "antiban.on") }
+    }
+
+    /// Denylist domain gốc hiện hành (apex, sorted) — rỗng khi tắt.
+    public var antibanDomains: [String] {
+        guard antibanOn else { return [] }
+        return Set(antibanRules.filter { $0.enabled }.flatMap { Antiban.domains(fromPattern: $0.url) }).sorted()
+    }
+
+    /// Nhập file antiban JSON khác (fileImporter). true = parse được.
+    @discardableResult
+    public func loadAntiban(from url: URL) -> Bool {
+        do {
+            let rules = Antiban.load(try Data(contentsOf: url))
+            guard !rules.isEmpty else { return false }
+            antibanRules = rules
+            if let d = try? JSONEncoder().encode(rules) {
+                UserDefaults.standard.set(d, forKey: "antiban.rules")
+            }
+            Logger.shared.log("[DNS] antiban loaded: \(rules.count) rule(s)")
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    public init() {
+        if let d = UserDefaults.standard.data(forKey: "antiban.rules"),
+           let rules = try? JSONDecoder().decode([AntibanRule].self, from: d), !rules.isEmpty {
+            antibanRules = rules
+        } else {
+            antibanRules = Antiban.load(Data(Antiban.defaultJSON.utf8))
+        }
+        antibanOn = UserDefaults.standard.bool(forKey: "antiban.on")
+    }
 
     // MARK: - Load
 

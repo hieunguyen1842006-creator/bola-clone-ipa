@@ -17,6 +17,7 @@ let package = Package(
                 "Core/BolaConfig.swift",
                 "Core/PatchTrailer.swift",
                 "Core/Models.swift",
+                "Core/Antiban.swift",
                 "Core/Lease.swift",
                 "Core/LicenseClient.swift",
                 "Core/ContainerAccess.swift",
