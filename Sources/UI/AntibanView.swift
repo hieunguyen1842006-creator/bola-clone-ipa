@@ -2,9 +2,10 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
-/// DNSView — port từ FFDNSViewController (Fl0rkFF clone): chọn DoH preset,
-/// custom template, install/remove qua NEDNSSettingsManager; fallback profile tay.
-public struct DNSView: View {
+/// AntibanView — tab Anti-ban: toggle dọn dấu vết (Antiban engine) + DNS shield
+/// (DoH blocklist port từ FFDNSViewController, Fl0rkFF clone).
+/// Bật Anti-ban = cài DNS blocklist luôn; tắt = gỡ DNS profile.
+public struct AntibanView: View {
 
     @ObservedObject public var model: AppModel
     @StateObject private var dns = DNSManager()
@@ -22,6 +23,7 @@ public struct DNSView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
+                    antibanToggleCard
                     statusCard
                     presetsCard
                     customCard
@@ -34,7 +36,7 @@ public struct DNSView: View {
                 .padding(.bottom, 24)
             }
             .background(BolaBackground())
-            .navigationTitle("Secure DNS")
+            .navigationTitle("Anti-ban")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -43,6 +45,31 @@ public struct DNSView: View {
             }
             .task { await dns.refresh() }
         }
+    }
+
+    /// Toggle Anti-ban chính — bật/tắt dọn dấu vết + DNS shield cùng lúc.
+    private var antibanToggleCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("🛡️ Anti-ban").font(Theme.headFont).foregroundStyle(Theme.text)
+                Spacer()
+                Toggle("", isOn: Binding(get: { model.antiban },
+                                         set: { model.setAntiban($0) }))
+                    .labelsHidden()
+                    .tint(Theme.accent)
+            }
+            Text(model.antiban
+                 ? "Đã bật — tự dọn dấu vết + DNS shield chặn telemetry/anti-cheat (tắt sẽ tự gỡ)"
+                 : "Bật để tự dọn dấu vết và cài DNS blocklist chặn domain anti-cheat")
+                .font(.system(size: 11)).foregroundStyle(Theme.dim)
+            if !model.gate.isAuthorized {
+                Text("🔑 Activate your key before enabling Anti-ban!")
+                    .font(.system(size: 11)).foregroundStyle(Theme.warn)
+            }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
     }
 
     private var statusCard: some View {
@@ -150,7 +177,7 @@ public struct DNSView: View {
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
             HStack(spacing: 16) {
                 Button {
-                    UIPasteboard.general.string = Antiban.denylistADG(dns.antibanDomains)
+                    UIPasteboard.general.string = DNSBlocklist.denylistADG(dns.antibanDomains)
                     copied = true
                 } label: {
                     Label(copied ? "Đã copy" : "Copy ||domain^", systemImage: "doc.on.doc")
