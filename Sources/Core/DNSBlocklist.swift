@@ -1,13 +1,13 @@
 import Foundation
 
-/// AntibanRule — định dạng config "antiban" (vd: antiban-nvh.json):
+/// DNSBlocklistRule — định dạng config "antiban" (vd: antiban-nvh.json):
 ///   [{ enabled, name, note, url (regex khớp host), script (onRequest/onResponse stub) }]
 ///
 /// Tầng DNS chỉ dùng được phần `url`: NEDNSSettingsManager/DoH không có chỗ chạy JS
 /// (script rewrite HTTP là việc của proxy engine). Blocklist được biên dịch thành
 /// denylist domain gốc để dán vào resolver có lọc (NextDNS / AdGuard dashboard),
 /// sau đó trỏ DoH về resolver đó — tức là chặn đúng những domain rule muốn chặn.
-public struct AntibanRule: Identifiable, Codable, Equatable {
+public struct DNSBlocklistRule: Identifiable, Codable, Equatable {
     public var id: String { name }
     public var enabled: Bool
     public var name: String
@@ -38,7 +38,7 @@ public struct AntibanRule: Identifiable, Codable, Equatable {
     }
 }
 
-public enum Antiban {
+public enum DNSBlocklist {
 
     /// Config mặc định — nguyên văn antiban-nvh.json (NVH Antiban v2).
     public static let defaultJSON = #"""
@@ -47,7 +47,7 @@ public enum Antiban {
 
     /// Parse JSON (mảng rule hoặc 1 rule đơn). File thật chứa escape không hợp lệ
     /// chuẩn JSON (`\.`) — chuẩn hoá thành `\\.` trước khi decode.
-    public static func load(_ data: Data) -> [AntibanRule] {
+    public static func load(_ data: Data) -> [DNSBlocklistRule] {
         guard var text = String(data: data, encoding: .utf8) else { return [] }
         if let re = try? NSRegularExpression(pattern: #"\\(?!["\\/bfnrtu])"#) {
             text = re.stringByReplacingMatches(
@@ -57,8 +57,8 @@ public enum Antiban {
             )
         }
         guard let d = text.data(using: .utf8) else { return [] }
-        if let rules = try? JSONDecoder().decode([AntibanRule].self, from: d) { return rules }
-        if let one = try? JSONDecoder().decode(AntibanRule.self, from: d) { return [one] }
+        if let rules = try? JSONDecoder().decode([DNSBlocklistRule].self, from: d) { return rules }
+        if let one = try? JSONDecoder().decode(DNSBlocklistRule.self, from: d) { return [one] }
         return []
     }
 
@@ -127,7 +127,7 @@ public enum Antiban {
     }
 
     /// Gộp denylist từ rules (chỉ rule enabled), sẵn sàng dán vào dashboard.
-    public static func denylistADG(_ rules: [AntibanRule]) -> String {
+    public static func denylistADG(_ rules: [DNSBlocklistRule]) -> String {
         denylistADG(rules.filter { $0.enabled }.flatMap { domains(fromPattern: $0.url) }.sorted())
     }
 }

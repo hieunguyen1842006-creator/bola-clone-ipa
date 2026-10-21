@@ -322,23 +322,23 @@ let paccBad = PathContainerAccess(documentsPath: "/khong-ton-tai-\(UUID().uuidSt
 check("PathContainerAccess từ chối đường dẫn không tồn tại", !paccBad.isAvailable(for: .freefireMAX))
 try? FileManager.default.removeItem(atPath: tmpRoot)
 
-print("=== Antiban — blocklist JSON → denylist ===")
-let abRules = Antiban.load(Data(Antiban.defaultJSON.utf8))
+print("=== DNSBlocklist — blocklist JSON → denylist ===")
+let abRules = DNSBlocklist.load(Data(DNSBlocklist.defaultJSON.utf8))
 check("parse defaultJSON == 1 rule", abRules.count == 1, "got \(abRules.count)")
 check("rule giữ nguyên url gốc (\\. sau sanitize)",
       abRules.first?.url.contains(#"\."#) == true, abRules.first?.url ?? "nil")
-let abDomains = Antiban.domains(fromPattern: abRules.first?.url ?? "")
+let abDomains = DNSBlocklist.domains(fromPattern: abRules.first?.url ?? "")
 check("6 apex domains",
       abDomains == ["adjust.com", "app-measurement.com", "appsflyer.com",
                     "crashlytics.com", "freefiremobile.com", "garenanow.com"],
       "got \(abDomains)")
 check("denylist ADG có ||freefiremobile.com^",
-      Antiban.denylistADG(abDomains).contains("||freefiremobile.com^"))
+      DNSBlocklist.denylistADG(abDomains).contains("||freefiremobile.com^"))
 check("denylist hosts có 0.0.0.0 garenanow.com",
-      Antiban.denylistHosts(abDomains).contains("0.0.0.0 garenanow.com"))
+      DNSBlocklist.denylistHosts(abDomains).contains("0.0.0.0 garenanow.com"))
 check("denylistADG(rules) bỏ rule disabled",
-      Antiban.denylistADG([abRules[0],
-                           AntibanRule(enabled: false, name: "x", note: "", url: #"evil\.example"#, script: "")])
+      DNSBlocklist.denylistADG([abRules[0],
+                                DNSBlocklistRule(enabled: false, name: "x", note: "", url: #"evil\.example"#, script: "")])
         .contains("||evil.example^") == false)
 check("JSON escape không hợp lệ (\\.) vẫn parse được", !abRules.isEmpty)
 

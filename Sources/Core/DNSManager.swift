@@ -44,7 +44,7 @@ public final class DNSManager: ObservableObject {
 
     // MARK: - Antiban blocklist (antiban-nvh.json)
 
-    @Published public private(set) var antibanRules: [AntibanRule] = []
+    @Published public private(set) var antibanRules: [DNSBlocklistRule] = []
     @Published public var antibanOn: Bool {
         didSet { UserDefaults.standard.set(antibanOn, forKey: "antiban.on") }
     }
@@ -52,14 +52,14 @@ public final class DNSManager: ObservableObject {
     /// Denylist domain gốc hiện hành (apex, sorted) — rỗng khi tắt.
     public var antibanDomains: [String] {
         guard antibanOn else { return [] }
-        return Set(antibanRules.filter { $0.enabled }.flatMap { Antiban.domains(fromPattern: $0.url) }).sorted()
+        return Set(antibanRules.filter { $0.enabled }.flatMap { DNSBlocklist.domains(fromPattern: $0.url) }).sorted()
     }
 
     /// Nhập file antiban JSON khác (fileImporter). true = parse được.
     @discardableResult
     public func loadAntiban(from url: URL) -> Bool {
         do {
-            let rules = Antiban.load(try Data(contentsOf: url))
+            let rules = DNSBlocklist.load(try Data(contentsOf: url))
             guard !rules.isEmpty else { return false }
             antibanRules = rules
             if let d = try? JSONEncoder().encode(rules) {
@@ -74,10 +74,10 @@ public final class DNSManager: ObservableObject {
 
     public init() {
         if let d = UserDefaults.standard.data(forKey: "antiban.rules"),
-           let rules = try? JSONDecoder().decode([AntibanRule].self, from: d), !rules.isEmpty {
+           let rules = try? JSONDecoder().decode([DNSBlocklistRule].self, from: d), !rules.isEmpty {
             antibanRules = rules
         } else {
-            antibanRules = Antiban.load(Data(Antiban.defaultJSON.utf8))
+            antibanRules = DNSBlocklist.load(Data(DNSBlocklist.defaultJSON.utf8))
         }
         antibanOn = UserDefaults.standard.bool(forKey: "antiban.on")
     }
@@ -154,6 +154,7 @@ public final class DNSManager: ObservableObject {
             currentTemplate = template
             statusMessage = "DoH installed: \(template)"
             lastError = nil
+            UserDefaults.standard.set(template, forKey: "antiban.doh.template")
             Logger.shared.log("[DNS] installed DoH template \(template)")
         } catch {
             lastError = error.localizedDescription
@@ -178,6 +179,17 @@ public final class DNSManager: ObservableObject {
         } catch {
             lastError = error.localizedDescription
             statusMessage = "Gỡ thất bại: \(error.localizedDescription)"
+        }
+    }
+
+    /// DNS làm antiban: bật = cài DoH chặn telemetry (AdGuard ads-block, hoặc
+    /// custom template đã lưu từ lần trước); tắt = gỡ profile, về DNS hệ thống.
+    public func applyAntiban(_ on: Bool) async {
+        if on {
+            let saved = UserDefaults.standard.string(forKey: "antiban.doh.template")
+            await install(preset: Self.presets[3], customTemplate: saved)
+        } else {
+            await remove()
         }
     }
 

@@ -95,6 +95,7 @@ public final class AppModel: ObservableObject {
     public private(set) var installer: Installer
     public let gate: LicenseGate
     public let antibanEngine = Antiban()
+    public let dns = DNSManager()
 
     // MARK: khởi tạo
 
@@ -940,7 +941,10 @@ public final class AppModel: ObservableObject {
         if !gate.isAuthorized && on {
             antiban = false
             toast("🔑 Nhập key xong rồi mới bật được Anti-ban nhé!")
+            return
         }
+        // DNS làm antiban: bật = cài DoH blocklist, tắt = gỡ về DNS hệ thống
+        Task { await dns.applyAntiban(on) }
     }
 
     // MARK: helpers

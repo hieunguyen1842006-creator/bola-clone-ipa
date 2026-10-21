@@ -254,27 +254,39 @@ public struct HomeView: View {
     // MARK: anti-ban
 
     private var antibanCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("🛡️ Anti-ban").font(Theme.headFont).foregroundStyle(Theme.text)
-                Spacer()
-                Toggle("", isOn: Binding(get: { model.antiban },
-                                         set: { model.setAntiban($0) }))
-                    .labelsHidden()
-                    .tint(Theme.accent)
+        NavigationLink {
+            AntibanView(model: model)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("🛡️ Anti-ban").font(Theme.headFont).foregroundStyle(Theme.text)
+                    Spacer()
+                    Toggle("", isOn: Binding(get: { model.antiban },
+                                             set: { model.setAntiban($0) }))
+                        .labelsHidden()
+                        .tint(Theme.accent)
+                }
+                Text(model.antiban
+                     ? "🛡️ Đã bật Anti-ban — tự dọn dấu vết + DNS shield (tắt sẽ tự gỡ patch)"
+                     : "Mặc định tắt mỗi lần mở app — bật lại khi cần")
+                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
+                if !gate.isAuthorized {
+                    Text("🔑 Activate your key before enabling Anti-ban!")
+                        .font(.system(size: 11)).foregroundStyle(Theme.warn)
+                }
+                HStack(spacing: 6) {
+                    Image(systemName: "network.badge.shield.half.filled")
+                        .font(.system(size: 10))
+                    Text("DNS shield — preset, blocklist & chi tiết")
+                        .font(.system(size: 10))
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
+                }
+                .foregroundStyle(Theme.dim)
             }
-            Text(model.antiban
-                 ? "🛡️ Đã bật Anti-ban — tự dọn dấu vết liên tục (tắt sẽ tự gỡ patch)"
-                 : "Mặc định tắt mỗi lần mở app — bật lại khi cần")
-                .font(.system(size: 11)).foregroundStyle(Theme.dim)
-            if !gate.isAuthorized {
-                Text("🔑 Activate your key before enabling Anti-ban!")
-                    .font(.system(size: 11)).foregroundStyle(Theme.warn)
-            }
+            .padding(14)
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
+        .buttonStyle(CardButtonStyle())
     }
 
     // MARK: reset guest
