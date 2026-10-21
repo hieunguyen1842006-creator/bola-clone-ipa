@@ -15,9 +15,18 @@ public struct AntibanView: View {
     @State private var showImporter = false
     @State private var importFailed = false
     @State private var copied = false
+    @State private var banner: (text: String, ok: Bool)? = nil
     @Environment(\.dismiss) private var dismiss
 
-    public init(model: AppModel) { self.model = model }
+    public init(model: AppModel) {
+        self.model = model
+        // Nhớ lựa chọn lần trước — không reset khi quay lại màn.
+        if let name = UserDefaults.standard.string(forKey: "dns.selectedPreset"),
+           let p = DNSManager.presets.first(where: { $0.name == name }) {
+            _selectedPreset = State(initialValue: p)
+        }
+        _customTemplate = State(initialValue: UserDefaults.standard.string(forKey: "dns.customTemplate") ?? "")
+    }
 
     public var body: some View {
         NavigationStack {
@@ -44,6 +53,29 @@ public struct AntibanView: View {
                 }
             }
             .task { await dns.refresh() }
+            .overlay(alignment: .top) {
+                if let b = banner {
+                    Text(b.text)
+                        .font(Theme.monoFont)
+                        .foregroundStyle(b.ok ? Color.green : Color.orange)
+                        .multilineTextAlignment(.leading)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.88)))
+                        .padding(.horizontal, 16).padding(.top, 4)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onTapGesture { withAnimation { banner = nil } }
+                }
+            }
+        }
+    }
+
+    /// Banner kết quả cài/gỡ — tự ẩn sau 4s (bấm để tắt sớm).
+    private func showBanner(_ r: (ok: Bool, message: String)?) {
+        guard let r else { return }
+        withAnimation { banner = (r.message, r.ok) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            withAnimation { banner = nil }
         }
     }
 
@@ -74,10 +106,16 @@ public struct AntibanView: View {
 
     private var statusCard: some View {
         VStack(alignment: .leading, spacing: 6) {
+            let isPlain = dns.currentTemplate == "(plain DNS settings)"
             HStack {
-                Image(systemName: dns.enabled ? "checkmark.shield.fill" : "shield.slash")
-                    .foregroundStyle(dns.enabled ? Color.green : Theme.dim)
-                Text(dns.enabled ? "Đang bật — \(dns.currentTemplate)" : "Chưa cài DNS profile")
+                Image(systemName: dns.enabled
+                      ? (isPlain ? "exclamationmark.shield.fill" : "checkmark.shield.fill")
+                      : "shield.slash")
+                    .foregroundStyle(dns.enabled ? (isPlain ? Color.orange : Color.green) : Theme.dim)
+                Text(dns.enabled
+                     ? (isPlain ? "Đang bật — DNS THƯỜNG (không DoH → chưa chặn gì)"
+                                : "Đang bật — DoH: \(dns.currentTemplate)")
+                     : "Chưa cài DNS profile")
                     .font(Theme.bodyFont).foregroundStyle(Theme.text)
                 Spacer()
                 if dns.busy { ProgressView() }
@@ -96,6 +134,7 @@ public struct AntibanView: View {
             ForEach(DNSManager.presets) { preset in
                 Button {
                     selectedPreset = preset
+                    UserDefaults.standard.set(preset.name, forKey: "dns.selectedPreset")
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
@@ -132,6 +171,10 @@ public struct AntibanView: View {
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border, lineWidth: 1)))
             Text("Bỏ trống → dùng template của preset đang chọn.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            if customTemplate.contains("||") {
+                Text("⚠️ Đây là DENYLIST (||domain^) — không phải URL DoH. Dán nó vào dashboard NextDNS/AdGuard (mục Denylist), rồi dán URL DoH của profile (https://dns.nextdns.io/ID) vào ô này.")
+                    .font(.system(size: 10)).foregroundStyle(Theme.warn)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
@@ -142,11 +185,19 @@ public struct AntibanView: View {
     private var controlsCard: some View {
         VStack(spacing: 0) {
             rowButton("Cài / cập nhật DoH", value: "NEDNSSettingsManager") {
-                Task { await dns.install(preset: selectedPreset, customTemplate: customTemplate) }
+                UserDefaults.standard.set(selectedPreset.name, forKey: "dns.selectedPreset")
+                UserDefaults.standard.set(customTemplate, forKey: "dns.customTemplate")
+                Task {
+                    await dns.install(preset: selectedPreset, customTemplate: customTemplate)
+                    showBanner(dns.lastResult)
+                }
             }
             Rectangle().fill(Theme.border).frame(height: 1).padding(.leading, 14)
             rowButton("Gỡ DNS profile", value: "Về DNS hệ thống") {
-                Task { await dns.remove() }
+                Task {
+                    await dns.remove()
+                    showBanner(dns.lastResult)
+                }
             }
         }
         .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
@@ -220,6 +271,13 @@ public struct AntibanView: View {
                 .font(Theme.bodyFont).foregroundStyle(Theme.text)
             Text("Sinh file .mobileconfig → mở trong Safari/Files → Settings cài profile.")
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
+            Button {
+                shareURL = dns.makeManualProfile(preset: selectedPreset, customTemplate: customTemplate)
+            } label: {
+                Label("Tạo file profile (.mobileconfig)", systemImage: "doc.badge.plus")
+                    .font(Theme.bodyFont).foregroundStyle(Theme.accent)
+            }
+            .buttonStyle(.plain)
             if let url = shareURL {
                 ShareLink(item: url) {
                     Label("Chia sẻ profile .mobileconfig", systemImage: "square.and.arrow.up")

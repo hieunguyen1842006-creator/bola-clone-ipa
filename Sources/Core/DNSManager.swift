@@ -36,6 +36,8 @@ public final class DNSManager: ObservableObject {
 
     // MARK: - Published state (mirrors FFDNSSnapshot)
 
+    /// Kết quả lần thao tác gần nhất (install/remove) — cho UI hiện banner.
+    @Published public private(set) var lastResult: (ok: Bool, message: String)? = nil
     @Published public private(set) var enabled: Bool = false
     @Published public private(set) var busy: Bool = false
     @Published public private(set) var currentTemplate: String = ""
@@ -88,6 +90,7 @@ public final class DNSManager: ObservableObject {
     public func refresh() async {
         busy = true
         defer { busy = false }
+        lastResult = nil
         let manager = NEDNSSettingsManager.shared()
         do {
             try await manager.loadFromPreferences()
@@ -127,6 +130,8 @@ public final class DNSManager: ObservableObject {
         if template.isEmpty { template = preset.template }
         if !template.hasPrefix("https://") {
             statusMessage = "Template phải là URL https://…"
+            lastResult = (ok: false,
+                          message: "❌ Ô Custom không phải URL DoH. Denylist ||domain^ dán vào dashboard NextDNS/AdGuard — không dán vào ô này.")
             return
         }
         busy = true
@@ -138,27 +143,35 @@ public final class DNSManager: ObservableObject {
         // NEDoHResolverSettings qua runtime lookup (NSClassFromString) — một số
         // SDK/SDK-combo không expose symbol cho Swift; KVC set template vẫn chạy.
         var settings: NEDNSSettings? = nil
+        var usedFallback = false
         if let dohClass = NSClassFromString("NEDoHResolverSettings") as? NEDNSSettings.Type {
             let doh = dohClass.init(servers: [])
             doh.setValue([template], forKey: "doHServerTemplates")
             settings = doh
+            Logger.shared.log("[DNS] NEDoHResolverSettings OK → \(template)")
         } else {
-            // Fallback: plain DNS (8.8.8.8/1.1.1.1) — vẫn qua NE profile.
+            // Fallback: plain DNS — VẪN cài được nhưng KHÔNG có DoH/blocklist.
             settings = NEDNSSettings(servers: ["8.8.8.8", "1.1.1.1"])
+            usedFallback = true
+            Logger.shared.log("[DNS] NEDoHResolverSettings không có trên máy này → fallback DNS thường")
         }
         manager.dnsSettings = settings
 
         do {
             try await manager.saveToPreferences()
             enabled = true
-            currentTemplate = template
-            statusMessage = "DoH installed: \(template)"
+            currentTemplate = usedFallback ? "(plain DNS settings)" : template
+            statusMessage = usedFallback
+                ? "⚠️ Máy này không tạo được DoH qua NE — đang là DNS THƯỜNG (không blocklist). Dùng 'Tạo file profile (.mobileconfig)' bên dưới để có DoH chắc chắn."
+                : "✅ Đã cài DoH: \(template)"
             lastError = nil
+            lastResult = (ok: !usedFallback, message: statusMessage)
             UserDefaults.standard.set(template, forKey: "antiban.doh.template")
-            Logger.shared.log("[DNS] installed DoH template \(template)")
+            Logger.shared.log("[DNS] save OK (\(usedFallback ? "plain" : "DoH"))")
         } catch {
             lastError = error.localizedDescription
-            statusMessage = "Lưu profile thất bại: \(error.localizedDescription) — dùng profile tay."
+            statusMessage = "❌ Lưu profile thất bại: \(error.localizedDescription) — dùng 'Tạo file profile (.mobileconfig)' bên dưới."
+            lastResult = (ok: false, message: statusMessage)
             Logger.shared.log("[DNS] NE save failed: \(error.localizedDescription)")
         }
     }
@@ -173,12 +186,14 @@ public final class DNSManager: ObservableObject {
             try await manager.removeFromPreferences()
             enabled = false
             currentTemplate = ""
-            statusMessage = "DNS profile removed."
+            statusMessage = "✅ Đã gỡ DNS profile — về DNS hệ thống."
             lastError = nil
+            lastResult = (ok: true, message: statusMessage)
             Logger.shared.log("[DNS] profile removed")
         } catch {
             lastError = error.localizedDescription
-            statusMessage = "Gỡ thất bại: \(error.localizedDescription)"
+            statusMessage = "❌ Gỡ thất bại: \(error.localizedDescription)"
+            lastResult = (ok: false, message: statusMessage)
         }
     }
 
