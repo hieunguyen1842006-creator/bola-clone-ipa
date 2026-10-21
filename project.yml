@@ -4,6 +4,8 @@
 name: BolaClone
 options:
   bundleIdPrefix: com.clone.bola
+  # CI (macos-14) chạy Xcode 15.4 — không đọc được project format 77 của xcodegen mới
+  projectFormat: xcode15_3
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
