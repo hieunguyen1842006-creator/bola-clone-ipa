@@ -22,6 +22,9 @@ jobs:
           xcodebuild -version
           swift --version
 
+      - name: Generate Xcode project (xcodegen — gồm cả file Swift mới + entitlements)
+        run: brew install xcodegen && xcodegen generate
+
       - name: Self-test (core logic)
         run: swift run -c debug BolaSelfTest
 

@@ -16,5 +16,11 @@
 	<false/>
 	<key>get-task-allow</key>
 	<true/>
+	<!-- Secure DNS (NEDNSSettingsManager / DoH) — cần cho FFDNS-style DNS layer.
+	     Paid provisioning kích hoạt path NE; free cert thì app fallback profile .mobileconfig. -->
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>dns-settings</string>
+	</array>
 </dict>
 </plist>

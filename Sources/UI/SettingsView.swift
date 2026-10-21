@@ -70,6 +70,22 @@ public struct SettingsView: View {
             row("Làm mới thiết bị", value: model.game.name) {
                 model.refreshDetected()
             }
+            divider
+            NavigationLink {
+                DNSView(model: model)
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Secure DNS (DoH)").font(Theme.bodyFont).foregroundStyle(Theme.text)
+                        Text("Install or update secure DNS settings.").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Theme.border)
+                }
+                .padding(14)
+            }
+            .buttonStyle(RowButtonStyle())
         }
         .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1)))
