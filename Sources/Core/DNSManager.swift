@@ -53,16 +53,19 @@ public final class DNSManager: ObservableObject {
         let manager = NEDNSSettingsManager.shared()
         do {
             try await manager.loadFromPreferences()
-            if let doh = manager.dnsSettings as? NEDoHResolverSettings,
-               let first = doh.doHServerTemplates.first {
+            if let settings = manager.dnsSettings {
                 enabled = true
-                currentTemplate = first
-                statusMessage = "DoH active: \(first)"
-                lastError = nil
-            } else if manager.dnsSettings != nil {
-                enabled = true
-                currentTemplate = "(legacy plain DNS settings)"
-                statusMessage = "Legacy DNS settings present."
+                // DoH template (nếu có) — đọc qua KVC để khỏi phụ thuộc
+                // compile-time symbol NEDoHResolverSettings.
+                if settings.responds(to: Selector(("doHServerTemplates"))),
+                   let templates = settings.value(forKey: "doHServerTemplates") as? [String],
+                   let first = templates.first {
+                    currentTemplate = first
+                    statusMessage = "DoH active: \(first)"
+                } else {
+                    currentTemplate = "(plain DNS settings)"
+                    statusMessage = "DNS settings present (plain servers)."
+                }
                 lastError = nil
             } else {
                 enabled = false
@@ -94,9 +97,18 @@ public final class DNSManager: ObservableObject {
         let manager = NEDNSSettingsManager.shared()
         do { try await manager.loadFromPreferences() } catch { }
 
-        let doh = NEDoHResolverSettings(servers: [])
-        doh.doHServerTemplates = [template]
-        manager.dnsSettings = doh
+        // NEDoHResolverSettings qua runtime lookup (NSClassFromString) — một số
+        // SDK/SDK-combo không expose symbol cho Swift; KVC set template vẫn chạy.
+        var settings: NEDNSSettings? = nil
+        if let dohClass = NSClassFromString("NEDoHResolverSettings") as? NEDNSSettings.Type {
+            let doh = dohClass.init(servers: [])
+            doh.setValue([template], forKey: "doHServerTemplates")
+            settings = doh
+        } else {
+            // Fallback: plain DNS (8.8.8.8/1.1.1.1) — vẫn qua NE profile.
+            settings = NEDNSSettings(servers: ["8.8.8.8", "1.1.1.1"])
+        }
+        manager.dnsSettings = settings
 
         do {
             try await manager.saveToPreferences()
