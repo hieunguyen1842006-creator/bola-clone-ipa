@@ -140,39 +140,50 @@ public final class DNSManager: ObservableObject {
         let manager = NEDNSSettingsManager.shared()
         do { try await manager.loadFromPreferences() } catch { }
 
-        // NEDoHResolverSettings qua runtime lookup (NSClassFromString) — một số
-        // SDK/SDK-combo không expose symbol cho Swift; KVC set template vẫn chạy.
+        // NEDoHResolverSettings qua runtime lookup (NSClassFromString) — iPadOS 26
+        // không expose class này lúc runtime → không thể tạo DoH qua NE từ app.
         var settings: NEDNSSettings? = nil
-        var usedFallback = false
         if let dohClass = NSClassFromString("NEDoHResolverSettings") as? NEDNSSettings.Type {
             let doh = dohClass.init(servers: [])
             doh.setValue([template], forKey: "doHServerTemplates")
             settings = doh
             Logger.shared.log("[DNS] NEDoHResolverSettings OK → \(template)")
         } else {
-            // Fallback: plain DNS — VẪN cài được nhưng KHÔNG có DoH/blocklist.
-            settings = NEDNSSettings(servers: ["8.8.8.8", "1.1.1.1"])
-            usedFallback = true
-            Logger.shared.log("[DNS] NEDoHResolverSettings không có trên máy này → fallback DNS thường")
+            // Cài plain DNS là vô ích (không blocklist) và NE còn báo
+            // "configuration is unchanged" nếu profile thường đã có sẵn.
+            // Dẫn user sang profile tay .mobileconfig — đường đó luôn chạy được.
+            Logger.shared.log("[DNS] NEDoHResolverSettings không có trên máy này → hướng profile tay")
+            statusMessage = "⚠️ iPadOS 26 không cho app tạo DoH qua NE. Dùng nút 'Tạo file profile (.mobileconfig)' bên dưới (dùng đúng URL anh nhập) — hoặc chọn profile NextDNS trong Settings → DNS."
+            lastResult = (ok: false, message: statusMessage)
+            return
         }
         manager.dnsSettings = settings
 
         do {
             try await manager.saveToPreferences()
             enabled = true
-            currentTemplate = usedFallback ? "(plain DNS settings)" : template
-            statusMessage = usedFallback
-                ? "⚠️ Máy này không tạo được DoH qua NE — đang là DNS THƯỜNG (không blocklist). Dùng 'Tạo file profile (.mobileconfig)' bên dưới để có DoH chắc chắn."
-                : "✅ Đã cài DoH: \(template)"
+            currentTemplate = template
+            statusMessage = "✅ Đã cài DoH: \(template)"
             lastError = nil
-            lastResult = (ok: !usedFallback, message: statusMessage)
+            lastResult = (ok: true, message: statusMessage)
             UserDefaults.standard.set(template, forKey: "antiban.doh.template")
-            Logger.shared.log("[DNS] save OK (\(usedFallback ? "plain" : "DoH"))")
+            Logger.shared.log("[DNS] save OK (DoH)")
         } catch {
-            lastError = error.localizedDescription
-            statusMessage = "❌ Lưu profile thất bại: \(error.localizedDescription) — dùng 'Tạo file profile (.mobileconfig)' bên dưới."
-            lastResult = (ok: false, message: statusMessage)
-            Logger.shared.log("[DNS] NE save failed: \(error.localizedDescription)")
+            let msg = error.localizedDescription
+            if msg.localizedCaseInsensitiveContains("unchanged") {
+                // NE coi cấu hình trùng khớp là lỗi — thực chất DoH đã chạy sẵn.
+                enabled = true
+                currentTemplate = template
+                statusMessage = "✅ DoH đã cài sẵn (configuration unchanged)."
+                lastError = nil
+                lastResult = (ok: true, message: statusMessage)
+                Logger.shared.log("[DNS] save unchanged → coi như đã cài")
+            } else {
+                lastError = msg
+                statusMessage = "❌ Lưu profile thất bại: \(msg) — dùng 'Tạo file profile (.mobileconfig)' bên dưới."
+                lastResult = (ok: false, message: statusMessage)
+                Logger.shared.log("[DNS] NE save failed: \(msg)")
+            }
         }
     }
 
