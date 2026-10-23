@@ -27,27 +27,13 @@ targets:
     sources:
       - path: Sources
       - path: Vendor3105
+      # CHÚ Ý: vault/bytes/wav/xcassets nằm trong scan Resources luôn — xcodegen
+      # tự xếp file lạ vào Resources phase. Trước đây ta exclude vault khỏi
+      # sources rồi liệt kê lại ở `resources:` — xcodegen 2.46 bị dedupe làm
+      # RƠI vault khỏi .app -> inject báo "Patch chưa sẵn sàng".
       - path: Resources
         excludes:
           - "Info.plist"
-          - "NVHMenu.bytes"
-          - "NVHMenu.vault"
-          - "NeutralPatch.bytes"
-          - "NeutralPatch.vault"
-          - "LQHud.bytes"
-          - "LQHud.vault"
-          - "LQUnlock.bytes"
-          - "LQUnlock.vault"
-          - "NVHLQ.bytes"
-          - "NVHLQ.vault"
-    resources:
-      - path: Resources/Assets.xcassets
-      - path: Resources/nvh_silence.wav
-      - path: Resources/NVHMenu.vault
-      - path: Resources/NeutralPatch.vault
-      - path: Resources/LQHud.vault
-      - path: Resources/LQUnlock.vault
-      - path: Resources/NVHLQ.vault
     info:
       path: Resources/Info.plist
       properties:

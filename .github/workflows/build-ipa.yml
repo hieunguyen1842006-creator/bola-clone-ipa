@@ -41,6 +41,22 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             build
 
+      - name: Verify bundle (vault bắt buộc phải nằm trong .app)
+        run: |
+          APP=build/Build/Products/Release-iphoneos/NVHMOD.app
+          MISSING=0
+          for f in NVHMenu.vault NeutralPatch.vault LQHud.vault LQUnlock.vault NVHLQ.vault; do
+            if [ ! -f "$APP/$f" ]; then echo "THIEU: $f"; MISSING=1; fi
+          done
+          if [ "$MISSING" = "1" ]; then
+            echo "--- noi dung .app ---"; ls -la "$APP"
+            echo "--- Resources phase trong pbxproj ---"
+            grep -B2 -A40 "PBXResourcesBuildPhase" BolaClone.xcodeproj/project.pbxproj || true
+            exit 1
+          fi
+          echo "OK: du 5 vault trong .app"
+          ls -la "$APP"
+
       - name: Package IPA
         run: |
           rm -rf out NVH-MOD-unsigned.ipa
