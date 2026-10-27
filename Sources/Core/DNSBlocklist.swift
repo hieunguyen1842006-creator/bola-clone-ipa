@@ -40,9 +40,12 @@ public struct DNSBlocklistRule: Identifiable, Codable, Equatable {
 
 public enum DNSBlocklist {
 
-    /// Config mặc định — nguyên văn antiban-nvh.json (NVH Antiban v2).
+    /// Config mặc định — NVH Antiban v3: CHỈ chặn telemetry.
+    /// Nhớ kỹ: client/dl/cdn (*.freefiremobile.com, *.garenanow.com) là API + CDN
+    /// tải tài nguyên của game — chặn là game không tải được tài nguyên.
+    /// ProxyPin cùng ý tưởng: onRequest trả null = ngắt request khớp regex.
     public static let defaultJSON = #"""
-    [{"enabled":true,"name":"NVH Antiban","note":"NVH antiban v2 - block FF client/CDN/rtc + telemetry (pure block, no pass-through)","url":"client\.[a-z0-9]+\.freefiremobile\.com|ff\.[a-z0-9]+\.grtc\.garenanow\.com|dl\.[a-z0-9]+\.freefiremobile\.com|(cdn|dl)(\.[a-z0-9]+)?\.garenanow\.com|gin\.freefiremobile\.com|common\.freefiremobile\.com|app-measurement\.com|firebase-settings\.crashlytics\.com|appsflyer\.com|adjust\.com","script":"function onRequest(a,b){return null;}function onResponse(a,b,c){return c;}"}]
+    [{"enabled":true,"name":"NVH Antiban","note":"NVH antiban v3 - telemetry only (app-measurement/crashlytics/appsflyer/adjust). Khong block dl/cdn/client - do la CDN tai nguyen cua game","url":"app-measurement\.com|crashlytics\.com|appsflyer\.com|adjust\.com","script":"function onRequest(a,b){return null;}function onResponse(a,b,c){return c;}"}]
     """#
 
     /// Parse JSON (mảng rule hoặc 1 rule đơn). File thật chứa escape không hợp lệ

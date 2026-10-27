@@ -328,14 +328,17 @@ check("parse defaultJSON == 1 rule", abRules.count == 1, "got \(abRules.count)")
 check("rule giữ nguyên url gốc (\\. sau sanitize)",
       abRules.first?.url.contains(#"\."#) == true, abRules.first?.url ?? "nil")
 let abDomains = DNSBlocklist.domains(fromPattern: abRules.first?.url ?? "")
-check("6 apex domains",
+check("4 apex domains (telemetry only)",
       abDomains == ["adjust.com", "app-measurement.com", "appsflyer.com",
-                    "crashlytics.com", "freefiremobile.com", "garenanow.com"],
+                    "crashlytics.com"],
       "got \(abDomains)")
-check("denylist ADG có ||freefiremobile.com^",
-      DNSBlocklist.denylistADG(abDomains).contains("||freefiremobile.com^"))
-check("denylist hosts có 0.0.0.0 garenanow.com",
-      DNSBlocklist.denylistHosts(abDomains).contains("0.0.0.0 garenanow.com"))
+// Regression guard v3: KHÔNG được chặn API/CDN tài nguyên của game
+// (chặn freefiremobile.com / garenanow.com là game không tải được tài nguyên).
+check("denylist ADG KHÔNG chặn API/CDN game",
+      !DNSBlocklist.denylistADG(abDomains).contains("||freefiremobile.com^")
+      && !DNSBlocklist.denylistADG(abDomains).contains("||garenanow.com^"))
+check("denylist hosts có 0.0.0.0 app-measurement.com",
+      DNSBlocklist.denylistHosts(abDomains).contains("0.0.0.0 app-measurement.com"))
 check("denylistADG(rules) bỏ rule disabled",
       DNSBlocklist.denylistADG([abRules[0],
                                 DNSBlocklistRule(enabled: false, name: "x", note: "", url: #"evil\.example"#, script: "")])
