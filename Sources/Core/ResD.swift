@@ -54,7 +54,16 @@ public enum ResD {
         public let origLen: Int
         public let plain: [UInt8]
         public let encrypted: Bool
-        public var resName: String = ""
+        public var resName: String
+
+        public init(tag: UInt16, origLen: Int, plain: [UInt8],
+                    encrypted: Bool, resName: String = "") {
+            self.tag = tag
+            self.origLen = origLen
+            self.plain = plain
+            self.encrypted = encrypted
+            self.resName = resName
+        }
     }
 
     public enum ResDError: Error, CustomStringConvertible {
@@ -108,9 +117,8 @@ public enum ResD {
 
         // Trường hợp plaintext: body đúng bằng origLen và bắt đầu bằng magic IFix.
         if body.count == origLen, looksPlain(body) {
-            var c = Container(tag: tag, origLen: origLen, plain: body, encrypted: false)
-            c.resName = resName
-            return c
+            return Container(tag: tag, origLen: origLen, plain: body,
+                             encrypted: false, resName: resName)
         }
 
         guard body.count % 16 == 0 else { throw ResDError.notBlockAligned(body.count) }
@@ -119,9 +127,8 @@ public enum ResD {
         }
         guard pt.count >= origLen else { throw ResDError.truncated(need: origLen, have: pt.count) }
         body = Array(pt[0..<origLen])
-        var c = Container(tag: tag, origLen: origLen, plain: body, encrypted: true)
-        c.resName = resName
-        return c
+        return Container(tag: tag, origLen: origLen, plain: body,
+                         encrypted: true, resName: resName)
     }
 
     // MARK: - mã hoá

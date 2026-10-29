@@ -217,7 +217,7 @@ public final class LienQuanDeployer {
 
     /// Đọc assembly mà một container HeroSkin khai trong `bridge`.
     /// Trả chuỗi ngắn gọn (`Project_d`, `Project.Plugins_d`, …) hoặc nil.
-    static func assemblyOf(_ container: ResD.Container) -> String? {
+    public static func assemblyOf(_ container: ResD.Container) -> String? {
         guard let pf = try? Lqmb.parse(container.plain) else { return nil }
         // bridge = "IFix.ILFixInterfaceBridge, Project_d, Version=..."
         let parts = pf.bridge.components(separatedBy: ", ")
