@@ -345,6 +345,177 @@ check("denylistADG(rules) bỏ rule disabled",
         .contains("||evil.example^") == false)
 check("JSON escape không hợp lệ (\\.) vẫn parse được", !abRules.isEmpty)
 
+print("=== AES-128 (FIPS-197 vector) ===")
+let aesKey: [UInt8] = (0...15).map { UInt8($0) }
+let aesPt: [UInt8] = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+                      0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]
+let aesW = AES128.expandKey(aesKey)
+var aesBlock = aesPt
+AES128.encryptBlock(&aesBlock, roundKeys: aesW)
+check("AES-128 encrypt FIPS-197",
+      aesBlock == [0x69, 0xC4, 0xE0, 0xD8, 0x6A, 0x7B, 0x04, 0x30,
+                   0xD8, 0xCD, 0xB7, 0x80, 0x70, 0xB4, 0xC5, 0x5A],
+      hex(aesBlock))
+var aesBack = aesBlock
+AES128.decryptBlock(&aesBack, roundKeys: aesW)
+check("AES-128 decrypt trả về bản rõ", aesBack == aesPt, hex(aesBack))
+
+let cbcIv = [UInt8](repeating: 0, count: 16)
+let cbcPt: [UInt8] = Array("NVH-TEST-PATCH-PAYLOAD-0123456789".utf8) // 33 byte
+check("CBC từ chối độ dài lẻ", AES128.cbcEncrypt(key: aesKey, iv: cbcIv, data: cbcPt) == nil)
+
+print("=== ResD — khoá + container ===")
+check("dotNetHash(\"HeroSkin_1\") == d62be269",
+      ResD.dotNetHashUpper("HeroSkin_1") == 0xD62B_E269,
+      String(format: "%08x", ResD.dotNetHashUpper("HeroSkin_1")))
+check("mixedKey(\"HeroSkin_1\") == f0869a66…",
+      Array(ResD.mixedKey(resName: "HeroSkin_1").prefix(4)) == [0xF0, 0x86, 0x9A, 0x66],
+      hex(ResD.mixedKey(resName: "HeroSkin_1")))
+check("hash không phân biệt hoa/thường",
+      ResD.dotNetHashUpper("heroskin_1") == ResD.dotNetHashUpper("HeroSkin_1"))
+check("resName(forFile:) bỏ đuôi + thư mục",
+      ResD.resName(forFile: "Thanos/HeroSkin_1.bytes") == "HeroSkin_1")
+
+// vector mã hoá cố định (Python tạo): plain 33 byte + tag 103 + resName TestSkin_1
+let resdBlob: [UInt8] = [
+    0x22, 0x4A, 0x67, 0x00, 0x21, 0x00, 0x00, 0x00,
+    0x4C, 0x5E, 0x1A, 0x80, 0xE1, 0x9E, 0xFA, 0xBA,
+    0x9A, 0xBC, 0xB4, 0x18, 0xCB, 0xCE, 0x22, 0xE5,
+    0x61, 0xA8, 0x39, 0xE0, 0x19, 0xC0, 0x0B, 0xE9,
+    0xCB, 0xF3, 0xAF, 0x16, 0x7B, 0x53, 0x8C, 0xD0,
+    0x5F, 0x74, 0x7A, 0x70, 0x49, 0x27, 0x0C, 0x18,
+    0x99, 0x7E, 0x75, 0x61, 0x97, 0xA2, 0xA0, 0xB5,
+]
+let dec = try? ResD.decrypt(resdBlob, resName: "TestSkin_1")
+check("ResD decrypt ra đúng plaintext 33 byte",
+      (dec?.plain ?? []) == cbcPt, "\(dec?.plain.count ?? -1) byte")
+check("ResD decrypt giữ tag 103 + encrypted=true",
+      dec?.tag == 103 && dec?.encrypted == true)
+let reEnc = dec.map { ResD.encrypt($0.plain, resName: "TestSkin_1", tag: $0.tag) } ?? []
+check("ResD encrypt round-trip byte-exact", reEnc == resdBlob,
+      "len \(reEnc.count) vs \(resdBlob.count)")
+check("ResD từ chối magic sai", (try? ResD.decrypt([0x00, 0x00, 0, 0, 0, 0, 0, 0], resName: "x")) == nil)
+check("ResD từ chối body lệch block",
+      (try? ResD.decrypt([0x22, 0x4A, 0x67, 0x00, 0xFF, 0, 0, 0] + [UInt8](repeating: 1, count: 17),
+                         resName: "x")) == nil)
+
+// container plain (kiểu LQHud: tag 0, body là IFix trần)
+let fakeIFixPlain: [UInt8] = Lqmb.magicLqmb + [UInt8](repeating: 0x41, count: 16)
+let plainContainer = ResD.encrypt(fakeIFixPlain, resName: "LQHud", tag: 0, encrypt: false)
+check("ResD container plain: head đúng magic + origLen",
+      Array(plainContainer.prefix(8)) == [0x22, 0x4A, 0x00, 0x00,
+                                          24, 0, 0, 0],
+      hex(Array(plainContainer.prefix(8))))
+let plainBack = try? ResD.decrypt(plainContainer, resName: "LQHud")
+check("ResD plain round-trip giữ nguyên body + encrypted=false",
+      (plainBack?.plain ?? []) == fakeIFixPlain && plainBack?.encrypted == false)
+
+print("=== Lqmb — parse/serialize/round-trip ===")
+// Dựng một patch tối thiểu đúng layout rồi round-trip (không cần file thật trong CI).
+var synth = Lqmb.Patch()
+synth.bridge = "IFix.Bridge"
+synth.types = ["A.B, Asm", "CameraSystem, Asm"]
+synth.nextAlloc = 1
+var blk0 = Lqmb.Block()
+blk0.instrs = [LqOpcode.blockHeader, 0x0001_0002,
+               LqOpcode.ldstr, 0,
+               LqOpcode.ldcR4, Int32(bitPattern: Float(1.599).bitPattern),
+               LqOpcode.ret, 1]
+blk0.handlers = [[0, 0, 1, 0, 0, 0]]
+synth.blocks = [blk0]
+var m0 = Lqmb.MethodRec()
+m0.declType = 1
+m0.name = "GetZoomRate"
+m0.params = [Lqmb.Param(isName: false, id: 0, name: "")]
+synth.methods = [m0]
+synth.strings = ["iFix.Camera.Zoom.v1"]
+var f0 = Lqmb.FieldRec()
+f0.isNew = false
+f0.declType = 0
+f0.name = "cache"
+synth.fields = [f0]
+synth.fsvm = [(1, 2)]
+var an0 = Lqmb.AnonType()
+an0.fieldIds = [0]
+an0.ctor = 1
+an0.paramCount = 2
+an0.interfaces = [(3, 4)]
+an0.vtable = [5]
+synth.anon = [an0]
+synth.wrapper = "wrapper"
+synth.idmap = "idmap"
+var hook0 = Lqmb.Hook()
+hook0.method = m0
+hook0.vm = 0
+synth.interpret = [hook0]
+synth.newClasses = ["New.Class"]
+synth.trailer = [0xDE, 0xAD, 0xBE, 0xEF]
+
+let ser = (try? Lqmb.serialize(synth)) ?? []
+check("serialize ra blob bắt đầu bằng magic LQMB",
+      Array(ser.prefix(8)) == Lqmb.magicLqmb, hex(Array(ser.prefix(8))))
+let reparsed = try? Lqmb.parse(ser)
+check("parse(serialize(x)) giữ số block/instr/hook",
+      reparsed?.blocks.count == 1
+        && reparsed?.totalInstructions == 4
+        && reparsed?.interpret.count == 1,
+      "blocks=\(reparsed?.blocks.count ?? -1) instr=\(reparsed?.totalInstructions ?? -1)")
+check("parse giữ nguyên trailer thô",
+      (reparsed?.trailer ?? []) == [0xDE, 0xAD, 0xBE, 0xEF])
+check("serialize(parse(serialize(x))) byte-exact",
+      (reparsed.flatMap { try? Lqmb.serialize($0) }) == ser)
+check("qualifiedName đúng dạng Owner::Method",
+      reparsed?.qualifiedName(hook0.method) == "CameraSystem::GetZoomRate",
+      reparsed?.qualifiedName(hook0.method) ?? "nil")
+check("parse từ chối magic lạ",
+      (try? Lqmb.parse([0x00, 0, 0, 0, 0, 0, 0, 0] + [UInt8](repeating: 0, count: 32))) == nil)
+var badNext = synth
+badNext.nextAlloc = 5
+check("serialize từ chối next_alloc lệch", (try? Lqmb.serialize(badNext)) == nil)
+
+print("=== LqPatcher — sửa zoom / privacy / host / tag ===")
+var patchTarget = synth
+let zoomRep = LqPatcher.apply(&patchTarget,
+                              config: LqConfig(zoom: 2.0, privacyOff: true,
+                                               fakeHost: true, tagText: "NVH v4!"))
+check("patch zoom ghi đè Ldc_R4 → bits của 2.0f",
+      patchTarget.blocks[0].instrs[5] == Int32(bitPattern: Float(2.0).bitPattern),
+      String(format: "0x%08X", UInt32(bitPattern: patchTarget.blocks[0].instrs[5])))
+check("có ít nhất 1 site zoom được báo", zoomRep.zoomSites >= 1, "\(zoomRep.zoomSites)")
+check("không đổi số lệnh sau patch",
+      patchTarget.blocks[0].instrs.count == blk0.instrs.count)
+let patchedSer = (try? Lqmb.serialize(patchTarget)) ?? []
+check("patch xong vẫn round-trip được",
+      (try? Lqmb.parse(patchedSer))?.blocks.count == 1)
+var tagTarget = synth
+tagTarget.strings = ["prefix [skin v4] suffix"]
+let tagRep = LqPatcher.apply(&tagTarget, config: LqConfig(tagText: "NVH v4!"))
+check("tag cùng độ dài → thay được", tagRep.stringSites == 1, "\(tagRep.stringSites)")
+check("tag giữ nguyên độ dài UTF-8 của chuỗi",
+      tagTarget.strings[0].utf8.count == "prefix [skin v4] suffix".utf8.count)
+var tagBad = synth
+tagBad.strings = ["[skin v4]"]
+let tagBadRep = LqPatcher.apply(&tagBad, config: LqConfig(tagText: "TOO-LONG-TAG"))
+check("tag khác độ dài → từ chối + ghi note",
+      tagBadRep.stringSites == 0 && tagBad.strings[0] == "[skin v4]"
+        && !tagBadRep.notes.isEmpty)
+check("config rỗng → isEmpty true", LqConfig().isEmpty)
+check("config có zoom → isEmpty false", !LqConfig(zoom: 2).isEmpty)
+
+print("=== LienQuanDeployer — lọc file + bundle LQ2 ===")
+check("patchableFiles chỉ nhận HeroSkin_*.bytes",
+      LienQuanDeployer.patchableFiles(in: ["HeroSkin_1.bytes", "HeroSkin_2.bytes",
+                                           ".nvh_probe", "readme.txt",
+                                           "HeroSkin_1.bytes.bak"]) == ["HeroSkin_1.bytes",
+                                                                        "HeroSkin_2.bytes"],
+      "\(LienQuanDeployer.patchableFiles(in: ["HeroSkin_1.bytes", "HeroSkin_2.bytes", ".nvh_probe", "readme.txt", "HeroSkin_1.bytes.bak"]))")
+check("gói runtime không cần payload trong app",
+      !LQPack.runtime.usesBundledPayload && LQPack.runtime.vaultResource == nil)
+check("gói bundled vẫn trỏ vault đúng",
+      LQPack.hudFull.vaultResource == "LQHud"
+        && LQPack.nvhBeta.vaultResource == "NVHLQ"
+        && LQPack.unlockSkin.vaultResource == "LQUnlock")
+
 print("")
 print("checks: \(checks) | failures: \(failures)")
 exit(failures == 0 ? 0 : 1)

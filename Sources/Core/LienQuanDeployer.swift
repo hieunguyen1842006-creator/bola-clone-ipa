@@ -1,7 +1,13 @@
 import Foundation
 
-/// Gói hotfix của Liên Quân. Mỗi gói là một payload IFix LQMB đóng trong vault.
+/// Gói hotfix của Liên Quân.
+///
+/// Hai kiểu:
+///   - **bundled**: payload IFix đóng sẵn trong vault (gói của người khác, ghi nguyên file).
+///   - **runtime**: đọc file `.bytes` gốc **trong máy game**, giải mã, sửa IL theo cấu hình,
+///     mã hoá lại rồi ghi — không cần payload đóng sẵn.
 public enum LQPack: String, CaseIterable, Identifiable {
+    case runtime = "runtime"
     case hudFull = "hud"
     case nvhBeta = "nvhbeta"
     case unlockSkin = "unlock"
@@ -10,6 +16,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
 
     public var title: String {
         switch self {
+        case .runtime: return "Patch máy (runtime)"
         case .hudFull: return "Full HUD"
         case .nvhBeta: return "CAMXA FullSkin"
         case .unlockSkin: return "4in1 LiqiMobi"
@@ -18,6 +25,8 @@ public enum LQPack: String, CaseIterable, Identifiable {
 
     public var subtitle: String {
         switch self {
+        case .runtime:
+            return "Đọc file gốc trong game → giải mã → sửa zoom/privacy/host → ghi lại. Không cần payload ngoài."
         case .hudFull:
             return "HUD địch: máu, tên, CD chiêu, vòng + icon 5 hero, kèm unlock skin"
         case .nvhBeta:
@@ -29,24 +38,34 @@ public enum LQPack: String, CaseIterable, Identifiable {
 
     public var symbol: String {
         switch self {
+        case .runtime: return "wand.and.stars"
         case .hudFull: return "rectangle.on.rectangle"
         case .nvhBeta: return "bolt.fill"
         case .unlockSkin: return "paintpalette"
         }
     }
 
-    public var vaultResource: String {
+    /// nil với gói runtime (không đọc vault).
+    public var vaultResource: String? {
         switch self {
+        case .runtime: return nil
         case .hudFull: return "LQHud"
         case .nvhBeta: return "NVHLQ"
         case .unlockSkin: return "LQUnlock"
         }
     }
+
+    /// Cần payload đóng sẵn trong app?
+    public var usesBundledPayload: Bool { vaultResource != nil }
 }
 
 public enum LQError: Error, CustomStringConvertible {
     case resourcesNotFound
     case thanosNotFound(String)
+    case noHeroSkinFiles(String)
+    case notResD(String)
+    case notIFix(String)
+    case patchFailed(String)
 
     public var description: String {
         switch self {
@@ -54,6 +73,14 @@ public enum LQError: Error, CustomStringConvertible {
             return "Không thấy Documents/Resources — mở Liên Quân 1 lần rồi thử lại"
         case .thanosNotFound(let v):
             return "Không thấy thư mục Thanos trong Resources/\(v)"
+        case .noHeroSkinFiles(let v):
+            return "Không thấy HeroSkin_*.bytes trong Resources/\(v)/Thanos"
+        case .notResD(let f):
+            return "\(f) không phải container ResD (game chưa tải resource?)"
+        case .notIFix(let f):
+            return "\(f) giải mã ra không phải patch IFix — không sửa được"
+        case .patchFailed(let why):
+            return "Patch lỗi: \(why)"
         }
     }
 }
@@ -90,7 +117,7 @@ public final class LienQuanDeployer {
         public var filePath: String { "\(relativePath)/\(LienQuanDeployer.targetFileName)" }
     }
 
-    /// Tìm version đang có HeroSkin_2.bytes; nếu chưa có thì dùng version mới nhất.
+    /// Tìm version đang có file hotfix (HeroSkin_*); nếu chưa có thì dùng version mới nhất.
     public func resolveTarget() throws -> Target {
         let versions = ((try? access.list("Resources", in: game)) ?? [])
             .filter { !$0.hasPrefix(".") }
@@ -100,7 +127,8 @@ public final class LienQuanDeployer {
         for v in versions {
             let rel = "Resources/\(v)/Thanos"
             let entries = (try? access.list(rel, in: game)) ?? []
-            if entries.contains(Self.targetFileName) {
+            if Self.patchableFiles(in: entries).isEmpty == false
+                || entries.contains(Self.targetFileName) {
                 return Target(version: v, relativePath: rel)
             }
         }
@@ -153,6 +181,191 @@ public final class LienQuanDeployer {
     /// Tên các file đã ghi (bản cũ chỉ có HeroSkin_2).
     private var installedNames: [String] {
         UserDefaults.standard.stringArray(forKey: Self.filesKey + game.bundleID) ?? [Self.targetFileName]
+    }
+
+    // MARK: - patch runtime (đọc file gốc trong game → sửa IL → ghi lại)
+
+    /// Kết quả một file được patch runtime.
+    public struct RuntimeResult {
+        public let file: String
+        public let container: String       // "resd-aes" | "plain"
+        public let report: LqPatchReport
+    }
+
+    /// Tên file hotfix có thể patch (HeroSkin_1..N.bytes) trong thư mục Thanos.
+    public static func patchableFiles(in list: [String]) -> [String] {
+        list.filter { name in
+            name.hasSuffix(".bytes") && name.hasPrefix("HeroSkin_")
+                && !name.hasPrefix(".")
+        }.sorted()
+    }
+
+    /// Patch tại chỗ các file `HeroSkin_*.bytes` **đang có trong máy game**:
+    /// giải mã ResD → parse IFix → sửa theo `config` → serialize (byte-exact) →
+    /// mã hoá lại → ghi đè. Bản gốc được backup trước khi ghi.
+    ///
+    /// Nếu lần trước đã patch, hàm sẽ khôi phục backup trước để tránh patch chồng.
+    @discardableResult
+    public func installRuntime(config: LqConfig) -> InstallOutcome {
+        do {
+            let target = try resolveTarget()
+            let entries = (try? access.list(target.relativePath, in: game)) ?? []
+            let names = Self.patchableFiles(in: entries)
+            guard !names.isEmpty else { throw LQError.noHeroSkinFiles(target.version) }
+
+            var results: [RuntimeResult] = []
+            var skipped: [String] = []
+
+            for name in names {
+                let rel = "\(target.relativePath)/\(name)"
+                // 1. Ưu tiên bản gốc đã backup; nếu chưa có thì đọc file hiện tại.
+                var raw: [UInt8]
+                if let url = backupURL(version: target.version, name: name),
+                   fm.fileExists(atPath: url.path),
+                   let original = fm.contents(atPath: url.path) {
+                    raw = [UInt8](original)
+                } else {
+                    guard let cur = (try? access.read(relativePath: rel, in: game)) ?? nil else {
+                        skipped.append(name); continue
+                    }
+                    raw = [UInt8](cur)
+                    try rememberOriginal(cur, version: target.version, name: name)
+                }
+
+                // 2. ResD → IFix
+                let resName = ResD.resName(forFile: name)
+                let container: ResD.Container
+                do {
+                    container = try ResD.decrypt(raw, resName: resName)
+                } catch {
+                    log("lq: \(name) — \(error)")
+                    skipped.append(name); continue
+                }
+                guard Lqmb.isLqmb(container.plain) else {
+                    log("lq: \(name) — body không phải IFix LQMB (head "
+                        + container.plain.prefix(4).map { String(format: "%02x", $0) }.joined() + ")")
+                    skipped.append(name); continue
+                }
+
+                // 3. parse → patch → serialize → verify
+                var pf: Lqmb.Patch
+                do {
+                    pf = try Lqmb.parse(container.plain)
+                } catch {
+                    log("lq: \(name) parse lỗi — \(error)")
+                    skipped.append(name); continue
+                }
+                guard let before = try? Lqmb.serialize(pf) else {
+                    log("lq: \(name) không serialize được → bỏ")
+                    skipped.append(name); continue
+                }
+                guard before == container.plain else {
+                    log("lq: \(name) round-trip không byte-exact → không đụng để an toàn")
+                    skipped.append(name); continue
+                }
+
+                let rep = LqPatcher.apply(&pf, config: config)
+                for n in rep.notes { log("lq: \(name) — \(n)") }
+                if rep.totalSites == 0 {
+                    // Không có gì để sửa: nếu đã có backup thì trả file về bản gốc
+                    // (người dùng vừa tắt hết tuỳ chọn), tránh để patch cũ nằm lại.
+                    if let url = backupURL(version: target.version, name: name),
+                       fm.fileExists(atPath: url.path),
+                       let original = fm.contents(atPath: url.path),
+                       original != Data(raw) {
+                        try access.write(original, toRelative: rel, in: game)
+                        log("lq: \(name) — không còn tuỳ chọn nào, đã khôi phục bản gốc")
+                    } else {
+                        log("lq: \(name) — không có site nào khớp, bỏ qua")
+                    }
+                    skipped.append(name); continue
+                }
+
+                let newPlain: [UInt8]
+                do {
+                    newPlain = try Lqmb.serialize(pf)
+                } catch {
+                    log("lq: \(name) serialize lỗi — \(error)")
+                    skipped.append(name); continue
+                }
+                // verify: parse lại phải ra cùng số block/hook
+                guard let re = try? Lqmb.parse(newPlain),
+                      re.blocks.count == pf.blocks.count,
+                      re.interpret.count == pf.interpret.count else {
+                    log("lq: \(name) verify sau patch thất bại → bỏ")
+                    skipped.append(name); continue
+                }
+
+                // 4. đóng gói lại đúng kiểu container gốc
+                let outBytes = ResD.encrypt(newPlain, resName: resName,
+                                            tag: container.tag,
+                                            encrypt: container.encrypted)
+                try access.write(Data(outBytes), toRelative: rel, in: game)
+
+                guard let back = (try? access.read(relativePath: rel, in: game)) ?? nil,
+                      back == Data(outBytes) else {
+                    return .bad("Ghi xong nhưng đọc lại không khớp (\(name)) — thử lại")
+                }
+                results.append(RuntimeResult(
+                    file: name,
+                    container: container.encrypted ? "resd-aes" : "plain",
+                    report: rep))
+                log("lq: \(name) ← \(rep.summary) (\(container.encrypted ? "AES" : "plain"))")
+            }
+
+            guard !results.isEmpty else {
+                return .bad("Không patch được file nào — game chưa tải resource HeroSkin?")
+            }
+
+            let d = UserDefaults.standard
+            d.set(target.version, forKey: Self.versionKey + game.bundleID)
+            d.set(results.map { $0.file }, forKey: Self.filesKey + game.bundleID)
+            for r in results {
+                let rel = "\(target.relativePath)/\(r.file)"
+                if let data = (try? access.read(relativePath: rel, in: game)) ?? nil {
+                    d.set(SHA256.hex([UInt8](data)),
+                          forKey: Self.shaKey + game.bundleID + "." + r.file)
+                }
+            }
+            try? access.remove("lqcfg.txt", in: game)
+
+            let total = results.reduce(0) { $0 + $1.report.totalSites }
+            var msg = "Đã patch \(game.name): \(results.map { $0.file }.joined(separator: ", ")) "
+                + "• \(total) điểm"
+            if !skipped.isEmpty { msg += " • bỏ \(skipped.count) file" }
+            log("lq: runtime xong → " + results.map {
+                "\($0.file)[\($0.report.summary)]"
+            }.joined(separator: " "))
+            return .good(msg)
+        } catch {
+            let msg = (error as? LQError)?.description ?? error.localizedDescription
+            log("lq: runtime lỗi — \(msg)")
+            return .bad(msg)
+        }
+    }
+
+    /// Đọc thông tin patch hiện có trong game (để UI hiện file + trạng thái).
+    public func inspectRuntime() -> [RuntimeResult] {
+        guard let target = try? resolveTarget(),
+              let entries = try? access.list(target.relativePath, in: game) else { return [] }
+        var out: [RuntimeResult] = []
+        for name in Self.patchableFiles(in: entries) {
+            let rel = "\(target.relativePath)/\(name)"
+            guard let cur = (try? access.read(relativePath: rel, in: game)) ?? nil else { continue }
+            let resName = ResD.resName(forFile: name)
+            guard let c = try? ResD.decrypt([UInt8](cur), resName: resName),
+                  let pf = try? Lqmb.parse(c.plain) else { continue }
+            var rep = LqPatchReport()
+            // đếm site thật: mỗi block hook vào GetZoomRate / IsPrivaceOn / IsHostProfile
+            rep.zoomSites = LqPatcher.blocks(hookedTo: "CameraSystem::GetZoomRate", in: pf).count
+            rep.privacySites = LqPatcher.blocks(hookedTo: "CRoleInfoManager::IsPrivaceOn", in: pf).count
+            rep.hostSites = LqPatcher.blocks(hookedTo: "CPlayerProfile::get_IsHostProfile", in: pf).count
+            out.append(RuntimeResult(
+                file: name,
+                container: c.encrypted ? "resd-aes" : "plain",
+                report: rep))
+        }
+        return out
     }
 
     /// Đã inject = mọi file trong game khớp SHA-256 của payload mình đã ghi.

@@ -344,23 +344,101 @@ public struct ConfigView: View {
                     .buttonStyle(RowButtonStyle())
                 }
             }
+            if model.lqPack == .runtime {
+                runtimeOptions
+            }
             card("Đích ghi") {
-                Text("Documents/Resources/<ver>/Thanos/HeroSkin_2.bytes")
+                Text("Documents/Resources/<ver>/Thanos/HeroSkin_*.bytes")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
-                Text("Gói đôi ghi thêm HeroSkin_1.bytes cùng thư mục.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
+                if model.lqPack == .runtime {
+                    Text("Tool tự dò mọi file HeroSkin_*.bytes có trong máy, giải mã ResD, sửa IL rồi ghi lại. "
+                         + "Bản gốc luôn được backup trước khi ghi.")
+                        .font(.system(size: 11)).foregroundStyle(Theme.dim)
+                } else {
+                    Text("Gói đôi ghi thêm HeroSkin_1.bytes cùng thư mục.")
+                        .font(.system(size: 11)).foregroundStyle(Theme.dim)
+                }
                 Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
                     .font(.system(size: 11)).foregroundStyle(Theme.dim)
+            }
+            if model.lqPack == .runtime, !model.lqLastReport.isEmpty {
+                card("Lần patch gần nhất") {
+                    ForEach(model.lqLastReport, id: \.file) { r in
+                        HStack {
+                            Text(r.file).font(Theme.monoFont).foregroundStyle(Theme.text)
+                            Spacer()
+                            Text(r.container).font(.system(size: 10))
+                                .foregroundStyle(Theme.dim)
+                            Text(r.report.summary).font(.system(size: 10))
+                                .foregroundStyle(Theme.accent)
+                        }
+                    }
+                }
             }
             card("Tuỳ chọn") {
                 toggleRowInline("autolaunch", "Tự mở game sau khi inject",
                                 "Inject xong tự tắt game cũ và mở lại")
             }
             card("Lưu ý") {
-                Text("Payload LQ là gói đóng sẵn (HUD/skin), không có file cfg runtime như Free Fire. "
-                     + "App chọn gói rồi ghi — muốn thêm toggle từng tính năng thì phải build payload mới.")
+                Text(model.lqPack == .runtime
+                     ? "Patch máy chỉ ghi đè operand của lệnh có sẵn — không thêm/bớt lệnh, "
+                       + "không đổi độ dài file. Nhờ vậy game vẫn đọc bình thường."
+                     : "Payload LQ là gói đóng sẵn (HUD/skin), không có file cfg runtime như Free Fire. "
+                       + "App chọn gói rồi ghi — muốn thêm toggle từng tính năng thì phải build payload mới.")
                     .font(.system(size: 11)).foregroundStyle(Theme.dim)
             }
+        }
+    }
+
+    /// Tuỳ chọn của gói "Patch máy" — sửa trực tiếp IL trong file game.
+    private var runtimeOptions: some View {
+        card("Patch máy") {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Zoom camera").font(Theme.bodyFont).foregroundStyle(Theme.text)
+                    Spacer()
+                    Text(model.lqZoom <= 0
+                         ? "tắt"
+                         : String(format: "%.2f×", model.lqZoom))
+                        .font(Theme.monoFont).foregroundStyle(Theme.accent)
+                }
+                Slider(value: Binding(
+                    get: { Double(model.lqZoom <= 0 ? 1.0 : model.lqZoom) },
+                    set: { model.setLQZoom(Float($0)) }
+                ), in: 1.0...5.0, step: 0.05)
+                HStack(spacing: 8) {
+                    Button("1.6× (gốc)") { model.setLQZoom(1.6) }
+                    Button("2.0×") { model.setLQZoom(2.0) }
+                    Button("3.0×") { model.setLQZoom(3.0) }
+                    Button("Tắt") { model.setLQZoom(0) }
+                }
+                .buttonStyle(.bordered)
+                .font(.system(size: 11))
+            }
+            lqToggle("Tắt privacy (xem profile người khác)",
+                     "IsPrivaceOn → false",
+                     get: { model.lqPrivacyOff },
+                     set: { model.setLQPrivacyOff($0) })
+            lqToggle("Giả host",
+                     "get_IsHostProfile → true",
+                     get: { model.lqFakeHost },
+                     set: { model.setLQFakeHost($0) })
+        }
+    }
+
+    /// Toggle cho tuỳ chọn LQ (không dùng chung cờ cfgFlags của Free Fire).
+    private func lqToggle(_ title: String, _ subtitle: String,
+                          get: @escaping () -> Bool,
+                          set: @escaping (Bool) -> Void) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
+                Text(subtitle).font(.system(size: 10)).foregroundStyle(Theme.dim)
+            }
+            Spacer()
+            Toggle("", isOn: Binding(get: get, set: set))
+                .labelsHidden()
+                .tint(Theme.accent)
         }
     }
 

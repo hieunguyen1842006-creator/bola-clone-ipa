@@ -34,15 +34,29 @@ public final class AppModel: ObservableObject {
             }
         }
     }
-    /// Gói hotfix đang chọn cho Liên Quân (Full HUD / NVH Beta / Unlock skin).
+    /// Gói hotfix đang chọn cho Liên Quân (Patch máy / Full HUD / NVH Beta / Unlock skin).
     @Published public var lqPack: LQPack =
-        LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .hudFull
+        LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .runtime
     /// Cấu hình cho payload NVH Beta (đọc từ Documents/lqcfg.txt).
     @Published public var lqEsp: Bool = UserDefaults.standard.bool(forKey: "nvh.lq.esp")
     @Published public var lqHud: Bool =
         (UserDefaults.standard.object(forKey: "nvh.lq.hud") as? Bool) ?? true
     @Published public var lqFov: Double =
         (UserDefaults.standard.object(forKey: "nvh.lq.fov") as? Double) ?? 88
+
+    // MARK: gói "Patch máy" (runtime) — sửa trực tiếp file trong game
+    /// Hệ số zoom camera. 0 = không đụng (giữ nguyên game).
+    @Published public var lqZoom: Float =
+        (UserDefaults.standard.object(forKey: "nvh.lq.zoom") as? Float) ?? 2.0
+    @Published public var lqPrivacyOff: Bool =
+        UserDefaults.standard.bool(forKey: "nvh.lq.privacy")
+    @Published public var lqFakeHost: Bool =
+        UserDefaults.standard.bool(forKey: "nvh.lq.host")
+    /// Tag hiển thị thay "[skin v4]" (phải cùng độ dài UTF-8 = 9 byte).
+    @Published public var lqTagText: String =
+        UserDefaults.standard.string(forKey: "nvh.lq.tag") ?? ""
+    /// Kết quả lần patch runtime gần nhất (UI hiện danh sách file + điểm đã sửa).
+    @Published public var lqLastReport: [LienQuanDeployer.RuntimeResult] = []
     @Published public var installedInfo: [GameTarget: Bool] = [:]
     @Published public var patchInstalled: Bool = false
     @Published public var logText: String = ""
@@ -537,11 +551,18 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Nút INJECT cho Liên Quân — ghi hotfix payload vào Resources/<ver>/Thanos.
+    /// Nút INJECT cho Liên Quân — gói runtime patch tại chỗ, gói khác ghi payload đóng sẵn.
     private func injectLQ() {
-        guard let payload = PatchVault.load(resource: lqPack.vaultResource) else {
+        let pack = lqPack
+        // Gói runtime: không cần payload trong app, tự đọc file gốc của game.
+        if !pack.usesBundledPayload {
+            injectLQRuntime()
+            return
+        }
+        guard let resource = pack.vaultResource,
+              let payload = PatchVault.load(resource: resource) else {
             toast("Không thấy gói LQ trong app")
-            log("lq: thiếu \(lqPack.vaultResource).vault")
+            log("lq: thiếu \(pack.vaultResource ?? "?").vault")
             return
         }
         busy = true
@@ -554,13 +575,58 @@ public final class AppModel: ObservableObject {
                 mhaActive = coordinator.lastMessage == "mha"
                 let dep = LienQuanDeployer(access: live, game: game)
                 dep.onLog = { [weak self] in self?.log($0) }
-                let outcome = dep.install(payload, pack: lqPack, config: nil)
+                let outcome = dep.install(payload, pack: pack, config: nil)
                 await MainActor.run {
                     self.busy = false
                     self.markInjected(outcome.ok)
                     self.statusText = outcome.message
                     self.toast(outcome.message)
                     self.writeOK = outcome.ok
+                    if outcome.ok, self.cfgFlags.contains("autolaunch") {
+                        self.launchGame()
+                    }
+                }
+            case .failure(let err):
+                await MainActor.run {
+                    self.busy = false
+                    self.phase = .failed
+                    self.statusText = "\(err)"
+                    self.toast("Không mở được thư mục Liên Quân.")
+                    self.log("lq: \(err)")
+                }
+            }
+        }
+    }
+
+    /// Gói runtime: đọc `.bytes` gốc trong máy → ResD decrypt → sửa IL → encrypt → ghi.
+    private func injectLQRuntime() {
+        let cfg = LqConfig(zoom: lqZoom,
+                           privacyOff: lqPrivacyOff ? true : nil,
+                           fakeHost: lqFakeHost ? true : nil,
+                           tagText: lqTagText.isEmpty ? nil : lqTagText)
+        guard !cfg.isEmpty else {
+            toast("Chưa chọn gì để patch — bật ít nhất 1 tuỳ chọn")
+            log("lq: runtime config rỗng, không làm gì")
+            return
+        }
+        busy = true
+        cancelRequested = false
+        log("lq: chuẩn bị container cho patch runtime…")
+        Task {
+            let ready = await coordinator.ensureReady(for: game)
+            switch ready {
+            case .success(let live):
+                mhaActive = coordinator.lastMessage == "mha"
+                let dep = LienQuanDeployer(access: live, game: game)
+                dep.onLog = { [weak self] in self?.log($0) }
+                let outcome = dep.installRuntime(config: cfg)
+                await MainActor.run {
+                    self.busy = false
+                    self.markInjected(outcome.ok)
+                    self.statusText = outcome.message
+                    self.toast(outcome.message)
+                    self.writeOK = outcome.ok
+                    self.lqLastReport = outcome.ok ? dep.inspectRuntime() : self.lqLastReport
                     if outcome.ok, self.cfgFlags.contains("autolaunch") {
                         self.launchGame()
                     }
@@ -630,6 +696,29 @@ public final class AppModel: ObservableObject {
         lqFov = min(max(value, 50), 130)
         UserDefaults.standard.set(lqFov, forKey: "nvh.lq.fov")
         pushLQConfig()
+    }
+
+    // MARK: setter cho gói "Patch máy" (runtime)
+
+    /// 0 = tắt patch zoom (trả về bản gốc của game).
+    public func setLQZoom(_ value: Float) {
+        lqZoom = value <= 0 ? 0 : min(max(value, 1.0), 5.0)
+        UserDefaults.standard.set(lqZoom, forKey: "nvh.lq.zoom")
+    }
+
+    public func setLQPrivacyOff(_ on: Bool) {
+        lqPrivacyOff = on
+        UserDefaults.standard.set(on, forKey: "nvh.lq.privacy")
+    }
+
+    public func setLQFakeHost(_ on: Bool) {
+        lqFakeHost = on
+        UserDefaults.standard.set(on, forKey: "nvh.lq.host")
+    }
+
+    public func setLQTagText(_ text: String) {
+        lqTagText = text
+        UserDefaults.standard.set(text, forKey: "nvh.lq.tag")
     }
 
     private func lqConfigText() -> String {

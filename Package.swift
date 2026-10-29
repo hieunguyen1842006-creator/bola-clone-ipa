@@ -14,6 +14,10 @@ let package = Package(
             path: "Sources",
             sources: [
                 "Core/Crypto.swift",
+                "Core/AES128.swift",
+                "Core/ResD.swift",
+                "Core/LqmbFormat.swift",
+                "Core/LqPatcher.swift",
                 "Core/BolaConfig.swift",
                 "Core/PatchTrailer.swift",
                 "Core/Models.swift",
