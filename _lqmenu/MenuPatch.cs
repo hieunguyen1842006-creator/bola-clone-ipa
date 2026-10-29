@@ -1,4 +1,4 @@
-// NVH LQ MENU — menu cam ung trong game (IFix patch, hook LFramework.get_frameSynchr)
+﻿// NVH LQ MENU — menu cam ung trong game (IFix patch, hook LFramework.get_frameSynchr)
 //
 // QUAN TRONG: IFix CHI patch dung nhung method khai trong process_cfg. Moi method
 // khac duoc goi tu trong do se tro vao DLL goc (khong ton tai) -> crash.
@@ -94,6 +94,7 @@ namespace NucleusDrive.Logic
         public object __mPanel;
         public object __mBtn;
         public object __mLabels;
+        public object __mFont;
 
         /// <summary>Toan bo menu nam trong 1 method — IFix chi patch method nay.</summary>
         public LFrameSynchr get_frameSynchr()
@@ -108,6 +109,16 @@ namespace NucleusDrive.Logic
                 __mOpen = false;
                 __mX = 78f;
                 __mY = 120f;
+
+                // Font BAT BUOC phai co: Text khong co font se nem
+                // NullReferenceException MOI FRAME -> flood log -> treo game.
+                Font fnt = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+                __mFont = fnt;
+                if (fnt == null)
+                {
+                    // khong co font -> khong tao UI, giu game chay binh thuong
+                    return fs;
+                }
 
                 GameObject root = new GameObject("NVHMenuRoot",
                     new Type[] { typeof(RectTransform), typeof(Canvas) });
@@ -142,6 +153,7 @@ namespace NucleusDrive.Logic
                 Text btx = (Text)btxGo.GetComponent(typeof(Text));
                 if (btx != null)
                 {
+                    btx.font = fnt;
                     btx.text = "NVH";
                     btx.fontSize = 26;
                     btx.alignment = TextAnchor.MiddleCenter;
@@ -186,6 +198,7 @@ namespace NucleusDrive.Logic
                     Text tx = (Text)row.GetComponent(typeof(Text));
                     if (tx != null)
                     {
+                        tx.font = fnt;
                         tx.fontSize = 30;
                         tx.alignment = TextAnchor.MiddleLeft;
                         tx.color = new Color(0.9f, 0.95f, 1f, 1f);
@@ -202,7 +215,8 @@ namespace NucleusDrive.Logic
             int tc = Input.touchCount;
             if (tc > 0)
             {
-                for (int i = 0; i < tc; i++)
+                int lim = tc > 2 ? 2 : tc;
+                for (int i = 0; i < lim; i++)
                 {
                     Touch t = Input.GetTouch(i);
                     if (t.phase != TouchPhase.Began) continue;
@@ -279,7 +293,7 @@ namespace NucleusDrive.Logic
                 }
             }
 
-            // ============ 3. cap nhat chu ============
+            // ============ 3. cap nhat chu (sau khi doi trang thai) ============
             if (__mLabels != null)
             {
                 Text[] lb2 = (Text[])__mLabels;

@@ -65,7 +65,37 @@ def s(v: str) -> bytes:
 
 
 def write_cfg(path: str) -> None:
-    """Chi hook 1 method + khai field moi cho LFramework."""
+    """Hook 1 method + khai field moi cho LFramework.
+
+    QUAN TRONG: danh sach field PHAI khop CHINH XAC voi field khai trong
+    MenuPatch.cs. Neu lech ten, IFix se coi field do la field CO SAN cua game
+    -> tro vao index rac -> game doc bo nho sai -> TREO.
+    Vi vay doc truc tiep tu source thay vi viet tay.
+    """
+    src = open(SRC, encoding="utf-8").read()
+    # bat: public <type> __m<Ten>;
+    raw = re.findall(r"public\s+([\w\.\<\>\[\]]+)\s+(__m\w+)\s*;", src)
+    if not raw:
+        raise SystemExit("khong doc duoc field __m* tu MenuPatch.cs")
+
+    # IFix can TEN DAY DU cua kieu (khong nhan alias C# bool/float/int/object)
+    ALIAS = {
+        "bool": "System.Boolean",
+        "float": "System.Single",
+        "int": "System.Int32",
+        "long": "System.Int64",
+        "double": "System.Double",
+        "string": "System.String",
+        "object": "System.Object",
+        "byte": "System.Byte",
+        "uint": "System.UInt32",
+        "ulong": "System.UInt64",
+    }
+    fields = [(ALIAS.get(ft, ft), name) for ft, name in raw]
+    print(f"    cfg fields: {len(fields)}")
+    for ft, name in fields:
+        print(f"      {name}: {ft}")
+
     out = bytearray()
     # 1 nhom class
     out += struct.pack("<i", 1)
@@ -77,20 +107,8 @@ def write_cfg(path: str) -> None:
     # field moi
     out += struct.pack("<i", 1)                       # 1 class co field moi
     out += s("NucleusDrive.Logic.LFramework")
-    fields = [
-        ("__mInit",   "System.Boolean"),
-        ("__mOpen",   "System.Boolean"),
-        ("__mX",      "System.Single"),
-        ("__mY",      "System.Single"),
-        ("__mDownAt", "System.Single"),
-        ("__mTouchId", "System.Int32"),
-        ("__mCanvas", "System.Object"),
-        ("__mPanel",  "System.Object"),
-        ("__mBtnBox", "System.Object"),
-        ("__mLabels", "System.Object"),
-    ]
     out += struct.pack("<i", len(fields))
-    for name, ft in fields:
+    for ft, name in fields:
         out += s(name) + s(ft)
     out += struct.pack("<i", 0)                       # newPropertiesInfo
     out += struct.pack("<i", 0)                       # newClassInfo
