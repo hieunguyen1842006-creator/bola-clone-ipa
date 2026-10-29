@@ -1,24 +1,29 @@
-﻿// NVH LQ MENU — menu cam ung trong game (IFix patch, hook LFramework.get_frameSynchr)
+﻿// NVH LQ MENU — menu cam ung da trang trong game (IFix patch, hook LFramework.get_frameSynchr)
 //
 // QUAN TRONG 1: IFix CHI patch dung nhung method khai trong process_cfg. Moi method
 // khac duoc goi tu trong do se tro vao DLL goc (khong ton tai) -> crash.
 // Vi vay TOAN BO logic phai nam trong MOT method get_frameSynchr().
 //
-// QUAN TRONG 2: get_frameSynchr() la accessor BI GOI RAT NHIEU LAN MOI FRAME khi
-// vao tran (moi actor / moi he thong deu lay). IFix thay the TOAN BO than ham,
-// nen neu than ham nang thi game dung hinh ngay luc load tran.
-//   -> Dong dau tien phai la chan theo Time.frameCount: moi frame chi xu ly 1 lan,
-//      cac lan goi sau return ngay (chi ~10 lenh IL).
+// QUAN TRONG 2: get_frameSynchr() bi goi nhieu lan moi frame khi vao tran.
+// Chan theo Time.frameCount: moi frame chi xu ly 1 lan.
 //
-// QUAN TRONG 3: KHONG duoc goi method khac cua LFramework (vd get_mainBattleLogic):
-// khai trong newMethodInfo thi IFix bien no thanh block VM `return null` thay vi
-// method that cua game; khong khai thi IFix khong resolve duoc. Chuong cua UI:
-// DontDestroyOnLoad(root) -> UI song qua moi scene (lobby <-> tran), khong can biet
-// dang o dau. Neu object chet (lifetime check) thi tao lai sau vai frame.
+// QUAN TRONG 3: KHONG goi method khac cua LFramework. UI DontDestroyOnLoad.
 //
-// Dieu khien: cham nut NVH goc trai duoi -> mo panel. Cham tung dong de bat/tat.
-// Trang thai ghi vao PlayerPrefs tien to "iFix.*" — cung key patch AOV dung,
-// nen menu nay dieu khien duoc ca hook cua payload that.
+// KEY PlayerPrefs (khop dung payload AOV that — hook doc cac key nay):
+//   iFix.ESP.Enabled.v1          0/1
+//   iFix.AutoBP.Enabled.v1       0/1  (bocpha)
+//   iFix.AIM.Enabled.v1          0/1
+//   iFix.AIM.TargetMode.v1       0=hp 1=percent 2=near 3=ray
+//   iFix.AIM.DrawMode.v1         0=off 1=always(/line all) 2=skill
+//   iFix.AIM.Lines.v1            1..5 so duong aim
+//   iFix.AutoSmite.Enabled.v1    0/1
+//   iFix.AutoSmite.TargetMode.v1 0=boss 1=buff 2=all
+//   iFix.Camera.Zoom.v1          float 1.0..5.0
+//   iFix.SelectedSkin.v1.<heroId> index skin 0..99 (doi model khi respawn/doi mesh)
+//   /listskin tra ten skin qua chat (doc databin game — menu khong doc duoc)
+//
+// TRANG: 0=MAIN 1=SKIN 2=AIM 3=LINE 4=SMITE 5=CAMERA
+// DONG chia 3 vung: trai = giam, giua = chon/tat, phai = tang.
 
 using System;
 using UnityEngine;
@@ -27,7 +32,7 @@ using UnityEngine.UI;
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
 // ---------------- type gia lap (IFix resolve ten) ----------------
-public struct ActorMeta { public int ConfigId; }
+public struct ActorMeta { public int ConfigId; public int SkinID; }
 public struct CrypticInt32 { public int ToInt() { return 0; } }
 public struct PoolObjHandle<T> { public uint _handleSeq; public T _handleObj; public T handle { get { return default(T); } } }
 public struct VInt3 { public int x; public int y; public int z; public static explicit operator Vector3(VInt3 v) { return default(Vector3); } }
@@ -89,15 +94,18 @@ namespace NucleusDrive.Logic
 
     public class LFramework
     {
-        // ---- field CO SAN cua game (KHONG khai trong process_cfg -> IFix
-        //      resolve ve field that, giu nguyen hanh vi goc) ----
+        // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public LFrameSynchr _frameSynchr;
 
-        // ---- field moi (khai trong process_cfg, sinh tu chinh file nay) ----
+        // ---- field moi ----
         public bool  __mInit;
         public bool  __mOpen;
-        public int   __mFrame;      // Time.frameCount da xu ly (chong goi lap)
-        public int   __mRetry;      // so frame cho truoc khi tao lai UI
+        public int   __mFrame;      // chong goi lap
+        public int   __mRetry;      // cho scene on dinh
+        public int   __mPage;       // trang hien tai
+        public int   __mHero;       // heroId dang chinh skin
+        public int   __mSkin;       // index skin dang chinh
+        public int   __mDirty;      // co phai ve lai chu
         public float __mX;
         public float __mY;
         public object __mRoot;
@@ -107,27 +115,21 @@ namespace NucleusDrive.Logic
         public object __mLabels;
         public object __mFont;
 
-        /// <summary>Toan bo menu nam trong 1 method — IFix chi patch method nay.</summary>
+        /// <summary>Toan bo menu nam trong 1 method.</summary>
         public LFrameSynchr get_frameSynchr()
         {
-            // Giu nguyen hanh vi goc: tra ve dung field cua game.
             LFrameSynchr fs = _frameSynchr;
 
             // ===== 0. CHAN GOI LAP =====
-            // Vao tran, method nay bi goi nhieu lan moi frame. Chi xu ly 1
-            // lan/frame, cac lan sau thoat ngay de khong lam game dung hinh.
             int nowFrame = Time.frameCount;
             if (nowFrame == __mFrame) return fs;
             __mFrame = nowFrame;
 
-            // UI con song khong? Ep kieu ve GameObject de dung lifetime check
-            // cua UnityEngine.Object (null-check thuong KHONG bat duoc object da huy).
             GameObject root = null;
             if (__mRoot != null) root = (GameObject)__mRoot;
 
             if (!__mInit || root == null)
             {
-                // Xoa sach reference co the da chet, tranh dung lai do rac.
                 __mRoot = null;
                 __mCanvas = null;
                 __mPanel = null;
@@ -136,21 +138,22 @@ namespace NucleusDrive.Logic
                 __mFont = null;
                 __mOpen = false;
 
-                // Cho vai frame cho scene on dinh roi moi dung UI.
                 __mRetry++;
                 if (__mRetry < 15) return fs;
                 __mRetry = 0;
 
-                // Font BAT BUOC: Text khong co font nem NullReference moi frame.
                 Font fnt = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
-                if (fnt == null) return fs;      // khong co font -> bo qua UI, game chay binh thuong
+                if (fnt == null) return fs;
                 __mFont = fnt;
 
                 if (!__mInit)
                 {
-                    // Vi tri nut goc trai duoi. Panel nam NGAY TREN nut.
                     __mX = 60f;
                     __mY = 60f;
+                    __mPage = 0;
+                    __mHero = 111;
+                    __mSkin = 0;
+                    __mDirty = 1;
                 }
                 __mInit = true;
 
@@ -163,8 +166,6 @@ namespace NucleusDrive.Logic
                     cv.sortingOrder = 32000;
                 }
                 __mCanvas = cv;
-
-                // Giu UI qua cac dot nap lai scene (lobby <-> tran).
                 UnityEngine.Object.DontDestroyOnLoad(root);
 
                 // ---- nut mo menu ----
@@ -198,7 +199,7 @@ namespace NucleusDrive.Logic
                     btx.raycastTarget = false;
                 }
 
-                // ---- panel (nam ngay tren nut) ----
+                // ---- panel 10 dong ----
                 GameObject panel = new GameObject("NVHPanel",
                     new Type[] { typeof(RectTransform), typeof(Image) });
                 panel.transform.SetParent(root.transform, false);
@@ -209,7 +210,7 @@ namespace NucleusDrive.Logic
                     prt.anchorMax = new Vector2(0f, 0f);
                     prt.pivot = new Vector2(0f, 0f);
                     prt.anchoredPosition = new Vector2(__mX - 32f, __mY + 40f);
-                    prt.sizeDelta = new Vector2(280f, 270f);
+                    prt.sizeDelta = new Vector2(300f, 440f);
                 }
                 Image pi = (Image)panel.GetComponent(typeof(Image));
                 if (pi != null) pi.color = new Color(0.04f, 0.04f, 0.07f, 0.93f);
@@ -217,9 +218,8 @@ namespace NucleusDrive.Logic
                 __mOpen = false;
                 __mPanel = panel;
 
-                // ---- 6 dong ----
-                Text[] lb = new Text[6];
-                for (int k = 0; k < 6; k++)
+                Text[] lb = new Text[10];
+                for (int k = 0; k < 10; k++)
                 {
                     GameObject row = new GameObject("row" + k,
                         new Type[] { typeof(RectTransform), typeof(Text) });
@@ -241,14 +241,12 @@ namespace NucleusDrive.Logic
                         tx.alignment = TextAnchor.MiddleLeft;
                         tx.color = new Color(0.9f, 0.95f, 1f, 1f);
                         tx.raycastTarget = false;
-                        tx.text = "ROW " + k;
+                        tx.text = "";
                     }
                     lb[k] = tx;
                 }
                 __mLabels = lb;
                 __mRoot = root;
-
-                // Tao xong thi khong xu ly cham trong chinh frame nay.
                 return fs;
             }
 
@@ -260,82 +258,222 @@ namespace NucleusDrive.Logic
             int tc = Input.touchCount;
             if (tc > 0)
             {
-                int lim = tc > 2 ? 2 : tc;      // toi da 2 ngon, tranh vong lap nang
+                int lim = tc > 2 ? 2 : tc;
                 for (int i = 0; i < lim; i++)
                 {
                     Touch t = Input.GetTouch(i);
-                    if (t.phase != TouchPhase.Began) continue;
 
-                    // 1) cham nut NVH -> dong/mo panel
+                    // cham nut NVH -> dong/mo panel
                     float dx = t.position.x - __mX;
                     float dy = t.position.y - __mY;
-                    if (dx * dx + dy * dy < 40f * 40f)
+                    if (t.phase == TouchPhase.Began && dx * dx + dy * dy < 40f * 40f)
                     {
                         __mOpen = !__mOpen;
                         panelGo.SetActive(__mOpen);
+                        __mDirty = 1;
                         break;
                     }
 
-                    // 2) cham vao dong trong panel -> bat/tat tinh nang
-                    if (__mOpen)
-                    {
-                        RectTransform prt2 =
-                            (RectTransform)panelGo.GetComponent(typeof(RectTransform));
-                        if (prt2 != null)
-                        {
-                            Vector2 lp = default(Vector2);
-                            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                                    prt2, t.position, null, out lp))
-                            {
-                                Rect rr = prt2.rect;
-                                if (lp.x >= rr.xMin - 20f && lp.x <= rr.xMax + 20f
-                                    && lp.y >= rr.yMin && lp.y <= rr.yMax)
-                                {
-                                    int row = (int)((rr.yMax - lp.y - 10f) / 42f);
+                    if (!__mOpen) continue;
 
-                                    if (row == 0)
-                                    {
-                                        int v = PlayerPrefs.GetInt("iFix.ESP.Enabled.v1", 0);
-                                        PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v == 0 ? 1 : 0);
-                                    }
-                                    else if (row == 1)
-                                    {
-                                        float z = PlayerPrefs.GetFloat("iFix.Camera.Zoom.v1", 1.6f);
-                                        z += 0.2f;
-                                        if (z > 5.05f) z = 1.0f;
-                                        PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", z);
-                                    }
-                                    else if (row == 2)
-                                    {
-                                        int v = PlayerPrefs.GetInt("iFix.AIM.Enabled.v1", 0);
-                                        PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v == 0 ? 1 : 0);
-                                    }
-                                    else if (row == 3)
-                                    {
-                                        int v = PlayerPrefs.GetInt("iFix.Privacy.Off.v1", 0);
-                                        PlayerPrefs.SetInt("iFix.Privacy.Off.v1", v == 0 ? 1 : 0);
-                                    }
-                                    else if (row == 4)
-                                    {
-                                        int v = PlayerPrefs.GetInt("iFix.FakeHost.v1", 0);
-                                        PlayerPrefs.SetInt("iFix.FakeHost.v1", v == 0 ? 1 : 0);
-                                    }
-                                    else if (row == 5)
-                                    {
-                                        int v = PlayerPrefs.GetInt("iFix.AutoSmite.Enabled.v1", 0);
-                                        PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v == 0 ? 1 : 0);
-                                    }
-                                    PlayerPrefs.Save();
-                                    break;
-                                }
+                    // slider camera cho ke lien (Moved), con lai chi nhan Began
+                    if (t.phase != TouchPhase.Began
+                        && !(__mPage == 5 && t.phase == TouchPhase.Moved)) continue;
+
+                    RectTransform prt2 =
+                        (RectTransform)panelGo.GetComponent(typeof(RectTransform));
+                    if (prt2 == null) continue;
+
+                    Vector2 lp = default(Vector2);
+                    if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                            prt2, t.position, null, out lp)) continue;
+
+                    Rect rr = prt2.rect;
+                    if (lp.x < rr.xMin - 20f || lp.x > rr.xMax + 20f) continue;
+                    if (lp.y < rr.yMin || lp.y > rr.yMax) continue;
+
+                    int row = (int)((rr.yMax - lp.y - 10f) / 42f);
+
+                    // chia 3 vung: 0=trai (giam), 1=giua, 2=phai (tang)
+                    int act = 1;
+                    if (lp.x < rr.xMin + 96f) act = 0;
+                    else if (lp.x > rr.xMax - 96f) act = 2;
+
+                    // ===== xu ly theo trang =====
+                    if (__mPage == 0)
+                    {
+                        // MAIN
+                        if (row == 1)
+                        {
+                            int v = PlayerPrefs.GetInt("iFix.ESP.Enabled.v1", 0);
+                            PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v == 0 ? 1 : 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 2)
+                        {
+                            int v = PlayerPrefs.GetInt("iFix.AutoBP.Enabled.v1", 0);
+                            PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v == 0 ? 1 : 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 3)
+                        {
+                            __mPage = 1;
+                            __mSkin = PlayerPrefs.GetInt(
+                                "iFix.SelectedSkin.v1." + __mHero, 0);
+                            __mDirty = 1;
+                        }
+                        else if (row == 4) { __mPage = 2; __mDirty = 1; }
+                        else if (row == 5) { __mPage = 3; __mDirty = 1; }
+                        else if (row == 6) { __mPage = 4; __mDirty = 1; }
+                        else if (row == 7) { __mPage = 5; __mDirty = 1; }
+                    }
+                    else if (__mPage == 1)
+                    {
+                        // SKIN: heroId + index 0..99
+                        if (row == 0) { __mPage = 0; __mDirty = 1; }
+                        else if (row == 1)
+                        {
+                            if (act == 0 && __mHero > 1) __mHero--;
+                            else if (act == 2) __mHero++;
+                            __mSkin = PlayerPrefs.GetInt(
+                                "iFix.SelectedSkin.v1." + __mHero, 0);
+                            __mDirty = 1;
+                        }
+                        else if (row == 2)
+                        {
+                            if (act == 0 && __mSkin > 0) __mSkin--;
+                            else if (act == 2 && __mSkin < 99) __mSkin++;
+                            else if (act == 1 && __mSkin >= 0 && __mSkin <= 99)
+                            {
+                                // cham giua: ap dung luon
                             }
+                            PlayerPrefs.SetInt("iFix.SelectedSkin.v1." + __mHero, __mSkin);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                    }
+                    else if (__mPage == 2)
+                    {
+                        // AIM
+                        if (row == 0) { __mPage = 0; __mDirty = 1; }
+                        else if (row == 1)
+                        {
+                            int v = PlayerPrefs.GetInt("iFix.AIM.Enabled.v1", 0);
+                            PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v == 0 ? 1 : 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 2)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 3)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", 1);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 4)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", 2);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 5)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", 3);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 6)
+                        {
+                            int ln = PlayerPrefs.GetInt("iFix.AIM.Lines.v1", 1);
+                            if (act == 0 && ln > 1) ln--;
+                            else if (act == 2 && ln < 5) ln++;
+                            PlayerPrefs.SetInt("iFix.AIM.Lines.v1", ln);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                    }
+                    else if (__mPage == 3)
+                    {
+                        // LINE (DrawMode)
+                        if (row == 0) { __mPage = 0; __mDirty = 1; }
+                        else if (row == 1)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 2)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", 1);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 3)
+                        {
+                            PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", 2);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                    }
+                    else if (__mPage == 4)
+                    {
+                        // SMITE (trungtri)
+                        if (row == 0) { __mPage = 0; __mDirty = 1; }
+                        else if (row == 1)
+                        {
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", 0);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 2)
+                        {
+                            PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", 0);
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", 1);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 3)
+                        {
+                            PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", 1);
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", 1);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                        else if (row == 4)
+                        {
+                            PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", 2);
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", 1);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
+                        }
+                    }
+                    else if (__mPage == 5)
+                    {
+                        // CAMERA: thanh keo
+                        if (row == 0) { __mPage = 0; __mDirty = 1; }
+                        else if (row == 1)
+                        {
+                            float pct = (lp.x - rr.xMin) / 276f;
+                            if (pct < 0f) pct = 0f;
+                            if (pct > 1f) pct = 1f;
+                            float zv = 1.0f + pct * 4.0f;
+                            zv = (int)(zv * 10f + 0.5f) / 10f;
+                            PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", zv);
+                            PlayerPrefs.Save();
+                            __mDirty = 1;
                         }
                     }
                 }
             }
 
-            // ---- nut phan hoi input ----
-            // xanh duong: roi | vang: dang cham (xac nhan touch song)
+            // nut vang khi dang cham (xac nhan touch song)
             if (__mBtn != null)
             {
                 GameObject btnGo = (GameObject)__mBtn;
@@ -350,26 +488,111 @@ namespace NucleusDrive.Logic
                 }
             }
 
-            // ===== 3. cap nhat chu — CHI khi panel mo =====
-            // Panel dong thi khong cap nhat: tranh cap phat chuoi moi frame
-            // (GC spike) va tranh cham vao Text khong can thiet.
-            if (__mOpen && __mLabels != null)
+            // ===== 3. ve lai chu — CHI khi mo + co thay doi =====
+            if (__mOpen && __mDirty != 0 && __mLabels != null)
             {
+                __mDirty = 0;
                 Text[] lb2 = (Text[])__mLabels;
-                if (lb2 != null && lb2[0] != null)
+                if (lb2 == null || lb2[0] == null) return fs;
+
+                bool espOn = PlayerPrefs.GetInt("iFix.ESP.Enabled.v1", 0) == 1;
+                bool bpOn = PlayerPrefs.GetInt("iFix.AutoBP.Enabled.v1", 0) == 1;
+                int aimEn = PlayerPrefs.GetInt("iFix.AIM.Enabled.v1", 0);
+                int tm = PlayerPrefs.GetInt("iFix.AIM.TargetMode.v1", 0);
+                int dm = PlayerPrefs.GetInt("iFix.AIM.DrawMode.v1", 0);
+                int lines = PlayerPrefs.GetInt("iFix.AIM.Lines.v1", 1);
+                int smEn = PlayerPrefs.GetInt("iFix.AutoSmite.Enabled.v1", 0);
+                int smTm = PlayerPrefs.GetInt("iFix.AutoSmite.TargetMode.v1", 0);
+                float zz = PlayerPrefs.GetFloat("iFix.Camera.Zoom.v1", 1.6f);
+
+                if (__mPage == 0)
                 {
-                    float zz = PlayerPrefs.GetFloat("iFix.Camera.Zoom.v1", 1.6f);
-                    lb2[0].text = "ESP      " +
-                        (PlayerPrefs.GetInt("iFix.ESP.Enabled.v1", 0) == 0 ? "OFF" : "ON");
-                    lb2[1].text = "ZOOM     " + zz + "x";
-                    lb2[2].text = "AIM      " +
-                        (PlayerPrefs.GetInt("iFix.AIM.Enabled.v1", 0) == 0 ? "OFF" : "ON");
-                    lb2[3].text = "PRIVACY  " +
-                        (PlayerPrefs.GetInt("iFix.Privacy.Off.v1", 0) == 0 ? "OFF" : "ON");
-                    lb2[4].text = "HOST     " +
-                        (PlayerPrefs.GetInt("iFix.FakeHost.v1", 0) == 0 ? "OFF" : "ON");
-                    lb2[5].text = "SMITE    " +
-                        (PlayerPrefs.GetInt("iFix.AutoSmite.Enabled.v1", 0) == 0 ? "OFF" : "ON");
+                    lb2[0].text = "NVH MOD";
+                    lb2[1].text = "ESP       " + (espOn ? "ON" : "OFF");
+                    lb2[2].text = "BOCPHA    " + (bpOn ? "ON" : "OFF");
+                    lb2[3].text = "SKIN    >";
+                    lb2[4].text = "AIM     >";
+                    lb2[5].text = "LINE    >";
+                    lb2[6].text = "SMITE   >";
+                    lb2[7].text = "CAMERA  >";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
+                }
+                else if (__mPage == 1)
+                {
+                    lb2[0].text = "< BACK        SKIN";
+                    lb2[1].text = "HERO    -   " + __mHero + "   +";
+                    lb2[2].text = "MODEL   -   " + __mSkin + "   +";
+                    lb2[3].text = "chat /listskin xem ten";
+                    lb2[4].text = "(dung khi respawn)";
+                    lb2[5].text = "";
+                    lb2[6].text = "";
+                    lb2[7].text = "";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
+                }
+                else if (__mPage == 2)
+                {
+                    lb2[0].text = "< BACK         AIM";
+                    lb2[1].text = "AIM       " + (aimEn == 1 ? "ON" : "OFF");
+                    lb2[2].text = (tm == 0 ? "> " : "  ") + "TARGET HP";
+                    lb2[3].text = (tm == 1 ? "> " : "  ") + "TARGET PCT";
+                    lb2[4].text = (tm == 2 ? "> " : "  ") + "TARGET NEAR";
+                    lb2[5].text = (tm == 3 ? "> " : "  ") + "TARGET RAY";
+                    lb2[6].text = "LINES   -   " + lines + "   +";
+                    lb2[7].text = "";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
+                }
+                else if (__mPage == 3)
+                {
+                    lb2[0].text = "< BACK        LINE";
+                    lb2[1].text = (dm == 0 ? "> " : "  ") + "OFF";
+                    lb2[2].text = (dm == 1 ? "> " : "  ") + "ALWAYS  (/line all)";
+                    lb2[3].text = (dm == 2 ? "> " : "  ") + "SKILL";
+                    lb2[4].text = "";
+                    lb2[5].text = "";
+                    lb2[6].text = "";
+                    lb2[7].text = "";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
+                }
+                else if (__mPage == 4)
+                {
+                    lb2[0].text = "< BACK       SMITE";
+                    lb2[1].text = (smEn == 0 ? "> " : "  ") + "OFF";
+                    lb2[2].text = (smEn == 1 && smTm == 0 ? "> " : "  ") + "BOSS";
+                    lb2[3].text = (smEn == 1 && smTm == 1 ? "> " : "  ") + "BUFF";
+                    lb2[4].text = (smEn == 1 && smTm == 2 ? "> " : "  ") + "ALL";
+                    lb2[5].text = "";
+                    lb2[6].text = "";
+                    lb2[7].text = "";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
+                }
+                else
+                {
+                    // CAMERA
+                    lb2[0].text = "< BACK      CAMERA";
+                    float pct = (zz - 1.0f) / 4.0f;
+                    if (pct < 0f) pct = 0f;
+                    if (pct > 1f) pct = 1f;
+                    int n = (int)(pct * 20f + 0.5f);
+                    string bar = "[";
+                    for (int k = 0; k < 20; k++)
+                    {
+                        bar = bar + (k < n ? "=" : ".");
+                    }
+                    bar = bar + "]";
+                    lb2[1].text = bar;
+                    lb2[2].text = "ZOOM  " + zz + "x";
+                    lb2[3].text = "ke tren thanh de chinh";
+                    lb2[4].text = "";
+                    lb2[5].text = "";
+                    lb2[6].text = "";
+                    lb2[7].text = "";
+                    lb2[8].text = "";
+                    lb2[9].text = "";
                 }
             }
 
