@@ -213,10 +213,8 @@ namespace NucleusDrive.Logic
                 }
                 Image pi = (Image)panel.GetComponent(typeof(Image));
                 if (pi != null) pi.color = new Color(0.04f, 0.04f, 0.07f, 0.93f);
-                // MO SAN panel luc tao de phan biet: UI render loi (khong thay
-                // panel) hay input loi (thay panel nhung bam khong tat duoc).
-                panel.SetActive(true);
-                __mOpen = true;
+                panel.SetActive(false);
+                __mOpen = false;
                 __mPanel = panel;
 
                 // ---- 6 dong ----
@@ -268,27 +266,76 @@ namespace NucleusDrive.Logic
                     Touch t = Input.GetTouch(i);
                     if (t.phase != TouchPhase.Began) continue;
 
+                    // 1) cham nut NVH -> dong/mo panel
                     float dx = t.position.x - __mX;
                     float dy = t.position.y - __mY;
-                    if (dx * dx + dy * dy < 60f * 60f)
+                    if (dx * dx + dy * dy < 40f * 40f)
                     {
                         __mOpen = !__mOpen;
                         panelGo.SetActive(__mOpen);
                         break;
                     }
+
+                    // 2) cham vao dong trong panel -> bat/tat tinh nang
+                    if (__mOpen)
+                    {
+                        RectTransform prt2 =
+                            (RectTransform)panelGo.GetComponent(typeof(RectTransform));
+                        if (prt2 != null)
+                        {
+                            Vector2 lp = default(Vector2);
+                            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                                    prt2, t.position, null, out lp))
+                            {
+                                Rect rr = prt2.rect;
+                                if (lp.x >= rr.xMin - 20f && lp.x <= rr.xMax + 20f
+                                    && lp.y >= rr.yMin && lp.y <= rr.yMax)
+                                {
+                                    int row = (int)((rr.yMax - lp.y - 10f) / 42f);
+
+                                    if (row == 0)
+                                    {
+                                        int v = PlayerPrefs.GetInt("iFix.ESP.Enabled.v1", 0);
+                                        PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v == 0 ? 1 : 0);
+                                    }
+                                    else if (row == 1)
+                                    {
+                                        float z = PlayerPrefs.GetFloat("iFix.Camera.Zoom.v1", 1.6f);
+                                        z += 0.2f;
+                                        if (z > 5.05f) z = 1.0f;
+                                        PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", z);
+                                    }
+                                    else if (row == 2)
+                                    {
+                                        int v = PlayerPrefs.GetInt("iFix.AIM.Enabled.v1", 0);
+                                        PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v == 0 ? 1 : 0);
+                                    }
+                                    else if (row == 3)
+                                    {
+                                        int v = PlayerPrefs.GetInt("iFix.Privacy.Off.v1", 0);
+                                        PlayerPrefs.SetInt("iFix.Privacy.Off.v1", v == 0 ? 1 : 0);
+                                    }
+                                    else if (row == 4)
+                                    {
+                                        int v = PlayerPrefs.GetInt("iFix.FakeHost.v1", 0);
+                                        PlayerPrefs.SetInt("iFix.FakeHost.v1", v == 0 ? 1 : 0);
+                                    }
+                                    else if (row == 5)
+                                    {
+                                        int v = PlayerPrefs.GetInt("iFix.AutoSmite.Enabled.v1", 0);
+                                        PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v == 0 ? 1 : 0);
+                                    }
+                                    PlayerPrefs.Save();
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            else if (Input.GetMouseButton(0))
-            {
-                // Du phong: cham khong doc duoc thi thu mouse (iOS sinh mouse
-                // event tu cam). Chi dung khi KHONG co touch de tranh toggle 2 lan.
-                // Chu y: toggle o MOI VI TRI bam — ban diagnosis.
-                __mOpen = !__mOpen;
-                panelGo.SetActive(__mOpen);
-            }
 
-            // ---- nut phan hoi input (diagnosis mau sac) ----
-            // xanh duong: khong co input | vang: co touch | xanh la: co mouse
+            // ---- nut phan hoi input ----
+            // xanh duong: roi | vang: dang cham (xac nhan touch song)
             if (__mBtn != null)
             {
                 GameObject btnGo = (GameObject)__mBtn;
@@ -297,11 +344,8 @@ namespace NucleusDrive.Logic
                     Image btnImg = (Image)btnGo.GetComponent(typeof(Image));
                     if (btnImg != null)
                     {
-                        Color c = new Color(0.12f, 0.65f, 1f, 0.9f);
-                        if (tc > 0) c = new Color(0.95f, 0.85f, 0.1f, 0.95f);
-                        else if (Input.GetMouseButton(0))
-                            c = new Color(0.2f, 0.9f, 0.2f, 0.95f);
-                        btnImg.color = c;
+                        if (tc > 0) btnImg.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
+                        else btnImg.color = new Color(0.12f, 0.65f, 1f, 0.9f);
                     }
                 }
             }
