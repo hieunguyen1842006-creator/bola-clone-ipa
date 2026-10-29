@@ -7,3 +7,8 @@ out/
 *.o
 *.swiftmodule
 .DS_Store
+__pycache__/
+*.pyc
+_lqharvest/
+tools/_lq_hooks.txt
+tools/_lq_keys.txt

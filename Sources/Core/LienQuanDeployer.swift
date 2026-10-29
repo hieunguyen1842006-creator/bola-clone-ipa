@@ -11,6 +11,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
     case hudFull = "hud"
     case nvhBeta = "nvhbeta"
     case unlockSkin = "unlock"
+    case fullMod = "full"
 
     public var id: String { rawValue }
 
@@ -20,6 +21,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .hudFull: return "Full HUD"
         case .nvhBeta: return "CAMXA FullSkin"
         case .unlockSkin: return "4in1 LiqiMobi"
+        case .fullMod: return "Full Mod (AOV)"
         }
     }
 
@@ -33,6 +35,8 @@ public enum LQPack: String, CaseIterable, Identifiable {
             return "FullSkin + ESP Liqi — bản 20/10 (ghi HeroSkin_1 + HeroSkin_2)"
         case .unlockSkin:
             return "Gói 4in1 LiqiMobi 16/10 (FullSkin/HUD/ESP) — HeroSkin_1 + HeroSkin_2"
+        case .fullMod:
+            return "32 hook: FullSkin, ESP xuyên tường, aim assist, zoom, tắt privacy, giả host, auto BP/Smite, chat trận. Guard đã gỡ. Điều khiển bằng lệnh chat /skin /aim /esp /camera"
         }
     }
 
@@ -42,6 +46,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .hudFull: return "rectangle.on.rectangle"
         case .nvhBeta: return "bolt.fill"
         case .unlockSkin: return "paintpalette"
+        case .fullMod: return "flame.fill"
         }
     }
 
@@ -52,6 +57,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .hudFull: return "LQHud"
         case .nvhBeta: return "NVHLQ"
         case .unlockSkin: return "LQUnlock"
+        case .fullMod: return "LQFull"
         }
     }
 

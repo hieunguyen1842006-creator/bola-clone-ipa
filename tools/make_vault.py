@@ -27,6 +27,7 @@ TARGETS = [
     ("LQHud.bytes", "LQHud.vault"),
     ("LQUnlock.bytes", "LQUnlock.vault"),
     ("NVHLQ.bytes", "NVHLQ.vault"),
+    ("LQFull.bytes", "LQFull.vault"),
 ]
 
 
