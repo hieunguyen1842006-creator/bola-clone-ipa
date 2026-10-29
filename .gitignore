@@ -12,3 +12,7 @@ __pycache__/
 _lqharvest/
 tools/_lq_hooks.txt
 tools/_lq_keys.txt
+
+_lqmenu/*.dll
+_lqmenu/*.bytes
+_lqmenu/ifix_work/
