@@ -45,6 +45,8 @@ OP_RET = 0xAD
 ASM_PROJECT = "Project_d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
 ASM_MSCORLIB = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
 ASM_UNITY_CORE = "UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+# COM_USER_PRIVACY_MASK nam o AovTdr (namespace CSProtocol)
+ASM_AOVTDR = "AovTdr, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
 
 T_BRIDGE = f"IFix.ILFixInterfaceBridge, {ASM_PROJECT}"
 T_BOOL = f"System.Boolean, {ASM_MSCORLIB}"
@@ -55,7 +57,7 @@ T_STRING = f"System.String, {ASM_MSCORLIB}"
 T_CAMSYS = f"CameraSystem, {ASM_PROJECT}"
 T_PREFS = f"UnityEngine.PlayerPrefs, {ASM_UNITY_CORE}"
 T_ROLEMGR = f"Assets.Scripts.GameSystem.CRoleInfoManager, {ASM_PROJECT}"
-T_PRIVMASK = f"Assets.Scripts.GameSystem.COM_USER_PRIVACY_MASK, {ASM_PROJECT}"
+T_PRIVMASK = f"CSProtocol.COM_USER_PRIVACY_MASK, {ASM_AOVTDR}"
 T_PROFILE = f"Assets.Scripts.GameSystem.CPlayerProfile, {ASM_PROJECT}"
 WRAPPER_IMPL = f"IFix.WrappersManagerImpl, {ASM_PROJECT}"
 IDMAP_IMPL = f", {ASM_PROJECT}"

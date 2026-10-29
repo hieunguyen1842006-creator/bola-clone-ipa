@@ -55,6 +55,8 @@ NAMES = {v: k for k, v in OP.items()}
 A_PROJECT = "Project_d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
 A_MSCORLIB = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
 A_UNITY_CORE = "UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+# COM_USER_PRIVACY_MASK nam o AovTdr (namespace CSProtocol), KHONG phai Project_d
+A_AOVTDR = "AovTdr, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
 
 T_BRIDGE = f"IFix.ILFixInterfaceBridge, {A_PROJECT}"
 T_BOOL = f"System.Boolean, {A_MSCORLIB}"
@@ -65,7 +67,7 @@ T_STRING = f"System.String, {A_MSCORLIB}"
 T_CAMSYS = f"CameraSystem, {A_PROJECT}"
 T_PREFS = f"UnityEngine.PlayerPrefs, {A_UNITY_CORE}"
 T_ROLEMGR = f"Assets.Scripts.GameSystem.CRoleInfoManager, {A_PROJECT}"
-T_PRIVMASK = f"Assets.Scripts.GameSystem.COM_USER_PRIVACY_MASK, {A_PROJECT}"
+T_PRIVMASK = f"CSProtocol.COM_USER_PRIVACY_MASK, {A_AOVTDR}"
 T_PROFILE = f"Assets.Scripts.GameSystem.CPlayerProfile, {A_PROJECT}"
 
 WRAPPER = f"IFix.WrappersManagerImpl, {A_PROJECT}"

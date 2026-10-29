@@ -580,6 +580,30 @@ check("assemblyOf trả nil với container rỗng (không parse được)",
 check("blob tự sinh parse lại giữ nguyên bridge",
       (try? Lqmb.parse((try? Lqmb.serialize(genPatch)) ?? []))?.bridge == genPatch.bridge)
 
+// Type string phải khớp CHÍNH XÁC với game — sai namespace/assembly là game treo.
+print("=== LqGenerator — type string khớp game ===")
+check("CameraSystem ở Project_d",
+      LqGenerator.tCamSys == "CameraSystem, Project_d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+      LqGenerator.tCamSys)
+check("PlayerPrefs ở UnityEngine.CoreModule",
+      LqGenerator.tPrefs.hasPrefix("UnityEngine.PlayerPrefs, UnityEngine.CoreModule,"),
+      LqGenerator.tPrefs)
+check("CRoleInfoManager ở Project_d",
+      LqGenerator.tRoleMgr.hasPrefix("Assets.Scripts.GameSystem.CRoleInfoManager, Project_d,"),
+      LqGenerator.tRoleMgr)
+check("CPlayerProfile ở Project_d",
+      LqGenerator.tProfile.hasPrefix("Assets.Scripts.GameSystem.CPlayerProfile, Project_d,"),
+      LqGenerator.tProfile)
+// BUG ĐÃ SỬA: COM_USER_PRIVACY_MASK ở CSProtocol/AovTdr, không phải Project_d
+check("COM_USER_PRIVACY_MASK ở CSProtocol + AovTdr (không phải Project_d)",
+      LqGenerator.tPrivMask == "CSProtocol.COM_USER_PRIVACY_MASK, AovTdr, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+      LqGenerator.tPrivMask)
+check("patch privacy dùng đúng type mask",
+      fullPatch?.types.contains(LqGenerator.tPrivMask) ?? false,
+      (fullPatch?.types ?? []).filter { $0.contains("PRIVACY") }.joined(separator: ","))
+check("GetFloat khai 2 param (String, Single)",
+      fullPatch?.methods.first { $0.name == "GetFloat" }.map { $0.params.count == 2 } ?? false)
+
 print("")
 print("checks: \(checks) | failures: \(failures)")
 exit(failures == 0 ? 0 : 1)
