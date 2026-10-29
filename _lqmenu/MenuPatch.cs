@@ -106,12 +106,14 @@ namespace NucleusDrive.Logic
         public int   __mHero;       // heroId dang chinh skin
         public int   __mSkin;       // index skin dang chinh
         public int   __mDirty;      // co phai ve lai chu
+        public int   __mAlive;      // da chay qua doan input it nhat 1 lan
         public float __mX;
         public float __mY;
         public object __mRoot;
         public object __mCanvas;
         public object __mPanel;
         public object __mBtn;
+        public object __mBtnText;
         public object __mLabels;
         public object __mFont;
 
@@ -198,6 +200,7 @@ namespace NucleusDrive.Logic
                     btx.color = Color.white;
                     btx.raycastTarget = false;
                 }
+                __mBtnText = btx;
 
                 // ---- panel 10 dong ----
                 GameObject panel = new GameObject("NVHPanel",
@@ -256,17 +259,42 @@ namespace NucleusDrive.Logic
             if (panelGo == null) return fs;
 
             int tc = Input.touchCount;
+
+            // ===== DIAGNOSIS: phan hoi NGAY, truoc moi xu ly =====
+            // vang = co touch (tc>0) | xanh duong = khong
+            // chu nut NVH -> OK sau khi doan input chay qua 1 lan khong loi
+            if (__mBtn != null)
+            {
+                GameObject btnGo = (GameObject)__mBtn;
+                if (btnGo != null)
+                {
+                    Image btnImg = (Image)btnGo.GetComponent(typeof(Image));
+                    if (btnImg != null)
+                    {
+                        if (tc > 0) btnImg.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
+                        else btnImg.color = new Color(0.12f, 0.65f, 1f, 0.9f);
+                    }
+                }
+            }
+            if (__mAlive == 0 && __mBtnText != null)
+            {
+                Text btx2 = (Text)__mBtnText;
+                if (btx2 != null) btx2.text = "OK";
+                __mAlive = 1;
+            }
+
             if (tc > 0)
             {
                 int lim = tc > 2 ? 2 : tc;
                 for (int i = 0; i < lim; i++)
                 {
                     Touch t = Input.GetTouch(i);
+                    if (t.phase != TouchPhase.Began) continue;
 
                     // cham nut NVH -> dong/mo panel
                     float dx = t.position.x - __mX;
                     float dy = t.position.y - __mY;
-                    if (t.phase == TouchPhase.Began && dx * dx + dy * dy < 40f * 40f)
+                    if (dx * dx + dy * dy < 40f * 40f)
                     {
                         __mOpen = !__mOpen;
                         panelGo.SetActive(__mOpen);
@@ -275,10 +303,6 @@ namespace NucleusDrive.Logic
                     }
 
                     if (!__mOpen) continue;
-
-                    // slider camera cho ke lien (Moved), con lai chi nhan Began
-                    if (t.phase != TouchPhase.Began
-                        && !(__mPage == 5 && t.phase == TouchPhase.Moved)) continue;
 
                     RectTransform prt2 =
                         (RectTransform)panelGo.GetComponent(typeof(RectTransform));
@@ -469,21 +493,6 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.Save();
                             __mDirty = 1;
                         }
-                    }
-                }
-            }
-
-            // nut vang khi dang cham (xac nhan touch song)
-            if (__mBtn != null)
-            {
-                GameObject btnGo = (GameObject)__mBtn;
-                if (btnGo != null)
-                {
-                    Image btnImg = (Image)btnGo.GetComponent(typeof(Image));
-                    if (btnImg != null)
-                    {
-                        if (tc > 0) btnImg.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
-                        else btnImg.color = new Color(0.12f, 0.65f, 1f, 0.9f);
                     }
                 }
             }
