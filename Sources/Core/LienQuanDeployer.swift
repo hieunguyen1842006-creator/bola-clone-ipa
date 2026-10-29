@@ -200,6 +200,99 @@ public final class LienQuanDeployer {
         }.sorted()
     }
 
+    /// Có hook nào trong danh sách tên cần thiết không.
+    static func hasHook(_ pf: Lqmb.Patch, _ suffix: String) -> Bool {
+        pf.interpret.contains { pf.qualifiedName($0.method).hasSuffix(suffix) }
+    }
+
+    /// Ghi patch **tự sinh** vào `HeroSkin_1.bytes`: không cần file mod của ai.
+    ///
+    /// Khác `installRuntime`: hàm này không đọc IL gốc để sửa, mà tự dựng patch
+    /// tối giản chỉ chứa đúng hook cần dùng (xem `LqGenerator`). Dùng khi file
+    /// trong máy là bản vanilla của game (không có hook nào để sửa).
+    @discardableResult
+    public func installGenerated(config: LqConfig) -> InstallOutcome {
+        guard let pf = LqGenerator.makePatch(config) else {
+            return .bad("Chưa chọn tuỳ chọn nào để tạo patch")
+        }
+        let check = LqGenerator.verify(pf)
+        guard check.ok else {
+            log("lq: patch tự sinh KHÔNG hợp lệ — \(check.detail)")
+            return .bad("Patch tự sinh lỗi: \(check.detail)")
+        }
+        log("lq: tự sinh patch — \(check.detail) [\(LqGenerator.summary(pf))]")
+
+        do {
+            let target = try resolveTarget()
+            let rel = "\(target.relativePath)/\(Self.targetFileName)"
+            let resName = ResD.resName(forFile: Self.targetFileName)
+
+            // Backup bản đang có (nếu chưa backup lần nào).
+            if let cur = (try? access.read(relativePath: rel, in: game)) ?? nil {
+                try rememberOriginal(cur, version: target.version, name: Self.targetFileName)
+            }
+
+            guard let blob = try? Lqmb.serialize(pf) else {
+                return .bad("Serialize patch thất bại")
+            }
+            let out = ResD.encrypt(blob, resName: resName, tag: 103)
+            try access.write(Data(out), toRelative: rel, in: game)
+
+            guard let back = (try? access.read(relativePath: rel, in: game)) ?? nil,
+                  back == Data(out) else {
+                return .bad("Ghi xong nhưng đọc lại không khớp — thử lại")
+            }
+
+            let d = UserDefaults.standard
+            d.set(target.version, forKey: Self.versionKey + game.bundleID)
+            d.set([Self.targetFileName], forKey: Self.filesKey + game.bundleID)
+            d.set(SHA256.hex(out), forKey: Self.shaKey + game.bundleID + "." + Self.targetFileName)
+
+            var rep = LqPatchReport()
+            rep.zoomSites = LqPatcher.blocks(hookedTo: "CameraSystem::GetZoomRate", in: pf).count
+            rep.privacySites = LqPatcher.blocks(hookedTo: "CRoleInfoManager::IsPrivaceOn", in: pf).count
+            rep.hostSites = LqPatcher.blocks(hookedTo: "CPlayerProfile::get_IsHostProfile", in: pf).count
+
+            log("lq: ghi patch tự sinh → \(rel) (\(out.count) B, \(rep.summary))")
+            return .good("Đã tạo patch \(rep.summary) — mở game để áp dụng")
+        } catch {
+            let msg = (error as? LQError)?.description ?? error.localizedDescription
+            log("lq: tạo patch lỗi — \(msg)")
+            return .bad(msg)
+        }
+    }
+
+    /// Patch thông minh: thử sửa file có sẵn trước; nếu file không có hook nào
+    /// dùng được (bản vanilla) thì tự sinh patch từ zero.
+    @discardableResult
+    public func installSmart(config: LqConfig) -> InstallOutcome {
+        // Kiểm tra nhanh xem file trong máy có hook cần thiết không.
+        if let target = try? resolveTarget(),
+           let entries = try? access.list(target.relativePath, in: game) {
+            let names = Self.patchableFiles(in: entries)
+            for name in names {
+                let rel = "\(target.relativePath)/\(name)"
+                guard let cur = (try? access.read(relativePath: rel, in: game)) ?? nil,
+                      let c = try? ResD.decrypt([UInt8](cur),
+                                                resName: ResD.resName(forFile: name)),
+                      let pf = try? Lqmb.parse(c.plain) else { continue }
+                let want: [String] = (config.zoom ?? 0) > 0
+                    ? ["CameraSystem::GetZoomRate"] : []
+                let needPrivacy = config.privacyOff == true
+                let needHost = config.fakeHost != nil
+                let have = want.allSatisfy { hasHook(pf, $0) }
+                    && (!needPrivacy || hasHook(pf, "CRoleInfoManager::IsPrivaceOn"))
+                    && (!needHost || hasHook(pf, "CPlayerProfile::get_IsHostProfile"))
+                if have {
+                    log("lq: \(name) có đủ hook → sửa tại chỗ")
+                    return installRuntime(config: config)
+                }
+            }
+        }
+        log("lq: file trong máy là bản gốc (không có hook) → tự sinh patch")
+        return installGenerated(config: config)
+    }
+
     /// Patch tại chỗ các file `HeroSkin_*.bytes` **đang có trong máy game**:
     /// giải mã ResD → parse IFix → sửa theo `config` → serialize (byte-exact) →
     /// mã hoá lại → ghi đè. Bản gốc được backup trước khi ghi.

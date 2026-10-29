@@ -18,6 +18,7 @@ let package = Package(
                 "Core/ResD.swift",
                 "Core/LqmbFormat.swift",
                 "Core/LqPatcher.swift",
+                "Core/LqGenerator.swift",
                 "Core/BolaConfig.swift",
                 "Core/PatchTrailer.swift",
                 "Core/Models.swift",

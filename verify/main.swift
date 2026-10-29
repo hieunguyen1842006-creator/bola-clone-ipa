@@ -516,6 +516,54 @@ check("gói bundled vẫn trỏ vault đúng",
         && LQPack.nvhBeta.vaultResource == "NVHLQ"
         && LQPack.unlockSkin.vaultResource == "LQUnlock")
 
+print("=== LqGenerator — sinh patch tu zero ===")
+var genCfg = LqConfig()
+genCfg.zoom = 2.0
+let genPatch = LqGenerator.zoomPatch(zoom: 2.0)
+check("zoomPatch sinh được 1 block + 1 hook",
+      genPatch.blocks.count == 1 && genPatch.interpret.count == 1,
+      "blocks=\(genPatch.blocks.count) hooks=\(genPatch.interpret.count)")
+check("hook trỏ đúng CameraSystem::GetZoomRate",
+      genPatch.interpret.first.map {
+          genPatch.qualifiedName($0.method) == "CameraSystem::GetZoomRate"
+      } ?? false,
+      genPatch.interpret.first.map { genPatch.qualifiedName($0.method) } ?? "nil")
+let genCheck = LqGenerator.verify(genPatch)
+check("patch tự sinh verify OK (round-trip byte-exact)", genCheck.ok, genCheck.detail)
+check("blob tự sinh bắt đầu bằng magic LQMB",
+      ((try? Lqmb.serialize(genPatch))?.prefix(8)).map(Array.init) == Lqmb.magicLqmb)
+check("IL zoom có Ldc_R4 = bits của 2.0f",
+      genPatch.blocks.first?.instrs.contains(Int32(bitPattern: Float(2.0).bitPattern)) ?? false)
+check("IL zoom gọi PlayerPrefs::GetFloat",
+      genPatch.methods.contains { $0.name == "GetFloat" })
+check("IL zoom gọi CameraSystem::get_ZoomRateFromAge",
+      genPatch.methods.contains { $0.name == "get_ZoomRateFromAge" })
+check("key PlayerPrefs nằm trong strings",
+      genPatch.strings.contains(LqGenerator.zoomPrefKey),
+      genPatch.strings.joined(separator: ","))
+
+var fullCfg = LqConfig()
+fullCfg.zoom = 3.0
+fullCfg.privacyOff = true
+fullCfg.fakeHost = true
+let fullPatch = LqGenerator.makePatch(fullCfg)
+check("makePatch đủ 3 tính năng → 4 hook (zoom + 2 privacy + host)",
+      fullPatch?.interpret.count == 4, "\(fullPatch?.interpret.count ?? -1)")
+check("patch đầy đủ verify OK",
+      fullPatch.map { LqGenerator.verify($0).ok } ?? false)
+check("có 2 overload IsPrivaceOn",
+      fullPatch?.interpret.filter {
+          fullPatch?.qualifiedName($0.method).hasSuffix("IsPrivaceOn") ?? false
+      }.count == 2)
+check("config rỗng → makePatch trả nil", LqGenerator.makePatch(LqConfig()) == nil)
+check("ResD bọc patch tự sinh rồi giải lại khớp",
+      {
+          guard let p = fullPatch, let blob = try? Lqmb.serialize(p) else { return false }
+          let wrapped = ResD.encrypt(blob, resName: "HeroSkin_1", tag: 103)
+          guard let back = try? ResD.decrypt(wrapped, resName: "HeroSkin_1") else { return false }
+          return back.plain == blob && back.tag == 103
+      }())
+
 print("")
 print("checks: \(checks) | failures: \(failures)")
 exit(failures == 0 ? 0 : 1)
