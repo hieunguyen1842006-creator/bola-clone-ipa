@@ -282,8 +282,9 @@ public enum LqGenerator {
         guard !pf.interpret.isEmpty else { return "patch rỗng" }
         return pf.interpret.map { h in
             let name = pf.qualifiedName(h.method)
-            let short = name.split(separator: "::").last.map(String.init) ?? name
-            return short
+            // components thay cho split(separator:) — split chỉ có từ macOS 13
+            let parts = name.components(separatedBy: "::")
+            return parts.last ?? name
         }.joined(separator: ", ")
     }
 }

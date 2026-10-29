@@ -280,9 +280,9 @@ public final class LienQuanDeployer {
                     ? ["CameraSystem::GetZoomRate"] : []
                 let needPrivacy = config.privacyOff == true
                 let needHost = config.fakeHost != nil
-                let have = want.allSatisfy { hasHook(pf, $0) }
-                    && (!needPrivacy || hasHook(pf, "CRoleInfoManager::IsPrivaceOn"))
-                    && (!needHost || hasHook(pf, "CPlayerProfile::get_IsHostProfile"))
+                let have = want.allSatisfy { Self.hasHook(pf, $0) }
+                    && (!needPrivacy || Self.hasHook(pf, "CRoleInfoManager::IsPrivaceOn"))
+                    && (!needHost || Self.hasHook(pf, "CPlayerProfile::get_IsHostProfile"))
                 if have {
                     log("lq: \(name) có đủ hook → sửa tại chỗ")
                     return installRuntime(config: config)
