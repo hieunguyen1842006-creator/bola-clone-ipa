@@ -564,6 +564,22 @@ check("ResD bọc patch tự sinh rồi giải lại khớp",
           return back.plain == blob && back.tag == 103
       }())
 
+// ── assembly: patch tự sinh phải nằm trong file cùng assembly ─────────────
+print("=== LqGenerator — chọn file theo assembly ===")
+check("generatorAssembly == Project_d (nơi có CameraSystem)",
+      LienQuanDeployer.generatorAssembly == "Project_d")
+check("generatedFileName == HeroSkin_1.bytes",
+      LienQuanDeployer.generatedFileName == "HeroSkin_1.bytes")
+check("patch tự sinh khai bridge Project_d",
+      genPatch.bridge.contains(", Project_d,"),
+      genPatch.bridge)
+// assemblyOf phải đọc đúng tên assembly từ bridge
+let bridgeSample = ResD.Container(tag: 103, origLen: 0, plain: [], encrypted: true)
+check("assemblyOf trả nil với container rỗng (không parse được)",
+      LienQuanDeployer.assemblyOf(bridgeSample) == nil)
+check("blob tự sinh parse lại giữ nguyên bridge",
+      (try? Lqmb.parse((try? Lqmb.serialize(genPatch)) ?? []))?.bridge == genPatch.bridge)
+
 print("")
 print("checks: \(checks) | failures: \(failures)")
 exit(failures == 0 ? 0 : 1)

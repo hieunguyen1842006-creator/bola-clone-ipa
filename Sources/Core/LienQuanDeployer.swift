@@ -93,6 +93,16 @@ public enum LQError: Error, CustomStringConvertible {
 public final class LienQuanDeployer {
 
     public static let targetFileName = "HeroSkin_2.bytes"
+
+    /// Assembly chứa các type mà `LqGenerator` hook (`CameraSystem`,
+    /// `CRoleInfoManager`, `CPlayerProfile`). Patch tự sinh PHẢI ghi vào file
+    /// cùng assembly này — mỗi file HeroSkin thuộc một assembly khác nhau:
+    ///   HeroSkin_1 → Project_d, HeroSkin_2 → Project.Plugins_d,
+    ///   HeroSkin_3 → ResCore.Runtime, HeroSkin_4 → AovUISys.
+    /// Ghi sai file = game load patch, không tìm thấy bridge → treo.
+    public static let generatorAssembly = "Project_d"
+    /// File mặc định cho patch tự sinh (thuộc Project_d ở LQ 1.64.1).
+    public static let generatedFileName = "HeroSkin_1.bytes"
     private static let backupFolder = "NVH-LQ-Backup"
     private static let versionKey = "nvh.lq.version."
     private static let shaKey = "nvh.lq.sha."
@@ -205,11 +215,41 @@ public final class LienQuanDeployer {
         pf.interpret.contains { pf.qualifiedName($0.method).hasSuffix(suffix) }
     }
 
-    /// Ghi patch **tự sinh** vào `HeroSkin_1.bytes`: không cần file mod của ai.
+    /// Đọc assembly mà một container HeroSkin khai trong `bridge`.
+    /// Trả chuỗi ngắn gọn (`Project_d`, `Project.Plugins_d`, …) hoặc nil.
+    static func assemblyOf(_ container: ResD.Container) -> String? {
+        guard let pf = try? Lqmb.parse(container.plain) else { return nil }
+        // bridge = "IFix.ILFixInterfaceBridge, Project_d, Version=..."
+        let parts = pf.bridge.components(separatedBy: ", ")
+        return parts.count > 1 ? parts[1] : nil
+    }
+
+    /// Tìm file HeroSkin thuộc assembly `Project_d` (chứa CameraSystem…).
+    /// Trả (tên file, container) hoặc nil nếu không file nào khớp.
+    func findGeneratorTarget(in target: Target) -> (name: String, container: ResD.Container)? {
+        let entries = (try? access.list(target.relativePath, in: game)) ?? []
+        for name in Self.patchableFiles(in: entries) {
+            let rel = "\(target.relativePath)/\(name)"
+            guard let cur = (try? access.read(relativePath: rel, in: game)) ?? nil,
+                  let c = try? ResD.decrypt([UInt8](cur),
+                                            resName: ResD.resName(forFile: name)),
+                  let asm = Self.assemblyOf(c) else { continue }
+            if asm.hasPrefix(Self.generatorAssembly) {
+                return (name, c)
+            }
+        }
+        return nil
+    }
+
+    /// Ghi patch **tự sinh** vào file HeroSkin cùng assembly với type được hook.
     ///
     /// Khác `installRuntime`: hàm này không đọc IL gốc để sửa, mà tự dựng patch
     /// tối giản chỉ chứa đúng hook cần dùng (xem `LqGenerator`). Dùng khi file
     /// trong máy là bản vanilla của game (không có hook nào để sửa).
+    ///
+    /// QUAN TRỌNG: mỗi file HeroSkin thuộc một assembly khác nhau. Patch khai
+    /// bridge `Project_d` nên phải nằm trong file cũng thuộc `Project_d`
+    /// (HeroSkin_1), nếu ghi sang HeroSkin_2 (Project.Plugins_d) game sẽ treo.
     @discardableResult
     public func installGenerated(config: LqConfig) -> InstallOutcome {
         guard let pf = LqGenerator.makePatch(config) else {
@@ -224,12 +264,23 @@ public final class LienQuanDeployer {
 
         do {
             let target = try resolveTarget()
-            let rel = "\(target.relativePath)/\(Self.targetFileName)"
-            let resName = ResD.resName(forFile: Self.targetFileName)
+
+            // Chọn file cùng assembly; nếu không file nào khớp thì dùng file mặc định.
+            let chosen: String
+            if let hit = findGeneratorTarget(in: target) {
+                chosen = hit.name
+                log("lq: chọn \(chosen) (assembly \(Self.generatorAssembly))")
+            } else {
+                chosen = Self.generatedFileName
+                log("lq: không thấy file thuộc \(Self.generatorAssembly) — dùng \(chosen)")
+            }
+
+            let rel = "\(target.relativePath)/\(chosen)"
+            let resName = ResD.resName(forFile: chosen)
 
             // Backup bản đang có (nếu chưa backup lần nào).
             if let cur = (try? access.read(relativePath: rel, in: game)) ?? nil {
-                try rememberOriginal(cur, version: target.version, name: Self.targetFileName)
+                try rememberOriginal(cur, version: target.version, name: chosen)
             }
 
             guard let blob = try? Lqmb.serialize(pf) else {
@@ -245,8 +296,8 @@ public final class LienQuanDeployer {
 
             let d = UserDefaults.standard
             d.set(target.version, forKey: Self.versionKey + game.bundleID)
-            d.set([Self.targetFileName], forKey: Self.filesKey + game.bundleID)
-            d.set(SHA256.hex(out), forKey: Self.shaKey + game.bundleID + "." + Self.targetFileName)
+            d.set([chosen], forKey: Self.filesKey + game.bundleID)
+            d.set(SHA256.hex(out), forKey: Self.shaKey + game.bundleID + "." + chosen)
 
             var rep = LqPatchReport()
             rep.zoomSites = LqPatcher.blocks(hookedTo: "CameraSystem::GetZoomRate", in: pf).count
