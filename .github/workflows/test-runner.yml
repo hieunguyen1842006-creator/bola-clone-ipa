@@ -1,0 +1,11 @@
+name: Test Runner
+on: push
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok ubuntu
+  m:
+    runs-on: macos-14
+    steps:
+      - run: echo ok macos
