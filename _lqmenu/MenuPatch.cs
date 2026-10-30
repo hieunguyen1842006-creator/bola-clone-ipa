@@ -1,4 +1,4 @@
-﻿// NVH LQ MENU — menu cam ung da trang trong game (IFix patch, hook LFramework.get_frameSynchr)
+﻿﻿// NVH LQ MENU — menu cam ung da trang trong game (IFix patch, hook LFramework.get_frameSynchr)
 //
 // QUAN TRONG 1: IFix CHI patch dung nhung method khai trong process_cfg. Moi method
 // khac duoc goi tu trong do se tro vao DLL goc (khong ton tai) -> crash.
@@ -24,6 +24,16 @@
 //
 // TRANG: 0=MAIN 1=SKIN 2=AIM 3=LINE 4=SMITE 5=CAMERA
 // DONG chia 3 vung: trai = giam, giua = chon/tat, phai = tang.
+//
+// DIAGNOSIS 3 (breadcrumb tren nut, tim thu chet dung):
+//   NVH = doan input CHUA chay qua lan nao (hook bi goi qua it hoac chi luc load)
+//   A   = da vao doan input (init xong, qua chan panelGo)
+//   B   = sap goi Input.touchCount  -> dong bang o B = Input.touchCount cham/throw
+//   C   = touchCount OK, khong co touch; MAU NUT BIEN DOI Lien TUC = hook song moi frame
+//   D   = co touch, sap goi GetTouch
+//   E   = GetTouch OK, dang xu ly cham + nut VANG
+//   Ket luan theo chu tren nut: NVH=hook chay lai sau init | B=Input bi strip |
+//   C+frozen color=hook dung sau vai frame | C+mau chay=hook song, thu input khac.
 
 using System;
 using UnityEngine;
@@ -258,37 +268,41 @@ namespace NucleusDrive.Logic
             if (__mPanel != null) panelGo = (GameObject)__mPanel;
             if (panelGo == null) return fs;
 
+            // ===== DIAGNOSIS 3: breadcrumb A..E, viet chu TRUOC moi lenh rui ro =====
+            // Neu mot lenh nao do cham/throw, IFix huy ca khoi nay -> chu
+            // dung yen o buoc cuoi cung ghi duoc -> do la thu chet.
+            Text btxD = null;
+            if (__mBtnText != null) btxD = (Text)__mBtnText;
+            if (btxD != null) btxD.text = "A";
+
+            if (btxD != null) btxD.text = "B";
             int tc = Input.touchCount;
 
-            // ===== DIAGNOSIS: phan hoi NGAY, truoc moi xu ly =====
-            // vang = co touch (tc>0) | xanh duong = khong
-            // chu nut NVH -> OK sau khi doan input chay qua 1 lan khong loi
+            if (btxD != null) btxD.text = "C";
+            __mAlive = __mAlive + 1;                 // dem so frame doan input song
+            float pulse = Mathf.Sin((float)__mAlive * 0.06f);
+            Image imgD = null;
             if (__mBtn != null)
             {
-                GameObject btnGo = (GameObject)__mBtn;
-                if (btnGo != null)
-                {
-                    Image btnImg = (Image)btnGo.GetComponent(typeof(Image));
-                    if (btnImg != null)
-                    {
-                        if (tc > 0) btnImg.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
-                        else btnImg.color = new Color(0.12f, 0.65f, 1f, 0.9f);
-                    }
-                }
+                GameObject btnGoD = (GameObject)__mBtn;
+                if (btnGoD != null)
+                    imgD = (Image)btnGoD.GetComponent(typeof(Image));
             }
-            if (__mAlive == 0 && __mBtnText != null)
+            if (imgD != null)
             {
-                Text btx2 = (Text)__mBtnText;
-                if (btx2 != null) btx2.text = "OK";
-                __mAlive = 1;
+                if (tc > 0) imgD.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
+                else imgD.color = new Color(0.30f + 0.35f * (pulse * 0.5f + 0.5f),
+                                            0.65f, 1f, 0.95f);
             }
 
             if (tc > 0)
             {
+                if (btxD != null) btxD.text = "D";
                 int lim = tc > 2 ? 2 : tc;
                 for (int i = 0; i < lim; i++)
                 {
                     Touch t = Input.GetTouch(i);
+                    if (btxD != null) btxD.text = "E";
                     if (t.phase != TouchPhase.Began) continue;
 
                     // cham nut NVH -> dong/mo panel
