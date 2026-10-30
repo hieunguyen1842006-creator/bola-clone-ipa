@@ -72,6 +72,13 @@ public final class AppModel: ObservableObject {
         (UserDefaults.standard.object(forKey: "nvh.aov.hero") as? Int) ?? 111
     @Published public var aovModel: Int =
         (UserDefaults.standard.object(forKey: "nvh.aov.model") as? Int) ?? 0
+    /// Tướng patch in-game tự nhận diện (heartbeat nvh_aov.log).
+    @Published public var aovDetectedHero: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.dhero") as? Int) ?? 0
+    @Published public var aovDetectedSkin: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.dskin") as? Int) ?? 0
+    @Published public var aovSkinNames: [String] =
+        (UserDefaults.standard.array(forKey: "nvh.aov.dnames") as? [String]) ?? []
 
     // MARK: gói "Patch máy" (runtime) — sửa trực tiếp file trong game
     /// Hệ số zoom camera. 0 = không đụng (giữ nguyên game).
@@ -813,12 +820,66 @@ public final class AppModel: ObservableObject {
         aovModel = min(max(LQModConfig.int(dict, LQModConfig.skinKey(hero: aovHero), aovModel), 0), 99)
         saveAOV()
 
-        // heartbeat của patch in-game (nếu đã chạy trong game)
+        // heartbeat + trạng thái tướng của patch in-game
         if let hb = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
            let text = String(data: hb, encoding: .utf8), !text.isEmpty {
-            log("aov-heartbeat: \(text)")
+            applyAOVLog(text)
         }
         toast("Đã đọc cấu hình từ game")
+    }
+
+    /// Đọc heartbeat + trạng thái tướng (gọi tự động khi mở thẻ LQ).
+    public func refreshAOVDetection() {
+        guard game.isLienQuan, access.isAvailable(for: game) else { return }
+        guard let raw = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
+              let text = String(data: raw, encoding: .utf8), !text.isEmpty else { return }
+        applyAOVLog(text)
+    }
+
+    /// Parse nvh_aov.log: dòng 1 heartbeat, dòng 2 "hero=<id> skin=<n> count=<n> names=..."
+    /// (phần names nằm sau " names=" vì tên skin có thể chứa khoảng trắng).
+    private func applyAOVLog(_ text: String) {
+        for rawLine in text.split(separator: "\n") {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            guard line.hasPrefix("hero=") else { continue }
+
+            var namesPart = ""
+            var head = line
+            if let r = line.range(of: " names=") {
+                namesPart = String(line[r.upperBound...])
+                head = String(line[..<r.lowerBound])
+            }
+            var hero = 0
+            var skin = 0
+            var count = 0
+            for token in head.split(separator: " ") {
+                let kv = token.split(separator: "=", maxSplits: 1)
+                guard kv.count == 2 else { continue }
+                switch String(kv[0]) {
+                case "hero": hero = Int(kv[1]) ?? 0
+                case "skin": skin = Int(kv[1]) ?? 0
+                case "count": count = Int(kv[1]) ?? 0
+                default: break
+                }
+            }
+            guard hero > 0 else { continue }
+            let names = namesPart.isEmpty
+                ? [] : namesPart.components(separatedBy: "|")
+
+            aovDetectedHero = hero
+            aovDetectedSkin = skin
+            if count > 0, !names.isEmpty {
+                aovSkinNames = names
+            }
+            // tự bám theo tướng đang chơi — skin chọn trong app ghi đúng key
+            aovHero = hero
+            let d = UserDefaults.standard
+            d.set(hero, forKey: "nvh.aov.dhero")
+            d.set(skin, forKey: "nvh.aov.dskin")
+            d.set(names, forKey: "nvh.aov.dnames")
+            saveAOV()
+            log("aov: nhận diện tướng \(hero) • đang mặc skin \(skin) • \(count) skin")
+        }
     }
 
     public func setAOVEsp(_ v: Bool) { aovEsp = v; saveAOV(); pushAOVConfig() }

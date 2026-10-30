@@ -338,14 +338,44 @@ struct LQModCard: View {
                          value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
-            LQStepperRow(title: "SKIN • MÃ TƯỚNG", value: "\(model.aovHero)",
-                         dec: { model.setAOVHero(model.aovHero - 1) },
-                         inc: { model.setAOVHero(model.aovHero + 1) })
-            LQStepperRow(title: "SKIN • CHỈ SỐ", value: "\(model.aovModel)",
-                         dec: { model.setAOVModel(model.aovModel - 1) },
-                         inc: { model.setAOVModel(model.aovModel + 1) })
-            Text("Skin áp khi tướng hồi sinh hoặc vào trận mới (đổi ngay giữa trận chỉ chat /skin làm được). Xem mã tướng + chỉ số skin: gõ /listskin vào chat trong trận")
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            // SKIN — tự nhận diện tướng + danh sách skin có tên
+            if model.aovDetectedHero > 0, !model.aovSkinNames.isEmpty {
+                let wearName = model.aovDetectedSkin < model.aovSkinNames.count
+                    ? model.aovSkinNames[model.aovDetectedSkin]
+                    : "ID \(model.aovDetectedSkin)"
+                Text("Tướng \(model.aovDetectedHero) • đang mặc: \(wearName)")
+                    .font(Theme.bodyFont).foregroundStyle(Theme.text)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())],
+                          spacing: 6) {
+                    ForEach(model.aovSkinNames.indices, id: \.self) { i in
+                        Button { model.setAOVModel(i) } label: {
+                            Text("[\(i)] \(model.aovSkinNames[i])")
+                                .font(.system(size: 11, weight: .semibold))
+                                .lineLimit(1)
+                                .padding(.vertical, 6).padding(.horizontal, 8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(RoundedRectangle(cornerRadius: 8)
+                                    .fill(i == model.aovModel ? Theme.cardHi : Theme.card))
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                    .stroke(i == model.aovModel ? Theme.accent : Theme.border,
+                                            lineWidth: 1))
+                                .foregroundStyle(i == model.aovModel ? Theme.accent : Theme.dim)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                Text("Chọn skin → áp khi tướng hồi sinh hoặc vào trận mới")
+                    .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            } else {
+                LQStepperRow(title: "SKIN • MÃ TƯỚNG", value: "\(model.aovHero)",
+                             dec: { model.setAOVHero(model.aovHero - 1) },
+                             inc: { model.setAOVHero(model.aovHero + 1) })
+                LQStepperRow(title: "SKIN • CHỈ SỐ", value: "\(model.aovModel)",
+                             dec: { model.setAOVModel(model.aovModel - 1) },
+                             inc: { model.setAOVModel(model.aovModel + 1) })
+                Text("Vào trận rồi bấm «Đọc từ game» — app tự nhận tướng đang chơi + danh sách skin có tên (skin áp khi hồi sinh/vào trận mới)")
+                    .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            }
 
             Text("Đổi là áp trong ~1 giây — payload trong game đọc file live, không cần tắt game")
                 .font(.system(size: 10)).foregroundStyle(Theme.warn)
@@ -353,6 +383,7 @@ struct LQModCard: View {
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
+        .onAppear { model.refreshAOVDetection() }
     }
 }
 
