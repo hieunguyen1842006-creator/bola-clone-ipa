@@ -63,6 +63,38 @@ def load(path: str, res_name: str | None = None):
     return lqmb_parse(body), tag, enc, res
 
 
+def short_name(full: str) -> str:
+    """Bo phan assembly: 'A.B.C, Project_d, Version=...' -> 'A.B.C'."""
+    return full.split(",")[0].strip()
+
+
+# Assembly THAT cho tung type (lay tu payload that HS1/HS2 — xem HS1 type[208..223]).
+# Patch tu sinh khai type trong DLL ten Project.Plugins_d nen IFix ghi sai assembly;
+# game resolve hut -> treo ngay luc nap patch. Bang nay sua lai cho dung.
+TRUE_ASSEMBLY = {
+    "Assets.Scripts.GameLogic.GameKernal.Player": "Project_d",
+    "Kyrios.Actor.ActorLinker": "Project_d",
+    "Assets.Scripts.GameSystem.CSkinInfo": "Project_d",
+    "ResData.ResHeroSkin": "AovTdr",
+    "PoolObjHandle`1": "CoreLib",
+}
+
+
+def fix_assembly(full: str) -> str:
+    """Thay assembly bia (Project.Plugins_d) bang assembly that neu biet."""
+    s = short_name(full)
+    asm = TRUE_ASSEMBLY.get(s)
+    if asm is None:
+        if "Project.Plugins_d" not in full:
+            return full
+        return full          # type cua chinh patch (LFramework/LFrameSynchr) — giu nguyen
+    if s.startswith("PoolObjHandle`1"):
+        # giu nguyen phan generic ben trong, chi doi assembly ngoai
+        inner = full[len(s) + 1:].strip()
+        return s + ", " + asm + ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+    return s + ", " + asm + ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+
+
 class Remap:
     def __init__(self, dst):
         self.dst = dst
@@ -77,11 +109,15 @@ class Remap:
         if i in self.t:
             return self.t[i]
         full = src["types"][i]
+        s = short_name(full)
+        # 1. da co type cung ten trong dst -> DUNG LAI (tranh sinh ban trung
+        #    voi assembly gia — day la nguyen nhan treo luc nap patch)
         for j, x in enumerate(self.dst["types"]):
-            if x == full:
+            if short_name(x) == s:
                 self.t[i] = j
                 return j
-        self.dst["types"].append(full)
+        # 2. type moi: sua assembly cho dung truoc khi them
+        self.dst["types"].append(fix_assembly(full))
         self.t[i] = len(self.dst["types"]) - 1
         return self.t[i]
 
