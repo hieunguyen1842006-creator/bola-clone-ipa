@@ -338,12 +338,14 @@ struct LQModCard: View {
                          value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
-            LQStepperRow(title: "SKIN • HERO", value: "\(model.aovHero)",
+            LQStepperRow(title: "SKIN • MÃ TƯỚNG", value: "\(model.aovHero)",
                          dec: { model.setAOVHero(model.aovHero - 1) },
                          inc: { model.setAOVHero(model.aovHero + 1) })
-            LQStepperRow(title: "SKIN • MODEL", value: "\(model.aovModel)",
+            LQStepperRow(title: "SKIN • CHỈ SỐ", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })
+            Text("Skin áp khi tướng hồi sinh hoặc vào trận mới (đổi ngay giữa trận chỉ chat /skin làm được). Xem mã tướng + chỉ số skin: gõ /listskin vào chat trong trận")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
 
             Text("Đổi là áp trong ~1 giây — payload trong game đọc file live, không cần tắt game")
                 .font(.system(size: 10)).foregroundStyle(Theme.warn)
