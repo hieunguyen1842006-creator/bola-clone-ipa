@@ -38,6 +38,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
@@ -125,6 +126,8 @@ namespace NucleusDrive.Logic
         public object __mBtn;
         public object __mBtnText;
         public object __mLabels;
+        public object __mL;         // mang nut [-] ben trai tung dong
+        public object __mR;         // mang nut [+] ben phai tung dong
         public object __mFont;
 
         /// <summary>Toan bo menu nam trong 1 method.</summary>
@@ -142,6 +145,8 @@ namespace NucleusDrive.Logic
 
             if (!__mInit || root == null)
             {
+                try
+                {
                 __mRoot = null;
                 __mCanvas = null;
                 __mPanel = null;
@@ -170,7 +175,8 @@ namespace NucleusDrive.Logic
                 __mInit = true;
 
                 root = new GameObject("NVHMenuRoot",
-                    new Type[] { typeof(RectTransform), typeof(Canvas) });
+                    new Type[] { typeof(RectTransform), typeof(Canvas),
+                                 typeof(GraphicRaycaster) });
                 Canvas cv = (Canvas)root.GetComponent(typeof(Canvas));
                 if (cv != null)
                 {
@@ -180,9 +186,10 @@ namespace NucleusDrive.Logic
                 __mCanvas = cv;
                 UnityEngine.Object.DontDestroyOnLoad(root);
 
-                // ---- nut mo menu ----
+                // ---- nut mo menu (Button that — EventSystem cua game se raycast) ----
                 GameObject btn = new GameObject("NVHBtn",
-                    new Type[] { typeof(RectTransform), typeof(Image) });
+                    new Type[] { typeof(RectTransform), typeof(Image),
+                                 typeof(Button) });
                 btn.transform.SetParent(root.transform, false);
                 RectTransform brt = (RectTransform)btn.GetComponent(typeof(RectTransform));
                 if (brt != null)
@@ -232,10 +239,14 @@ namespace NucleusDrive.Logic
                 __mPanel = panel;
 
                 Text[] lb = new Text[10];
+                GameObject[] lArr = new GameObject[10];
+                GameObject[] rArr = new GameObject[10];
                 for (int k = 0; k < 10; k++)
                 {
+                    // dong = nut giua (chon/tat); L/R = nut giam/tang
                     GameObject row = new GameObject("row" + k,
-                        new Type[] { typeof(RectTransform), typeof(Text) });
+                        new Type[] { typeof(RectTransform), typeof(Text),
+                                     typeof(Image), typeof(Button) });
                     row.transform.SetParent(panel.transform, false);
                     RectTransform rrt = (RectTransform)row.GetComponent(typeof(RectTransform));
                     if (rrt != null)
@@ -246,20 +257,77 @@ namespace NucleusDrive.Logic
                         rrt.anchoredPosition = new Vector2(0f, -10f - k * 42f);
                         rrt.sizeDelta = new Vector2(-24f, 40f);
                     }
+                    Image ri = (Image)row.GetComponent(typeof(Image));
+                    if (ri != null)
+                    {
+                        // trong suot nhung van nhan raycast (UGUI raycast khong
+                        // quan trong alpha, chi can raycastTarget = true)
+                        ri.color = new Color(0f, 0f, 0f, 0f);
+                        ri.raycastTarget = true;
+                    }
                     Text tx = (Text)row.GetComponent(typeof(Text));
                     if (tx != null)
                     {
                         tx.font = fnt;
                         tx.fontSize = 22;
-                        tx.alignment = TextAnchor.MiddleLeft;
+                        tx.alignment = TextAnchor.MiddleCenter;
                         tx.color = new Color(0.9f, 0.95f, 1f, 1f);
                         tx.raycastTarget = false;
                         tx.text = "";
                     }
                     lb[k] = tx;
+
+                    GameObject lgo = new GameObject("L",
+                        new Type[] { typeof(RectTransform), typeof(Image),
+                                     typeof(Button) });
+                    lgo.transform.SetParent(row.transform, false);
+                    RectTransform lrt = (RectTransform)lgo.GetComponent(typeof(RectTransform));
+                    if (lrt != null)
+                    {
+                        lrt.anchorMin = new Vector2(0f, 0f);
+                        lrt.anchorMax = new Vector2(0f, 0f);
+                        lrt.pivot = new Vector2(0f, 0.5f);
+                        lrt.anchoredPosition = new Vector2(2f, 0f);
+                        lrt.sizeDelta = new Vector2(86f, 38f);
+                    }
+                    Image li = (Image)lgo.GetComponent(typeof(Image));
+                    if (li != null)
+                    {
+                        li.color = new Color(0f, 0f, 0f, 0f);
+                        li.raycastTarget = true;
+                    }
+                    lArr[k] = lgo;
+
+                    GameObject rgo = new GameObject("R",
+                        new Type[] { typeof(RectTransform), typeof(Image),
+                                     typeof(Button) });
+                    rgo.transform.SetParent(row.transform, false);
+                    RectTransform rrt2 = (RectTransform)rgo.GetComponent(typeof(RectTransform));
+                    if (rrt2 != null)
+                    {
+                        rrt2.anchorMin = new Vector2(1f, 0f);
+                        rrt2.anchorMax = new Vector2(1f, 0f);
+                        rrt2.pivot = new Vector2(1f, 0.5f);
+                        rrt2.anchoredPosition = new Vector2(-2f, 0f);
+                        rrt2.sizeDelta = new Vector2(86f, 38f);
+                    }
+                    Image rimg = (Image)rgo.GetComponent(typeof(Image));
+                    if (rimg != null)
+                    {
+                        rimg.color = new Color(0f, 0f, 0f, 0f);
+                        rimg.raycastTarget = true;
+                    }
+                    rArr[k] = rgo;
                 }
                 __mLabels = lb;
+                __mL = lArr;
+                __mR = rArr;
                 __mRoot = root;
+                }
+                catch (Exception)
+                {
+                    // init lỗi (font/Unity API) — nuốt, lần sau thử lại
+                }
                 return fs;
             }
 
@@ -268,18 +336,55 @@ namespace NucleusDrive.Logic
             if (__mPanel != null) panelGo = (GameObject)__mPanel;
             if (panelGo == null) return fs;
 
-            // ===== DIAGNOSIS 3: breadcrumb A..E, viet chu TRUOC moi lenh rui ro =====
-            // Neu mot lenh nao do cham/throw, IFix huy ca khoi nay -> chu
-            // dung yen o buoc cuoi cung ghi duoc -> do la thu chet.
+            // ===== DIAGNOSIS 5: input qua EventSystem selection =====
+            // KHONG con dung Input API (bi strip tren build iOS nay — do la thu
+            // chet cua diag-2/3 va nguyen nhan đơ lúc load). Game tự raycast cú
+            // chạm vào canvas của mình (GraphicRaycaster + Button), mình chỉ POLL
+            // currentSelectedGameObject mỗi frame:
+            //   A = vào đoạn input, EventSystem.current == null (dị)
+            //   B = EventSystem OK, đang đọc selection
+            //   C = không có nút nào của mình được chạm (màu thở = hook sống)
+            //   D = trúng nút của mình, đang xử lý
+            //   E = xử lý xong
+            // Toàn bộ bọc try/catch: exception KHÔNG lan ra đường load nữa.
+            try
+            {
             Text btxD = null;
             if (__mBtnText != null) btxD = (Text)__mBtnText;
             if (btxD != null) btxD.text = "A";
 
+            EventSystem es = EventSystem.current;
+            if (es == null) return fs;
             if (btxD != null) btxD.text = "B";
-            int tc = Input.touchCount;
 
-            if (btxD != null) btxD.text = "C";
-            __mAlive = __mAlive + 1;                 // dem so frame doan input song
+            GameObject sel = es.currentSelectedGameObject;
+            int row = -1;
+            int act = -1;
+            bool isBtn = false;
+            if (sel != null)
+            {
+                GameObject btnSel = (GameObject)__mBtn;
+                if (sel == btnSel)
+                {
+                    isBtn = true;
+                }
+                else
+                {
+                    Text[] lbS = (Text[])__mLabels;
+                    GameObject[] lS = (GameObject[])__mL;
+                    GameObject[] rS = (GameObject[])__mR;
+                    for (int k = 0; k < 10; k++)
+                    {
+                        if (lS[k] != null && sel == lS[k]) { row = k; act = 0; break; }
+                        if (rS[k] != null && sel == rS[k]) { row = k; act = 2; break; }
+                        if (lbS[k] != null && sel == lbS[k].gameObject)
+                        { row = k; act = 1; break; }
+                    }
+                }
+            }
+
+            // C: màu thở bao hook còn sống; vàng khi đang trúng nút của mình
+            __mAlive = __mAlive + 1;
             float pulse = Mathf.Sin((float)__mAlive * 0.06f);
             Image imgD = null;
             if (__mBtn != null)
@@ -290,52 +395,26 @@ namespace NucleusDrive.Logic
             }
             if (imgD != null)
             {
-                if (tc > 0) imgD.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
-                else imgD.color = new Color(0.30f + 0.35f * (pulse * 0.5f + 0.5f),
-                                            0.65f, 1f, 0.95f);
+                if (sel != null && (isBtn || row >= 0))
+                    imgD.color = new Color(0.95f, 0.85f, 0.1f, 0.95f);
+                else
+                    imgD.color = new Color(0.30f + 0.35f * (pulse * 0.5f + 0.5f),
+                                           0.65f, 1f, 0.95f);
             }
+            if (btxD != null) btxD.text = "C";
 
-            if (tc > 0)
+            if (isBtn)
             {
                 if (btxD != null) btxD.text = "D";
-                int lim = tc > 2 ? 2 : tc;
-                for (int i = 0; i < lim; i++)
-                {
-                    Touch t = Input.GetTouch(i);
-                    if (btxD != null) btxD.text = "E";
-                    if (t.phase != TouchPhase.Began) continue;
-
-                    // cham nut NVH -> dong/mo panel
-                    float dx = t.position.x - __mX;
-                    float dy = t.position.y - __mY;
-                    if (dx * dx + dy * dy < 40f * 40f)
-                    {
-                        __mOpen = !__mOpen;
-                        panelGo.SetActive(__mOpen);
-                        __mDirty = 1;
-                        break;
-                    }
-
-                    if (!__mOpen) continue;
-
-                    RectTransform prt2 =
-                        (RectTransform)panelGo.GetComponent(typeof(RectTransform));
-                    if (prt2 == null) continue;
-
-                    Vector2 lp = default(Vector2);
-                    if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                            prt2, t.position, null, out lp)) continue;
-
-                    Rect rr = prt2.rect;
-                    if (lp.x < rr.xMin - 20f || lp.x > rr.xMax + 20f) continue;
-                    if (lp.y < rr.yMin || lp.y > rr.yMax) continue;
-
-                    int row = (int)((rr.yMax - lp.y - 10f) / 42f);
-
-                    // chia 3 vung: 0=trai (giam), 1=giua, 2=phai (tang)
-                    int act = 1;
-                    if (lp.x < rr.xMin + 96f) act = 0;
-                    else if (lp.x > rr.xMax - 96f) act = 2;
+                __mOpen = !__mOpen;
+                panelGo.SetActive(__mOpen);
+                __mDirty = 1;
+                es.SetSelectedGameObject(null);
+                if (btxD != null) btxD.text = "E";
+            }
+            else if (row >= 0)
+            {
+                if (btxD != null) btxD.text = "D";
 
                     // ===== xu ly theo trang =====
                     if (__mPage == 0)
@@ -494,21 +573,29 @@ namespace NucleusDrive.Logic
                     }
                     else if (__mPage == 5)
                     {
-                        // CAMERA: thanh keo
+                        // CAMERA: nut +/- buoc 0.1
                         if (row == 0) { __mPage = 0; __mDirty = 1; }
                         else if (row == 1)
                         {
-                            float pct = (lp.x - rr.xMin) / 276f;
-                            if (pct < 0f) pct = 0f;
-                            if (pct > 1f) pct = 1f;
-                            float zv = 1.0f + pct * 4.0f;
+                            float zv = PlayerPrefs.GetFloat("iFix.Camera.Zoom.v1", 1.6f);
+                            if (act == 0) zv = zv - 0.1f;
+                            else if (act == 2) zv = zv + 0.1f;
+                            if (zv < 1f) zv = 1f;
+                            if (zv > 5f) zv = 5f;
                             zv = (int)(zv * 10f + 0.5f) / 10f;
                             PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", zv);
                             PlayerPrefs.Save();
                             __mDirty = 1;
                         }
                     }
-                }
+
+                es.SetSelectedGameObject(null);
+                if (btxD != null) btxD.text = "E";
+            }
+            }
+            catch (Exception)
+            {
+                // nuot exception — game khong đơ, chu tren nut chi buoc chet
             }
 
             // ===== 3. ve lai chu — CHI khi mo + co thay doi =====
