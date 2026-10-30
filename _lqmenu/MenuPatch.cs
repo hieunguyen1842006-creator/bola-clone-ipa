@@ -283,36 +283,45 @@ namespace NucleusDrive.Logic
                     }
                 }
 
-                // ==== heartbeat 5 giay + do tuong (chi khi app yeu cau) ====
+                // ==== heartbeat 2 giay + do tuong (chi khi app yeu cau) ====
                 if (now >= __mLogNext)
                 {
-                    __mLogNext = now + 5.0f;
+                    __mLogNext = now + 2.0f;
                     string hb = "tid=" + tid + " main=1 rev=" + __mRev
                         + " calls=" + __mCalls + " t=" + (int)now;
 
-                    string st = "hero=0";
+                    // dbg: dau vet tung buoc de biet chet o dau (s0..s6 / err=)
+                    string st = "hero=0 dbg=s0";
                     if (__mProbeReq != __mProbeDone)
                     {
                         __mProbeDone = __mProbeReq;
                         try
                         {
                             Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
+                            st = "hero=0 dbg=s1";
                             if (host != null)
                             {
                                 Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
+                                st = "hero=0 dbg=s2";
                                 if (pl != null)
                                 {
                                     PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
+                                    st = "hero=0 dbg=s3";
                                     if (cap.HasValue)
                                     {
+                                        st = "hero=0 dbg=s4";
                                         Kyrios.Actor.ActorLinker al = cap.handle;
                                         if (al != null)
                                         {
+                                            st = "hero=0 dbg=s5";
                                             uint heroId = al.ConfigId;
+                                            st = "hero=0 dbg=s6 hid=" + heroId.ToString();
                                             if (heroId > 0U && heroId < 100000U)
                                             {
                                                 uint wear = Assets.Scripts.GameSystem.CSkinInfo
                                                     .GetWearSkinID(heroId);
+                                                st = "hero=0 dbg=s7 hid=" + heroId.ToString()
+                                                    + " wear=" + wear.ToString();
 
                                                 // toi da 8 skin; dung som khi gap null/ten rong/lap
                                                 string names = ""; int cnt = 0; uint si = 0U;
@@ -334,16 +343,21 @@ namespace NucleusDrive.Logic
                                                 st = "hero=" + heroId.ToString()
                                                     + " skin=" + wear.ToString()
                                                     + " count=" + cnt.ToString()
-                                                    + " names=" + names;
+                                                    + " names=" + names
+                                                    + " dbg=ok";
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            // khong doc duoc state — bao hero=0
+                            string msg = ex.Message;
+                            if (msg == null) msg = "null";
+                            msg = msg.Replace('\n', ' ').Replace('\r', ' ');
+                            if (msg.Length > 70) msg = msg.Substring(0, 70);
+                            st = "hero=0 err=" + ex.GetType().Name + ":" + msg;
                         }
                     }
 

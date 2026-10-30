@@ -844,12 +844,16 @@ public final class AppModel: ObservableObject {
         pushAOVConfig()
         log("aov: đã yêu cầu dò tướng — chờ patch trong game trả kết quả")
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_500_000_000)
-            self.refreshAOVDetection()
+            // patch ghi heartbeat mỗi 2 giây -> poll tới ~10 giây
+            for _ in 0..<6 {
+                try? await Task.sleep(nanoseconds: 1_700_000_000)
+                self.refreshAOVDetection()
+                if self.aovDetectedHero > 0 { break }
+            }
             if self.aovDetectedHero > 0 {
                 self.toast("Đã nhận diện tướng \(self.aovDetectedHero)")
             } else {
-                self.toast("Chưa thấy tướng — phải đang trong trận (pick xong) mới dò được")
+                self.toast("Chưa thấy tướng — xem dòng aov-status trong log")
             }
         }
     }
@@ -888,7 +892,11 @@ public final class AppModel: ObservableObject {
                 default: break
                 }
             }
-            guard hero > 0 else { continue }
+            guard hero > 0 else {
+                // patch báo lý do (dbg=s3, err=...) — đưa vào log để soi
+                log("aov-status: \(line)")
+                continue
+            }
             let names = namesPart.isEmpty
                 ? [] : namesPart.components(separatedBy: "|")
 
