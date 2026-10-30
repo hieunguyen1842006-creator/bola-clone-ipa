@@ -859,19 +859,45 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Đọc heartbeat + trạng thái tướng (gọi tự động khi mở thẻ LQ — chỉ đọc file).
+    /// Đọc heartbeat + trạng thái tướng. Đường chính: PlayerPrefs của game
+    /// (patch ghi `iFix.Detect.*` bằng số — không phụ thuộc file/format chuỗi).
     public func refreshAOVDetection() {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
-        // 1. file nvh_aov.log (nếu game ghi được)
+
+        // 1. PlayerPrefs kiểu số — đường patch chắc chắn ghi được
+        if let dict = LQModConfig.load(access: access, game: game) {
+            let hero = (dict["iFix.Detect.Hero"] as? NSNumber)?.intValue ?? 0
+            let skin = (dict["iFix.Detect.Skin"] as? NSNumber)?.intValue ?? 0
+            let count = (dict["iFix.Detect.Count"] as? NSNumber)?.intValue ?? 0
+            let names = (dict["iFix.Detect.Names"] as? String) ?? ""
+            let stage = (dict["iFix.Detect.Stage"] as? String) ?? "(chưa có)"
+            if hero > 0 {
+                applyDetected(hero: hero, skin: skin, count: count, names: names)
+                return
+            }
+            log("aov-status: stage=\(stage)")
+        }
+
+        // 2. file nvh_aov.log (dự phòng, chỉ còn tên skin)
         if let raw = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
            let text = String(data: raw, encoding: .utf8), !text.isEmpty {
-            if applyAOVLog(text) { return }
+            _ = applyAOVLog(text)
         }
-        // 2. dự phòng: PlayerPrefs của game (iFix.Detect.v1) — đường patch chắc chắn ghi được
-        if let dict = LQModConfig.load(access: access, game: game),
-           let s = dict["iFix.Detect.v1"] as? String, !s.isEmpty {
-            _ = applyAOVStatusLine(s)
+    }
+
+    private func applyDetected(hero: Int, skin: Int, count: Int, names: String) {
+        aovDetectedHero = hero
+        aovDetectedSkin = skin
+        if count > 0, !names.isEmpty {
+            aovSkinNames = names.components(separatedBy: "|")
         }
+        aovHero = hero
+        let d = UserDefaults.standard
+        d.set(hero, forKey: "nvh.aov.dhero")
+        d.set(skin, forKey: "nvh.aov.dskin")
+        d.set(aovSkinNames, forKey: "nvh.aov.dnames")
+        saveAOV()
+        log("aov: nhận diện tướng \(hero) • đang mặc skin \(skin) • \(count) skin")
     }
 
     /// Log chẩn đoán: quyền container, thư mục, file trạng thái, giá trị thật.
@@ -894,10 +920,21 @@ public final class AppModel: ObservableObject {
         if let dict = LQModConfig.load(access: access, game: game) {
             let keys = dict.keys.filter { $0.hasPrefix("iFix.") }.sorted()
             log("diag: prefs iFix.* = \(keys.count) key")
-            if let d = dict["iFix.Detect.v1"] as? String { log("diag: iFix.Detect.v1 = \(d)") }
+            for k in keys where k.hasPrefix("iFix.Detect.") {
+                log("diag: \(k) = \(dict[k] ?? "-")")
+            }
             if let e = dict[LQModConfig.espKey] { log("diag: ESP=\(e)") }
         } else {
             log("diag: KHÔNG đọc được plist prefs của game")
+        }
+
+        // payload đang cài là bản nào (so kích thước với bản build hiện tại)
+        if let t = try? LienQuanDeployer(access: access, game: game).resolveTarget() {
+            for n in ["HeroSkin_1.bytes", "HeroSkin_2.bytes"] {
+                let d = (try? access.read(relativePath: "\(t.relativePath)/\(n)",
+                                          in: game)) ?? nil
+                log("diag: \(n) = \(d?.count ?? -1) B")
+            }
         }
     }
 

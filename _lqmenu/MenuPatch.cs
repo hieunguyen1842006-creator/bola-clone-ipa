@@ -1,4 +1,4 @@
-﻿// NVH LQ LIVE CONFIG v4 — patch IFix hook LFramework.get_frameSynchr
+// NVH LQ LIVE CONFIG v4 — patch IFix hook LFramework.get_frameSynchr
 //
 // NHIEM VU:
 //   1. Doc Documents/nvh_aov.txt (app ghi) moi giay -> ap vao PlayerPrefs
@@ -285,47 +285,53 @@ namespace NucleusDrive.Logic
                 }
 
                 // ==== heartbeat 2 giay + do tuong (chi khi app yeu cau) ====
+                // LUU Y: KHONG noi so vao chuoi — Int32::ToString trong IFix patch
+                // resolve sai (tra "True"), nen moi gia tri so ghi bang PlayerPrefs
+                // key rieng (SetInt), app doc truc tiep.
                 if (now >= __mLogNext)
                 {
                     __mLogNext = now + 2.0f;
-                    string hb = "tid=" + tid + " main=1 rev=" + __mRev
-                        + " calls=" + __mCalls + " t=" + (int)now;
 
-                    // dbg: dau vet tung buoc de biet chet o dau (s0..s6 / err=)
-                    string st = "hero=0 dbg=s0";
                     if (__mProbeReq != __mProbeDone)
                     {
                         __mProbeDone = __mProbeReq;
+
+                        string stage = "s0";
+                        int dHero = 0;
+                        int dSkin = 0;
+                        int dCount = 0;
+                        string dNames = "";
+
                         try
                         {
                             Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
-                            st = "hero=0 dbg=s1";
+                            stage = "s1";
                             if (host != null)
                             {
                                 Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
-                                st = "hero=0 dbg=s2";
+                                stage = "s2";
                                 if (pl != null)
                                 {
                                     PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
-                                    st = "hero=0 dbg=s3";
+                                    stage = "s3";
                                     if (cap.HasValue)
                                     {
-                                        st = "hero=0 dbg=s4";
+                                        stage = "s4";
                                         Kyrios.Actor.ActorLinker al = cap.handle;
                                         if (al != null)
                                         {
-                                            st = "hero=0 dbg=s5";
+                                            stage = "s5";
                                             uint heroId = al.ConfigId;
-                                            st = "hero=0 dbg=s6 hid=" + heroId.ToString();
+                                            stage = "s6";
                                             if (heroId > 0U && heroId < 100000U)
                                             {
                                                 uint wear = Assets.Scripts.GameSystem.CSkinInfo
                                                     .GetWearSkinID(heroId);
-                                                st = "hero=0 dbg=s7 hid=" + heroId.ToString()
-                                                    + " wear=" + wear.ToString();
+                                                stage = "s7";
+                                                dHero = (int)heroId;
+                                                dSkin = (int)wear;
 
-                                                // toi da 8 skin; dung som khi gap null/ten rong/lap
-                                                string names = ""; int cnt = 0; uint si = 0U;
+                                                uint si = 0U;
                                                 string prevName = "";
                                                 while (si < 8U)
                                                 {
@@ -336,16 +342,12 @@ namespace NucleusDrive.Logic
                                                     if (nm == null || nm.Length == 0) break;
                                                     if (nm == prevName) break;
                                                     prevName = nm;
-                                                    if (cnt > 0) names += "|";
-                                                    names += nm;
-                                                    cnt++; si++;
+                                                    if (dCount > 0) dNames += "|";
+                                                    dNames += nm;
+                                                    dCount++;
+                                                    si++;
                                                 }
-
-                                                st = "hero=" + heroId.ToString()
-                                                    + " skin=" + wear.ToString()
-                                                    + " count=" + cnt.ToString()
-                                                    + " names=" + names
-                                                    + " dbg=ok";
+                                                stage = "ok";
                                             }
                                         }
                                     }
@@ -354,33 +356,25 @@ namespace NucleusDrive.Logic
                         }
                         catch (Exception ex)
                         {
-                            string msg = ex.Message;
-                            if (msg == null) msg = "null";
-                            msg = msg.Replace('\n', ' ').Replace('\r', ' ');
-                            if (msg.Length > 70) msg = msg.Substring(0, 70);
-                            st = "hero=0 err=" + ex.GetType().Name + ":" + msg;
+                            stage = "err:" + ex.GetType().Name;
                         }
-                    }
 
-                    string full = hb + "\n" + st;
-
-                    // 1) file (app doc neu doc duoc)
-                    try
-                    {
-                        System.IO.File.WriteAllText(
-                            Application.persistentDataPath + "/nvh_aov.log", full);
-                    }
-                    catch (Exception) { }
-
-                    // 2) PlayerPrefs — duong chac chan (payload dang dung duong nay)
-                    //    app doc plist cua game, khong phu thuoc quyen ghi file
-                    if (__mLastLog != st)
-                    {
-                        __mLastLog = st;
                         try
                         {
-                            PlayerPrefs.SetString("iFix.Detect.v1", st);
+                            PlayerPrefs.SetString("iFix.Detect.Stage", stage);
+                            PlayerPrefs.SetInt("iFix.Detect.Hero", dHero);
+                            PlayerPrefs.SetInt("iFix.Detect.Skin", dSkin);
+                            PlayerPrefs.SetInt("iFix.Detect.Count", dCount);
+                            PlayerPrefs.SetString("iFix.Detect.Names", dNames);
                             PlayerPrefs.Save();
+                        }
+                        catch (Exception) { }
+
+                        // file phu (khong quan trong — chi de doc tay)
+                        try
+                        {
+                            System.IO.File.WriteAllText(
+                                Application.persistentDataPath + "/nvh_aov.log", dNames);
                         }
                         catch (Exception) { }
                     }
