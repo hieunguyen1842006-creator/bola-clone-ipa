@@ -33,6 +33,7 @@ let package = Package(
                 "Core/PatchLibrary.swift",
                 "Core/PatchVault.swift",
                 "Core/LienQuanDeployer.swift",
+                "Core/LQModConfig.swift",
                 "Support/Logger.swift",
             ]
         ),

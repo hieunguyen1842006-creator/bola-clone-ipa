@@ -44,6 +44,35 @@ public final class AppModel: ObservableObject {
     @Published public var lqFov: Double =
         (UserDefaults.standard.object(forKey: "nvh.lq.fov") as? Double) ?? 88
 
+    // MARK: cấu hình Full Mod AOV — ghi PlayerPrefs của game (iFix.*)
+    /// ESP xuyên tường.
+    @Published public var aovEsp: Bool =
+        (UserDefaults.standard.object(forKey: "nvh.aov.esp") as? Bool) ?? true
+    /// Tự động banned/pick.
+    @Published public var aovBocpha: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.bocpha")
+    /// Aim assist.
+    @Published public var aovAim: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.aim")
+    /// 0=hp 1=percent 2=near 3=ray.
+    @Published public var aovTargetMode: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.tmode") as? Int) ?? 0
+    /// Số đường aim 1..5.
+    @Published public var aovLines: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.lines") as? Int) ?? 1
+    /// 0=off 1=always 2=skill.
+    @Published public var aovDrawMode: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.draw") as? Int) ?? 0
+    /// 0=off 1=boss 2=buff 3=all.
+    @Published public var aovSmiteMode: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.smite") as? Int) ?? 0
+    /// Zoom camera 1.0..5.0.
+    @Published public var aovZoom: Float =
+        (UserDefaults.standard.object(forKey: "nvh.aov.zoom") as? Float) ?? 1.6
+    /// Hero + index skin (ghi key iFix.SelectedSkin.v1.<hero>).
+    @Published public var aovHero: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.hero") as? Int) ?? 111
+    @Published public var aovModel: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.model") as? Int) ?? 0
+
     // MARK: gói "Patch máy" (runtime) — sửa trực tiếp file trong game
     /// Hệ số zoom camera. 0 = không đụng (giữ nguyên game).
     @Published public var lqZoom: Float =
@@ -551,9 +580,10 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Nút INJECT cho Liên Quân — gói runtime patch tại chỗ, gói khác ghi payload đóng sẵn.
+    /// Nút INJECT cho Liên Quân — luôn deploy Full Mod AOV (LQFull),
+    /// cấu hình tính năng do thẻ trong app điều khiển (PlayerPrefs của game).
     private func injectLQ() {
-        let pack = lqPack
+        let pack = LQPack.fullMod
         // Gói runtime: không cần payload trong app, tự đọc file gốc của game.
         if !pack.usesBundledPayload {
             injectLQRuntime()
@@ -582,6 +612,10 @@ public final class AppModel: ObservableObject {
                     self.statusText = outcome.message
                     self.toast(outcome.message)
                     self.writeOK = outcome.ok
+                    if outcome.ok {
+                        // cấu hình toggle hiện tại → PlayerPrefs của game luôn
+                        self.pushAOVConfig(via: live)
+                    }
                     if outcome.ok, self.cfgFlags.contains("autolaunch") {
                         self.launchGame()
                     }
@@ -679,6 +713,94 @@ public final class AppModel: ObservableObject {
         UserDefaults.standard.set(pack.rawValue, forKey: "nvh.lq.pack")
         toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
     }
+
+    // MARK: setter Full Mod AOV — lưu trong app + ghi plist của game
+
+    private func saveAOV() {
+        let d = UserDefaults.standard
+        d.set(aovEsp, forKey: "nvh.aov.esp")
+        d.set(aovBocpha, forKey: "nvh.aov.bocpha")
+        d.set(aovAim, forKey: "nvh.aov.aim")
+        d.set(aovTargetMode, forKey: "nvh.aov.tmode")
+        d.set(aovLines, forKey: "nvh.aov.lines")
+        d.set(aovDrawMode, forKey: "nvh.aov.draw")
+        d.set(aovSmiteMode, forKey: "nvh.aov.smite")
+        d.set(aovZoom, forKey: "nvh.aov.zoom")
+        d.set(aovHero, forKey: "nvh.aov.hero")
+        d.set(aovModel, forKey: "nvh.aov.model")
+    }
+
+    /// Bộ key iFix.* tương ứng UI đang hiển thị.
+    private func aovValues() -> [String: Any] {
+        [
+            LQModConfig.espKey: aovEsp ? 1 : 0,
+            LQModConfig.bocphaKey: aovBocpha ? 1 : 0,
+            LQModConfig.aimKey: aovAim ? 1 : 0,
+            LQModConfig.aimTargetKey: aovTargetMode,
+            LQModConfig.aimLinesKey: aovLines,
+            LQModConfig.aimDrawKey: aovDrawMode,
+            LQModConfig.smiteKey: aovSmiteMode == 0 ? 0 : 1,
+            LQModConfig.smiteTargetKey: max(aovSmiteMode - 1, 0),
+            LQModConfig.zoomKey: Double(aovZoom),
+            LQModConfig.skinKey(hero: aovHero): aovModel,
+        ]
+    }
+
+    /// Ghi cấu hình vào PlayerPrefs của game (game phải TẮT để cfprefsd không
+    /// giữ giá trị cũ trong cache).
+    public func pushAOVConfig(via provider: ContainerAccess? = nil) {
+        guard game.isLienQuan else { return }
+        let box = provider ?? access
+        guard box.isAvailable(for: game) else {
+            log("aov: chưa mở được container — cấu hình chỉ lưu trong app")
+            return
+        }
+        if LQModConfig.apply(aovValues(), access: box, game: game) {
+            log("aov: đã ghi cấu hình vào game — mở lại game để nhận")
+        } else {
+            log("aov: không ghi được plist prefs của game")
+        }
+    }
+
+    /// Đọc cấu hình hiện có trong game lên UI.
+    public func syncAOVFromGame() {
+        guard game.isLienQuan else { return }
+        guard access.isAvailable(for: game) else {
+            toast("Chưa mở được thư mục game")
+            return
+        }
+        guard let dict = LQModConfig.load(access: access, game: game) else {
+            toast("Game chưa có cấu hình — đang dùng mặc định")
+            return
+        }
+        aovEsp = LQModConfig.int(dict, LQModConfig.espKey, aovEsp ? 1 : 0) == 1
+        aovBocpha = LQModConfig.int(dict, LQModConfig.bocphaKey, aovBocpha ? 1 : 0) == 1
+        aovAim = LQModConfig.int(dict, LQModConfig.aimKey, aovAim ? 1 : 0) == 1
+        aovTargetMode = min(max(LQModConfig.int(dict, LQModConfig.aimTargetKey, aovTargetMode), 0), 3)
+        aovLines = min(max(LQModConfig.int(dict, LQModConfig.aimLinesKey, aovLines), 1), 5)
+        aovDrawMode = min(max(LQModConfig.int(dict, LQModConfig.aimDrawKey, aovDrawMode), 0), 2)
+        let smEn = LQModConfig.int(dict, LQModConfig.smiteKey, 0)
+        let smTm = min(max(LQModConfig.int(dict, LQModConfig.smiteTargetKey, 0), 0), 2)
+        aovSmiteMode = smEn == 1 ? smTm + 1 : 0
+        aovZoom = min(max(LQModConfig.float(dict, LQModConfig.zoomKey, aovZoom), 1.0), 5.0)
+        aovModel = min(max(LQModConfig.int(dict, LQModConfig.skinKey(hero: aovHero), aovModel), 0), 99)
+        saveAOV()
+        toast("Đã đọc cấu hình từ game")
+    }
+
+    public func setAOVEsp(_ v: Bool) { aovEsp = v; saveAOV(); pushAOVConfig() }
+    public func setAOVBocpha(_ v: Bool) { aovBocpha = v; saveAOV(); pushAOVConfig() }
+    public func setAOVAim(_ v: Bool) { aovAim = v; saveAOV(); pushAOVConfig() }
+    public func setAOVTargetMode(_ v: Int) { aovTargetMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
+    public func setAOVLines(_ v: Int) { aovLines = min(max(v, 1), 5); saveAOV(); pushAOVConfig() }
+    public func setAOVDrawMode(_ v: Int) { aovDrawMode = min(max(v, 0), 2); saveAOV(); pushAOVConfig() }
+    public func setAOVSmiteMode(_ v: Int) { aovSmiteMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
+    public func setAOVZoom(_ v: Float) {
+        aovZoom = min(max((v * 10).rounded() / 10, 1.0), 5.0)
+        saveAOV(); pushAOVConfig()
+    }
+    public func setAOVHero(_ v: Int) { aovHero = max(v, 1); saveAOV(); pushAOVConfig() }
+    public func setAOVModel(_ v: Int) { aovModel = min(max(v, 0), 99); saveAOV(); pushAOVConfig() }
 
     public func setLQEsp(_ on: Bool) {
         lqEsp = on

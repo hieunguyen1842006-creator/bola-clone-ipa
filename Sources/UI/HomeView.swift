@@ -168,7 +168,7 @@ public struct HomeView: View {
             }
             .buttonStyle(CardButtonStyle())
 
-            if model.game.isLienQuan { lqPackPicker }
+            if model.game.isLienQuan { LQModCard(model: model) }
 
             Button {
                 if model.patchInstalled { model.removePatch() } else { model.inject() }
@@ -188,47 +188,13 @@ public struct HomeView: View {
 
             Text(model.patchInstalled
                  ? (model.game.isLienQuan
-                    ? "Đang inject — bấm UN INJECT để khôi phục file gốc"
+                    ? "Đang inject — đổi toggle ở thẻ trên rồi mở lại game"
                     : "Đang inject — bấm UN INJECT để gỡ patch")
                  : (model.game.isLienQuan
-                    ? "Chọn gói Liên Quân → bấm INJECT"
+                    ? "Chỉnh Full Mod ở thẻ trên → bấm INJECT"
                     : "Chọn game → chỉnh chức năng → bấm INJECT"))
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
         }
-    }
-
-    /// Chọn gói hotfix cho Liên Quân (payload đóng sẵn, không có cfg runtime).
-    private var lqPackPicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("GÓI LIÊN QUÂN").font(Theme.monoFont).foregroundStyle(Theme.dim)
-            VStack(spacing: 4) {
-                ForEach(LQPack.allCases) { p in
-                    Button { model.setLQPack(p) } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: p.symbol)
-                                .font(.system(size: 13, weight: .bold))
-                                .frame(width: 18)
-                            Text(p.title).font(Theme.bodyFont)
-                            Spacer()
-                            if model.lqPack == p {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 11, weight: .bold))
-                            }
-                        }
-                        .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.dim)
-                        .padding(.vertical, 7).padding(.horizontal, 10)
-                        .background(RoundedRectangle(cornerRadius: 10)
-                            .fill(model.lqPack == p ? Theme.cardHi : Color.clear))
-                    }
-                    .buttonStyle(RowButtonStyle())
-                }
-            }
-            Text(model.lqPack.subtitle)
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
-        }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
     }
 
     // MARK: key bar
@@ -329,5 +295,129 @@ public struct HomeView: View {
             .foregroundStyle(Theme.dim)
             .multilineTextAlignment(.center)
             .padding(.top, 6)
+    }
+}
+
+// MARK: - Full Mod AOV card (thay list gói Liên Quân)
+
+/// Thẻ cấu hình Full Mod AOV — bật/tắt tính năng ngay trong app; giá trị ghi vào
+/// PlayerPrefs của game (key iFix.*), payload đọc khi mở game.
+struct LQModCard: View {
+    @ObservedObject var model: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("FULL MOD (AOV)").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Spacer()
+                Button { model.syncAOVFromGame() } label: {
+                    Text("Đọc từ game").font(Theme.monoFont).foregroundStyle(Theme.accent)
+                }
+            }
+
+            LQToggleRow(title: "ESP xuyên tường",
+                        isOn: Binding(get: { model.aovEsp }, set: { model.setAOVEsp($0) }))
+            LQToggleRow(title: "Tự động BP",
+                        isOn: Binding(get: { model.aovBocpha }, set: { model.setAOVBocpha($0) }))
+            LQToggleRow(title: "Aim assist",
+                        isOn: Binding(get: { model.aovAim }, set: { model.setAOVAim($0) }))
+
+            if model.aovAim {
+                LQSegRow(title: "AIM TARGET", options: ["HP", "PCT", "NEAR", "RAY"],
+                         index: model.aovTargetMode) { model.setAOVTargetMode($0) }
+                LQStepperRow(title: "AIM LINES", value: "\(model.aovLines)",
+                             dec: { model.setAOVLines(model.aovLines - 1) },
+                             inc: { model.setAOVLines(model.aovLines + 1) })
+                LQSegRow(title: "VẼ LINE", options: ["TẮT", "LUÔN", "SKILL"],
+                         index: model.aovDrawMode) { model.setAOVDrawMode($0) }
+            }
+
+            LQSegRow(title: "TRUNG TRÍ (SMITE)", options: ["TẮT", "BOSS", "BUFF", "ALL"],
+                     index: model.aovSmiteMode) { model.setAOVSmiteMode($0) }
+            LQStepperRow(title: "ZOOM CAMERA",
+                         value: String(format: "%.1fx", model.aovZoom),
+                         dec: { model.setAOVZoom(model.aovZoom - 0.1) },
+                         inc: { model.setAOVZoom(model.aovZoom + 0.1) })
+            LQStepperRow(title: "SKIN • HERO", value: "\(model.aovHero)",
+                         dec: { model.setAOVHero(model.aovHero - 1) },
+                         inc: { model.setAOVHero(model.aovHero + 1) })
+            LQStepperRow(title: "SKIN • MODEL", value: "\(model.aovModel)",
+                         dec: { model.setAOVModel(model.aovModel - 1) },
+                         inc: { model.setAOVModel(model.aovModel + 1) })
+
+            Text("TẮT HẲN GAME trước khi đổi — cấu hình ghi vào game, mở lại để nhận")
+                .font(.system(size: 10)).foregroundStyle(Theme.warn)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
+    }
+}
+
+private struct LQToggleRow: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack {
+            Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
+            Spacer()
+            Toggle("", isOn: $isOn).labelsHidden().tint(Theme.accent)
+        }
+    }
+}
+
+private struct LQSegRow: View {
+    let title: String
+    let options: [String]
+    let index: Int
+    let onPick: (Int) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.dim)
+            HStack(spacing: 6) {
+                ForEach(options.indices, id: \.self) { i in
+                    Button { onPick(i) } label: {
+                        Text(options[i])
+                            .font(.system(size: 11, weight: .semibold))
+                            .padding(.vertical, 5)
+                            .frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 8)
+                                .fill(i == index ? Theme.cardHi : Color.clear))
+                            .overlay(RoundedRectangle(cornerRadius: 8)
+                                .stroke(i == index ? Theme.accent : Theme.border, lineWidth: 1))
+                            .foregroundStyle(i == index ? Theme.accent : Theme.dim)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+    }
+}
+
+private struct LQStepperRow: View {
+    let title: String
+    let value: String
+    let dec: () -> Void
+    let inc: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(title).font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.dim)
+            Spacer()
+            Button { dec() } label: {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundStyle(Theme.dim)
+            }
+            .buttonStyle(PlainButtonStyle())
+            Text(value).font(Theme.bodyFont).foregroundStyle(Theme.text)
+                .frame(minWidth: 46).multilineTextAlignment(.center)
+            Button { inc() } label: {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(Theme.accent)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
     }
 }
