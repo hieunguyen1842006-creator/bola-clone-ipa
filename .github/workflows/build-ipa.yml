@@ -7,13 +7,8 @@ on:
 
 jobs:
   build:
-    # 2 runner chạy song song: lấy được runner nào trước thì có IPA ngay.
-    # (GitHub hay hết capacity cho macos-14 -> job nằm hàng đợi rồi bị huỷ.)
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-14, macos-15]
-    runs-on: ${{ matrix.os }}
+    # macos-14 bị GitHub brownout/retire (2/11/2026) — chỉ chạy macos-15.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -67,5 +62,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: NVH-MOD-unsigned-ipa-${{ matrix.os }}
+          name: NVH-MOD-unsigned-ipa
           path: NVH-MOD-unsigned.ipa
