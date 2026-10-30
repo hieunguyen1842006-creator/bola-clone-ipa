@@ -18,6 +18,15 @@
 //   dong 1: tid=<n> main=1 rev=<r> calls=<c> t=<giay>
 //   dong 2: hero=<id> skin=<dangmac> count=<n> names=<t0>|<t1>|...
 //           hero=0 khi khong trong tran / chua san sang.
+//
+// AN TOAN (v3.1 — sua loi đơ khi moi vao game):
+//   GetHeroSkin(heroId, skinId) khi MISS KEY se goi TableManager::Reload —
+//   nap lai toan bo databin (rat nang). O lobby heroId khong hop le nen
+//   vong do 60 lan gay reload lien tuc -> treo.
+//   => Chi do khi app YEU CAU (dong "probe=<n>" trong nvh_aov.txt), chan
+//      heroId vo ly, toi da 8 skin, dung ngay khi gap null/ten rong/lap.
+//   => Duong chay mac dinh (khong probe) chi doc file + heartbeat: khong
+//      goi BAT KY API nao cua game.
 
 using System;
 using UnityEngine;
@@ -98,6 +107,8 @@ namespace NucleusDrive.Logic
         // ---- field moi ----
         public int   __mMainTid;    // thread id ghi danh dau tien = thread chinh
         public int   __mRev;        // rev da ap (bo qua file khong doi)
+        public int   __mProbeReq;   // so hieu yeu cau do tuong (app tang)
+        public int   __mProbeDone;  // so hieu da do xong
         public int   __mCalls;      // dem luot chay qua phan viec (heartbeat)
         public float __mNext;       // moc thoi gian doc config tiep
         public float __mLogNext;    // moc thoi gian ghi heartbeat tiep
@@ -266,13 +277,25 @@ namespace NucleusDrive.Logic
                                     }
                                 }
 
+                                p = t.IndexOf("probe=");
+                                if (p >= 0)
+                                {
+                                    int e = t.IndexOf('\n', p);
+                                    string s = (e > p) ? t.Substring(p + 6, e - p - 6)
+                                                       : t.Substring(p + 6);
+                                    int v;
+                                    if (int.TryParse(s.Trim(), out v)) __mProbeReq = v;
+                                }
+
                                 PlayerPrefs.Save();
                             }
                         }
                     }
                 }
 
-                // ==== heartbeat 5 giay + TU NHAN DIEN TUONG ====
+                // ==== heartbeat 5 giay + TU NHAN DIEN TUONG (CHỈ khi probe) ====
+                // Note: GetHeroSkin(heroId, si) voi key miss se goi TableManager::Reload —
+                // o lobby heroId khong hop le -> 60 lan reload = treo. => Chi chay khi probe.
                 if (now >= __mLogNext)
                 {
                     __mLogNext = now + 5.0f;
@@ -281,54 +304,61 @@ namespace NucleusDrive.Logic
 
                     // trang thai tuong: hostLogic -> hostPlayer -> CaptainLinker
                     string st = "hero=0";
-                    try
+                    if (__mProbeReq != __mProbeDone)
                     {
-                        Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
-                        if (host != null)
+                        __mProbeDone = __mProbeReq;
+                        try
                         {
-                            Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
-                            if (pl != null)
+                            Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
+                            if (host != null)
                             {
-                                PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
-                                if (cap.HasValue)
+                                Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
+                                if (pl != null)
                                 {
-                                    Kyrios.Actor.ActorLinker al = cap.handle;
-                                    if (al != null)
+                                    PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
+                                    if (cap.HasValue)
                                     {
-                                        uint heroId = al.ConfigId;
-                                        uint wear = Assets.Scripts.GameSystem.CSkinInfo
-                                            .GetWearSkinID(heroId);
-
-                                        // liet ke skin: GetHeroSkin tra null khi vuot so luong
-                                        string names = "";
-                                        int cnt = 0;
-                                        uint si = 0;
-                                        while (si < 60)
+                                        Kyrios.Actor.ActorLinker al = cap.handle;
+                                        if (al != null)
                                         {
-                                            ResData.ResHeroSkin rs = Assets.Scripts.GameSystem
-                                                .CSkinInfo.GetHeroSkin(heroId, si);
-                                            if (rs == null) break;
-                                            string nm = rs.szSkinName;
-                                            if (nm == null || nm.Length == 0)
-                                                nm = "Skin " + si.ToString();
-                                            if (cnt > 0) names = names + "|";
-                                            names = names + nm;
-                                            cnt = cnt + 1;
-                                            si = si + 1;
-                                        }
+                                            uint heroId = al.ConfigId;
+                                            // chat vo ly: chi lap khi trong khoang hop le
+                                            if (heroId > 0 && heroId < 100000U)
+                                            {
+                                                uint wear = Assets.Scripts.GameSystem.CSkinInfo
+                                                    .GetWearSkinID(heroId);
 
-                                        st = "hero=" + heroId.ToString()
-                                            + " skin=" + wear.ToString()
-                                            + " count=" + cnt.ToString()
-                                            + " names=" + names;
+                                                // Liet ke toi da 8 skin (de an toan), dung gap null/ten rong/lap
+                                                string names = ""; int cnt = 0; uint si = 0;
+                                                string prevName = "";
+                                                while (si < 8U)
+                                                {
+                                                    ResData.ResHeroSkin rs = Assets.Scripts.GameSystem
+                                                        .CSkinInfo.GetHeroSkin(heroId, si);
+                                                    if (rs == null) break;
+                                                    string nm = rs.szSkinName;
+                                                    if (nm == null || nm.Length == 0) break;   // ten rong = gap
+                                                    if (nm == prevName) break;                 // lap = gap
+                                                    prevName = nm;
+                                                    if (cnt > 0) names += "|";
+                                                    names += nm;
+                                                    cnt++; si++;
+                                                }
+
+                                                st = "hero=" + heroId.ToString()
+                                                    + " skin=" + wear.ToString()
+                                                    + " count=" + cnt.ToString()
+                                                    + " names=" + names;
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    catch (Exception)
-                    {
-                        // khong doc duoc state — bao hero=0, khong bao gio lan ra
+                        catch (Exception)
+                        {
+                            // khong doc duoc state — bao hero=0, khong bao gio lan ra
+                        }
                     }
 
                     System.IO.File.WriteAllText(

@@ -757,11 +757,14 @@ public final class AppModel: ObservableObject {
 
     /// Số hiệu lần cấu hình — patch in-game so rev để chỉ áp khi file đổi.
     public private(set) var aovRev: Int = UserDefaults.standard.integer(forKey: "nvh.aov.rev")
+    /// Số hiệu yêu cầu dò tướng — patch chỉ gọi API game khi số này đổi.
+    public private(set) var aovProbe: Int = UserDefaults.standard.integer(forKey: "nvh.aov.probe")
 
     /// Nội dung file live khớp parser trong MenuPatch.cs.
     public var aovLiveText: String {
         let zoom = String(format: "%.1f", aovZoom)
         return "rev=\(aovRev)\n"
+            + "probe=\(aovProbe)\n"
             + "esp=\(aovEsp ? 1 : 0)\n"
             + "bp=\(aovBocpha ? 1 : 0)\n"
             + "aim=\(aovAim ? 1 : 0)\n"
@@ -828,7 +831,30 @@ public final class AppModel: ObservableObject {
         toast("Đã đọc cấu hình từ game")
     }
 
-    /// Đọc heartbeat + trạng thái tướng (gọi tự động khi mở thẻ LQ).
+    /// Yêu cầu patch trong game DÒ tướng đang chơi (chỉ khi bấm nút — patch
+    /// không gọi API game ở đường chạy mặc định). Đọc lại log sau ~2.5 giây.
+    public func requestAOVDetection() {
+        guard game.isLienQuan else { return }
+        guard access.isAvailable(for: game) else {
+            toast("Chưa mở được thư mục game — mở game 1 lần rồi thử lại")
+            return
+        }
+        aovProbe += 1
+        UserDefaults.standard.set(aovProbe, forKey: "nvh.aov.probe")
+        pushAOVConfig()
+        log("aov: đã yêu cầu dò tướng — chờ patch trong game trả kết quả")
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            self.refreshAOVDetection()
+            if self.aovDetectedHero > 0 {
+                self.toast("Đã nhận diện tướng \(self.aovDetectedHero)")
+            } else {
+                self.toast("Chưa thấy tướng — phải đang trong trận (pick xong) mới dò được")
+            }
+        }
+    }
+
+    /// Đọc heartbeat + trạng thái tướng (gọi tự động khi mở thẻ LQ — chỉ đọc file).
     public func refreshAOVDetection() {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
         guard let raw = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,

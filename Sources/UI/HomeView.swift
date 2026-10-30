@@ -310,8 +310,8 @@ struct LQModCard: View {
             HStack {
                 Text("FULL MOD (AOV)").font(Theme.monoFont).foregroundStyle(Theme.dim)
                 Spacer()
-                Button { model.syncAOVFromGame() } label: {
-                    Text("Đọc từ game").font(Theme.monoFont).foregroundStyle(Theme.accent)
+                Button { model.requestAOVDetection() } label: {
+                    Text("Dò tướng").font(Theme.monoFont).foregroundStyle(Theme.accent)
                 }
             }
 
@@ -373,7 +373,7 @@ struct LQModCard: View {
                 LQStepperRow(title: "SKIN • CHỈ SỐ", value: "\(model.aovModel)",
                              dec: { model.setAOVModel(model.aovModel - 1) },
                              inc: { model.setAOVModel(model.aovModel + 1) })
-                Text("Vào trận rồi bấm «Đọc từ game» — app tự nhận tướng đang chơi + danh sách skin có tên (skin áp khi hồi sinh/vào trận mới)")
+                Text("Vào trận rồi bấm «Dò tướng» — app tự nhận tướng đang chơi + danh sách skin có tên (skin áp khi hồi sinh/vào trận mới)")
                     .font(.system(size: 10)).foregroundStyle(Theme.dim)
             }
 
