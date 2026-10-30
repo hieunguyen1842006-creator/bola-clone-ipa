@@ -106,6 +106,7 @@ namespace NucleusDrive.Logic
         public int   __mCalls;      // dem luot chay qua phan viec (heartbeat)
         public float __mNext;       // moc thoi gian doc config tiep
         public float __mLogNext;    // moc thoi gian ghi heartbeat tiep
+        public string __mLastLog;   // trang thai da ghi lan truoc (tranh ghi lap)
 
         public LFrameSynchr get_frameSynchr()
         {
@@ -361,9 +362,28 @@ namespace NucleusDrive.Logic
                         }
                     }
 
-                    System.IO.File.WriteAllText(
-                        Application.persistentDataPath + "/nvh_aov.log",
-                        hb + "\n" + st);
+                    string full = hb + "\n" + st;
+
+                    // 1) file (app doc neu doc duoc)
+                    try
+                    {
+                        System.IO.File.WriteAllText(
+                            Application.persistentDataPath + "/nvh_aov.log", full);
+                    }
+                    catch (Exception) { }
+
+                    // 2) PlayerPrefs — duong chac chan (payload dang dung duong nay)
+                    //    app doc plist cua game, khong phu thuoc quyen ghi file
+                    if (__mLastLog != st)
+                    {
+                        __mLastLog = st;
+                        try
+                        {
+                            PlayerPrefs.SetString("iFix.Detect.v1", st);
+                            PlayerPrefs.Save();
+                        }
+                        catch (Exception) { }
+                    }
                 }
             }
             catch (Exception)

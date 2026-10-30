@@ -853,7 +853,8 @@ public final class AppModel: ObservableObject {
             if self.aovDetectedHero > 0 {
                 self.toast("Đã nhận diện tướng \(self.aovDetectedHero)")
             } else {
-                self.toast("Chưa thấy tướng — xem dòng aov-status trong log")
+                self.diagnoseAOV()
+                self.toast("Chưa thấy tướng — đã ghi chẩn đoán vào log")
             }
         }
     }
@@ -861,59 +862,100 @@ public final class AppModel: ObservableObject {
     /// Đọc heartbeat + trạng thái tướng (gọi tự động khi mở thẻ LQ — chỉ đọc file).
     public func refreshAOVDetection() {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
-        guard let raw = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
-              let text = String(data: raw, encoding: .utf8), !text.isEmpty else { return }
-        applyAOVLog(text)
+        // 1. file nvh_aov.log (nếu game ghi được)
+        if let raw = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
+           let text = String(data: raw, encoding: .utf8), !text.isEmpty {
+            if applyAOVLog(text) { return }
+        }
+        // 2. dự phòng: PlayerPrefs của game (iFix.Detect.v1) — đường patch chắc chắn ghi được
+        if let dict = LQModConfig.load(access: access, game: game),
+           let s = dict["iFix.Detect.v1"] as? String, !s.isEmpty {
+            _ = applyAOVStatusLine(s)
+        }
+    }
+
+    /// Log chẩn đoán: quyền container, thư mục, file trạng thái, giá trị thật.
+    public func diagnoseAOV() {
+        guard game.isLienQuan else { log("diag: game đang chọn không phải Liên Quân"); return }
+        let avail = access.isAvailable(for: game)
+        log("diag: access=\(avail) • \(access.label)")
+        log("diag: docs=\(access.documentsPath(for: game) ?? "nil")")
+        let files = (try? access.list("", in: game)) ?? []
+        let mine = files.filter { $0.contains("nvh_") || $0.contains("iFix") }
+        log("diag: Documents \(files.count) mục • liên quan: \(mine)")
+        for name in [LQModConfig.logFileName, LQModConfig.liveFileName] {
+            if let d = (try? access.read(name, in: game)) ?? nil {
+                let s = String(data: d, encoding: .utf8) ?? "<binary>"
+                log("diag: \(name) \(d.count)B → \(s.replacingOccurrences(of: "\n", with: " ⏎ ").prefix(160))")
+            } else {
+                log("diag: \(name) — KHÔNG đọc được")
+            }
+        }
+        if let dict = LQModConfig.load(access: access, game: game) {
+            let keys = dict.keys.filter { $0.hasPrefix("iFix.") }.sorted()
+            log("diag: prefs iFix.* = \(keys.count) key")
+            if let d = dict["iFix.Detect.v1"] as? String { log("diag: iFix.Detect.v1 = \(d)") }
+            if let e = dict[LQModConfig.espKey] { log("diag: ESP=\(e)") }
+        } else {
+            log("diag: KHÔNG đọc được plist prefs của game")
+        }
+    }
+
+    /// Parse một dòng trạng thái. Trả true nếu nhận được tướng.
+    @discardableResult
+    private func applyAOVStatusLine(_ line0: String) -> Bool {
+        let line = line0.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard line.hasPrefix("hero=") else { return false }
+
+        var namesPart = ""
+        var head = line
+        if let r = line.range(of: " names=") {
+            namesPart = String(line[r.upperBound...])
+            head = String(line[..<r.lowerBound])
+        }
+        var hero = 0
+        var skin = 0
+        var count = 0
+        for token in head.split(separator: " ") {
+            let kv = token.split(separator: "=", maxSplits: 1)
+            guard kv.count == 2 else { continue }
+            switch String(kv[0]) {
+            case "hero": hero = Int(kv[1]) ?? 0
+            case "skin": skin = Int(kv[1]) ?? 0
+            case "count": count = Int(kv[1]) ?? 0
+            default: break
+            }
+        }
+        guard hero > 0 else {
+            // patch báo lý do (dbg=s3, err=...) — đưa vào log để soi
+            log("aov-status: \(line)")
+            return false
+        }
+        let names = namesPart.isEmpty
+            ? [] : namesPart.components(separatedBy: "|")
+
+        aovDetectedHero = hero
+        aovDetectedSkin = skin
+        if count > 0, !names.isEmpty { aovSkinNames = names }
+        // tự bám theo tướng đang chơi — skin chọn trong app ghi đúng key
+        aovHero = hero
+        let d = UserDefaults.standard
+        d.set(hero, forKey: "nvh.aov.dhero")
+        d.set(skin, forKey: "nvh.aov.dskin")
+        d.set(names, forKey: "nvh.aov.dnames")
+        saveAOV()
+        log("aov: nhận diện tướng \(hero) • đang mặc skin \(skin) • \(count) skin")
+        return true
     }
 
     /// Parse nvh_aov.log: dòng 1 heartbeat, dòng 2 "hero=<id> skin=<n> count=<n> names=..."
-    /// (phần names nằm sau " names=" vì tên skin có thể chứa khoảng trắng).
-    private func applyAOVLog(_ text: String) {
+    @discardableResult
+    private func applyAOVLog(_ text: String) -> Bool {
+        var got = false
         for rawLine in text.split(separator: "\n") {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
-            guard line.hasPrefix("hero=") else { continue }
-
-            var namesPart = ""
-            var head = line
-            if let r = line.range(of: " names=") {
-                namesPart = String(line[r.upperBound...])
-                head = String(line[..<r.lowerBound])
-            }
-            var hero = 0
-            var skin = 0
-            var count = 0
-            for token in head.split(separator: " ") {
-                let kv = token.split(separator: "=", maxSplits: 1)
-                guard kv.count == 2 else { continue }
-                switch String(kv[0]) {
-                case "hero": hero = Int(kv[1]) ?? 0
-                case "skin": skin = Int(kv[1]) ?? 0
-                case "count": count = Int(kv[1]) ?? 0
-                default: break
-                }
-            }
-            guard hero > 0 else {
-                // patch báo lý do (dbg=s3, err=...) — đưa vào log để soi
-                log("aov-status: \(line)")
-                continue
-            }
-            let names = namesPart.isEmpty
-                ? [] : namesPart.components(separatedBy: "|")
-
-            aovDetectedHero = hero
-            aovDetectedSkin = skin
-            if count > 0, !names.isEmpty {
-                aovSkinNames = names
-            }
-            // tự bám theo tướng đang chơi — skin chọn trong app ghi đúng key
-            aovHero = hero
-            let d = UserDefaults.standard
-            d.set(hero, forKey: "nvh.aov.dhero")
-            d.set(skin, forKey: "nvh.aov.dskin")
-            d.set(names, forKey: "nvh.aov.dnames")
-            saveAOV()
-            log("aov: nhận diện tướng \(hero) • đang mặc skin \(skin) • \(count) skin")
+            if applyAOVStatusLine(String(rawLine)) { got = true }
         }
+        return got
     }
 
     public func setAOVEsp(_ v: Bool) { aovEsp = v; saveAOV(); pushAOVConfig() }

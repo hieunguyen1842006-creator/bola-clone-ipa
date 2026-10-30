@@ -313,6 +313,9 @@ struct LQModCard: View {
                 Button { model.requestAOVDetection() } label: {
                     Text("Dò tướng").font(Theme.monoFont).foregroundStyle(Theme.accent)
                 }
+                Button { model.diagnoseAOV() } label: {
+                    Text("?").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                }
             }
 
             LQToggleRow(title: "ESP xuyên tường",
