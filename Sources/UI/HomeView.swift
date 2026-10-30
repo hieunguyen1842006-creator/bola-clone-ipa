@@ -345,7 +345,7 @@ struct LQModCard: View {
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })
 
-            Text("TẮT HẲN GAME trước khi đổi — cấu hình ghi vào game, mở lại để nhận")
+            Text("Đổi là áp trong ~1 giây — payload trong game đọc file live, không cần tắt game")
                 .font(.system(size: 10)).foregroundStyle(Theme.warn)
         }
         .padding(12)

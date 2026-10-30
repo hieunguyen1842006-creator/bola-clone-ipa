@@ -78,4 +78,22 @@ public enum LQModConfig {
             return false
         }
     }
+
+    // MARK: kênh LIVE — Documents/nvh_aov.txt
+
+    /// Patch trong game (hook get_frameSynchr) đọc file này mỗi giây và áp vào
+    /// PlayerPrefs của chính nó — hoạt động cả khi game ĐANG CHẠY (file thường
+    /// không bị cache như cfprefsd). Format khớp parser trong MenuPatch.cs.
+    public static let liveFileName = "nvh_aov.txt"
+
+    @discardableResult
+    public static func writeLive(_ text: String,
+                                 access: ContainerAccess, game: GameTarget) -> Bool {
+        do {
+            try access.write(Data(text.utf8), to: liveFileName, in: game)
+            return true
+        } catch {
+            return false
+        }
+    }
 }

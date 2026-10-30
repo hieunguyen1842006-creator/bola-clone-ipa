@@ -746,8 +746,29 @@ public final class AppModel: ObservableObject {
         ]
     }
 
-    /// Ghi cấu hình vào PlayerPrefs của game (game phải TẮT để cfprefsd không
-    /// giữ giá trị cũ trong cache).
+    // MARK: kênh LIVE (nvh_aov.txt — payload đọc mỗi giây, áp cả khi game chạy)
+
+    /// Số hiệu lần cấu hình — patch in-game so rev để chỉ áp khi file đổi.
+    public private(set) var aovRev: Int = UserDefaults.standard.integer(forKey: "nvh.aov.rev")
+
+    /// Nội dung file live khớp parser trong MenuPatch.cs.
+    public var aovLiveText: String {
+        let zoom = String(format: "%.1f", aovZoom)
+        return "rev=\(aovRev)\n"
+            + "esp=\(aovEsp ? 1 : 0)\n"
+            + "bp=\(aovBocpha ? 1 : 0)\n"
+            + "aim=\(aovAim ? 1 : 0)\n"
+            + "tmode=\(aovTargetMode)\n"
+            + "lines=\(aovLines)\n"
+            + "draw=\(aovDrawMode)\n"
+            + "smite=\(aovSmiteMode == 0 ? 0 : 1)\n"
+            + "smt=\(max(aovSmiteMode - 1, 0))\n"
+            + "zoom=\(zoom)\n"
+            + "skin=\(aovHero):\(aovModel)\n"
+    }
+
+    /// Ghi cấu hình vào game: (1) file live — payload đọc mỗi giây, áp cả khi
+    /// game đang chạy; (2) plist prefs — giá trị đúng ngay từ lần mở sau.
     public func pushAOVConfig(via provider: ContainerAccess? = nil) {
         guard game.isLienQuan else { return }
         let box = provider ?? access
@@ -755,10 +776,16 @@ public final class AppModel: ObservableObject {
             log("aov: chưa mở được container — cấu hình chỉ lưu trong app")
             return
         }
-        if LQModConfig.apply(aovValues(), access: box, game: game) {
-            log("aov: đã ghi cấu hình vào game — mở lại game để nhận")
+        aovRev += 1
+        UserDefaults.standard.set(aovRev, forKey: "nvh.aov.rev")
+        let liveOK = LQModConfig.writeLive(aovLiveText, access: box, game: game)
+        let plistOK = LQModConfig.apply(aovValues(), access: box, game: game)
+        if liveOK {
+            log("aov: đã ghi cấu hình live — payload áp trong ~1 giây")
+        } else if plistOK {
+            log("aov: đã ghi prefs — mở lại game để nhận")
         } else {
-            log("aov: không ghi được plist prefs của game")
+            log("aov: không ghi được vào game")
         }
     }
 
