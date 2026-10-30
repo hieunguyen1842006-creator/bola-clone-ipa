@@ -812,6 +812,12 @@ public final class AppModel: ObservableObject {
         aovZoom = min(max(LQModConfig.float(dict, LQModConfig.zoomKey, aovZoom), 1.0), 5.0)
         aovModel = min(max(LQModConfig.int(dict, LQModConfig.skinKey(hero: aovHero), aovModel), 0), 99)
         saveAOV()
+
+        // heartbeat của patch in-game (nếu đã chạy trong game)
+        if let hb = (try? access.read(LQModConfig.logFileName, in: game)) ?? nil,
+           let text = String(data: hb, encoding: .utf8), !text.isEmpty {
+            log("aov-heartbeat: \(text)")
+        }
         toast("Đã đọc cấu hình từ game")
     }
 

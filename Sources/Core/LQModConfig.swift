@@ -86,6 +86,9 @@ public enum LQModConfig {
     /// không bị cache như cfprefsd). Format khớp parser trong MenuPatch.cs.
     public static let liveFileName = "nvh_aov.txt"
 
+    /// Heartbeat patch in-game ghi mỗi 5 giây (app đọc để biết patch còn sống).
+    public static let logFileName = "nvh_aov.log"
+
     @discardableResult
     public static func writeLive(_ text: String,
                                  access: ContainerAccess, game: GameTarget) -> Bool {
