@@ -320,12 +320,16 @@ namespace NucleusDrive.Logic
                 }
                 catch (Exception) { }
 
-                // ================= do tuong (chi khi app yeu cau) =================
-                // LUU Y: CaptainLinker chi co gia tri khi DANG TRONG TRAN. Neu chua
-                // thay tuong thi KHONG chot probeReq -> tu thu lai moi tick cho toi
-                // khi vao tran (khong can bam dung thoi diem).
+                // ================= do tuong: TU DONG =================
+                // CaptainLinker chi co gia tri khi DANG TRONG TRAN. App khong the
+                // biet luc nao -> patch TU DO moi lan tick, va chi chot khi da thay
+                // tuong. Khong can bam nut, khong phu thuoc app foreground.
                 int probeDone = PlayerPrefs.GetInt("iFix.Cfg.Probe", 0);
-                if (probeReq != probeDone && probeReq > 0)
+                int seenHero = PlayerPrefs.GetInt("iFix.Detect.Hero", 0);
+                bool wantProbe = (probeReq != probeDone && probeReq > 0)
+                                 || seenHero <= 0
+                                 || ((__mCalls % 300) == 0);
+                if (wantProbe)
                 {
                     string stage = "D0";
                     int dHero = 0;
