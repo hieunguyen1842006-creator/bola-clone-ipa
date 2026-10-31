@@ -75,6 +75,10 @@ TRUE_ASSEMBLY = {
     "Assets.Scripts.GameLogic.GameKernal.Player": "Project_d",
     "Kyrios.Actor.ActorLinker": "Project_d",
     "Assets.Scripts.GameSystem.CSkinInfo": "Project_d",
+    # CRoleInfo + CRoleInfoManager: dump.cs LQ 1.64.1.7 -> TypeDefIndex 7472/7481,
+    # nam trong Project_d (dwShowSkinID @0x26C la field chon nut chieu).
+    "Assets.Scripts.GameSystem.CRoleInfo": "Project_d",
+    "Assets.Scripts.GameSystem.CRoleInfoManager": "Project_d",
     "ResData.ResHeroSkin": "AovTdr",
     "PoolObjHandle`1": "CoreLib",
 }

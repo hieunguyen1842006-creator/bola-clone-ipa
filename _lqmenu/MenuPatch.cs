@@ -37,6 +37,25 @@ using UnityEngine;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
+namespace Assets.Scripts.GameSystem
+{
+    // Ground truth tu dump.cs (LQ 1.64.1.7):
+    //   CRoleInfo:        public uint dwShowSkinID; // 0x26C
+    //   CRoleInfoManager: Singleton<CRoleInfoManager>, CRoleInfo GetMasterRoleInfo()
+    // Day la field ma he thong NUT CHIEU / thong bao diet doc de chon skin
+    // (PersonalButton::get_PersonalBtnId doc thang field, KHONG qua ham).
+    public class CRoleInfo
+    {
+        public uint dwShowSkinID;
+    }
+
+    public class CRoleInfoManager
+    {
+        public static CRoleInfoManager GetInstance() { return null; }
+        public CRoleInfo GetMasterRoleInfo() { return null; }
+    }
+}
+
 namespace NucleusDrive.Logic
 {
     public class LFrameSynchr { }
@@ -217,11 +236,43 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", f);
                     }
 
-                    // SKIN: KHONG xu ly o day. Doi skin bang lenh chat /skin <n>
-                    // trong tran (payload goc tu goi ChangeActorMesh ngay -> thay lien).
-                    // Neu patch cung ghi iFix.SelectedSkin.v1.* thi se de len lua
-                    // chon cua chat -> bo hoan toan.
+                    // SKIN NAP TRUOC TRAN:
+                    //   wearskin=<0..99>   0 = tat
+                    // Khong ghi iFix.SelectedSkin.v1.* (do la lua chon cua UI
+                    // /skin trong tran). Gia tri nay ghi vao iFix.WearSkin.v1 va
+                    // duoc ap vao CRoleInfo.dwShowSkinID ngay ben duoi.
+                    p = t.IndexOf("wearskin=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 9, e - p - 9) : t.Substring(p + 9);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.WearSkin.v1", v);
+                    }
                 }
+
+                // ---- ap skin nap truoc tran vao field game dung de chon NUT ----
+                // PersonalButton::get_PersonalBtnId so dwShowSkinID voi danh sach
+                // skin cua tuong -> quyet dinh bo nut chieu nao duoc dung.
+                // Chi ghi khi lech gia tri (do la store du moi tick).
+                try
+                {
+                    int wear = PlayerPrefs.GetInt("iFix.WearSkin.v1", 0);
+                    if (wear > 0)
+                    {
+                        Assets.Scripts.GameSystem.CRoleInfoManager mgr =
+                            Assets.Scripts.GameSystem.CRoleInfoManager.GetInstance();
+                        if (mgr != null)
+                        {
+                            Assets.Scripts.GameSystem.CRoleInfo ri = mgr.GetMasterRoleInfo();
+                            if (ri != null && ri.dwShowSkinID != (uint)wear)
+                            {
+                                ri.dwShowSkinID = (uint)wear;
+                            }
+                        }
+                    }
+                }
+                catch (Exception) { }
 
                 PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
                 PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
