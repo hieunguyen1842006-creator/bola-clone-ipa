@@ -1,28 +1,32 @@
-// NVH LQ LIVE CONFIG v7 — patch IFix hook LFramework.get_frameSynchr
+// NVH LQ LIVE CONFIG v8 — patch IFix hook LFramework.get_frameSynchr
 //
-// BANG CHUNG TU BAN DO HB (615880d):
-//   iFix.HB.Calls = 228 -> 841 -> DUNG.
-//   => hook CO chay luc lobby, roi khi vao tran bi goi tu THREAD KHAC.
-//   Bo loc "chi thread chinh" (L1) da chan sach moi thu ben trong
-//   (detection + ca viec doc config trong tran).
+// BANG CHUNG TU BAN v7 (logs 13:54 / 14:01):
+//   iFix.HB.Loaded = 1, iFix.HB.Calls = 1896  -> hook CHAY.
+//   NHUNG iFix.Cfg.* va iFix.Detect.* KHONG BAO GIO xuat hien.
+//   => khoi doc config nam SAU bo dem throttle khong he chay.
 //
-// v7 SUA GOC:
-//   - BO hoan toan bo loc thread va bo moi API Unity can main-thread
-//     (Input / Time / Application goi lap). Chi dung:
-//        * duong dan cache 1 lan (lan goi dau, tuong duong lobby/main)
-//        * System.IO.File  (doc config, ghi log phu)
-//        * PlayerPrefs     (Set/Get/Save — an toan da luong)
-//     => chay duoc tren thread frame-sync ma khong treo.
-//   - Throttle bang BO DEM thay vi dong ho: cu 20 lan goi xu ly 1 lan.
-//   - Detection ghi ket qua bang PREF KIEM SO (SetInt/SetString) —
-//     khong noi so vao chuoi (Int32::ToString trong IFix patch tra "True").
+// v8 SUA GOC:
+//   - BO field __mTick. Throttle dung CHINH __mCalls (field duy nhat da
+//     chung minh song): if (__mCalls % 20 != 0) return fs;
+//     => khong con phu thuoc field moi de bi game ghi de moi frame.
+//   - BO field __mPath (string). Duong dan lay tu Environment.GetEnvironmentVariable
+//     ("HOME") — API thuan .NET, KHONG can main thread, KHONG bi Unity chan.
+//     Chi khi HOME rong moi fallback Application.persistentDataPath.
+//   - BO field __mRev / __mProbeReq / __mProbeDone. Trang thai giu trong
+//     PlayerPrefs cua chinh process game (doc/ghi in-process = tuc thi).
+//   - Ap config MOI lan xu ly (khong so rev) -> doi la an trong ~0.3s.
+//   - Tra ket qua bang FILE (khong qua cfprefsd):
+//        <Documents>/nvh_step.txt    S1..S9  = diem dung cua khung doc config
+//        <Documents>/nvh_where.txt   thu muc that patch dang dung
+//        <Documents>/nvh_detect.txt  D0..D7/DOK/DERR = diem dung khi do tuong
+//        <Documents>/nvh_skin.txt    ten skin, ngan cach '|'
+//     Van ghi prefs (iFix.Detect.Hero/Skin/Count, iFix.HB.Calls) lam kenh phu.
 //
-// File nvh_aov.txt (app ghi):
-//   rev=<n> probe=<n> esp= bp= aim= tmode= lines= draw= smite= smt= zoom= skin=<hero>:<model>
+// File app ghi (doc moi ~0.3s):
+//   rev= probe= esp= bp= aim= tmode= lines= draw= smite= smt= zoom= skin=<hero>:<model>
 //
 // Prefs patch ghi ra (app doc):
 //   iFix.HB.Loaded=1  iFix.HB.Calls=<n>
-//   iFix.Detect.Stage=<s0..s7|ok|err:Loai>
 //   iFix.Detect.Hero / Skin / Count (int)   iFix.Detect.Names (string, '|')
 
 using System;
@@ -94,13 +98,8 @@ namespace NucleusDrive.Logic
         // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public LFrameSynchr _frameSynchr;
 
-        // ---- field moi ----
-        public int    __mCalls;     // so lan hook duoc goi (khong loc thread)
-        public int    __mTick;      // bo dem throttle (thay cho dong ho)
-        public int    __mRev;       // rev config da ap
-        public int    __mProbeReq;  // yeu cau do tuong tu app
-        public int    __mProbeDone; // da do xong so hieu nao
-        public string __mPath;      // duong dan config, cache 1 lan
+        // ---- field moi: DUY NHAT 1 field int, da chung minh song ----
+        public int __mCalls;
 
         public LFrameSynchr get_frameSynchr()
         {
@@ -109,231 +108,217 @@ namespace NucleusDrive.Logic
             try
             {
                 __mCalls = __mCalls + 1;
+                if ((__mCalls % 20) != 0) return fs;
 
-                // cache duong dan 1 lan (lan goi dau — khong lap lai API nay)
-                if (__mPath == null)
+                // ---------- thu muc that cua game (khong dung API Unity) ----------
+                string home = null;
+                try { home = System.Environment.GetEnvironmentVariable("HOME"); } catch (Exception) { }
+                if (home == null || home.Length == 0)
+                {
+                    try { home = Application.persistentDataPath; } catch (Exception) { }
+                }
+                if (home == null || home.Length == 0) return fs;
+
+                string dir = home + "/Documents";
+
+                // thu ghi marker: Documents cua game -> /var/mobile/Documents -> Media
+                string good = null;
+                try
+                {
+                    System.IO.File.WriteAllText(dir + "/nvh_step.txt", "S1");
+                    good = dir;
+                }
+                catch (Exception) { }
+                if (good == null)
                 {
                     try
                     {
-                        __mPath = Application.persistentDataPath + "/nvh_aov.txt";
+                        System.IO.File.WriteAllText("/var/mobile/Documents/nvh_step.txt", "S1");
+                        good = "/var/mobile/Documents";
                     }
                     catch (Exception) { }
                 }
-                if (__mPath == null) return fs;
-
-                // heartbeat: chi ghi RAM moi frame, Save moi 60 lan
-                try
+                if (good == null)
                 {
-                    if (__mCalls == 1)
+                    try
                     {
-                        PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
+                        System.IO.File.WriteAllText("/var/mobile/Media/nvh_step.txt", "S1");
+                        good = "/var/mobile/Media";
                     }
-                    PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
-                    if ((__mCalls % 60) == 0) PlayerPrefs.Save();
+                    catch (Exception) { }
                 }
-                catch (Exception) { }
+                if (good == null) return fs;
 
-                // throttle: cu 20 lan goi moi xu ly 1 lan
-                __mTick = __mTick + 1;
-                if ((__mTick % 20) != 0) return fs;
+                try { System.IO.File.WriteAllText(good + "/nvh_where.txt", good); } catch (Exception) { }
 
-                // ================= doc live config =================
-                // May do: ghi so hieu buoc vao iFix.Cfg.Step de biet chan o dau
-                //   1 = qua throttle | 2 = File.Exists FALSE | 3 = co file
-                //   4 = doc xong | 5 = rev doi | 6 = da ap key | 7 = da doc probe
-                //   99 = exception (xem iFix.Cfg.Err)
-                string cfgPath = __mPath;
-                try
+                // ---------- tim file config: uu tien thu muc vua ghi duoc ----------
+                string cfg = null;
+                string c1 = dir + "/nvh_aov.txt";
+                string c2 = "/var/mobile/Documents/nvh_aov.txt";
+                string c3 = "/var/mobile/Media/nvh_aov.txt";
+                string c4 = good + "/nvh_aov.txt";
+
+                if (System.IO.File.Exists(c1)) cfg = c1;
+                if (cfg == null && System.IO.File.Exists(c4)) cfg = c4;
+                if (cfg == null && System.IO.File.Exists(c2)) cfg = c2;
+                if (cfg == null && System.IO.File.Exists(c3)) cfg = c3;
+                if (cfg == null)
                 {
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 1);
-                    bool hasFile = System.IO.File.Exists(cfgPath);
-                    if (!hasFile)
-                    {
-                        PlayerPrefs.SetInt("iFix.Cfg.Step", 2);
-                        PlayerPrefs.Save();
-                        return fs;
-                    }
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 3);
+                    try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S2"); } catch (Exception) { }
+                    return fs;
+                }
 
-                    string t = System.IO.File.ReadAllText(cfgPath);
-                    if (t == null || t.Length == 0)
-                    {
-                        PlayerPrefs.SetInt("iFix.Cfg.Step", 31);
-                        PlayerPrefs.Save();
-                        return fs;
-                    }
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 4);
+                try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S3"); } catch (Exception) { }
+                try { System.IO.File.WriteAllText(good + "/nvh_where.txt", cfg); } catch (Exception) { }
 
-                    int rev = __mRev;
-                    int p = t.IndexOf("rev=");
+                string t = null;
+                try { t = System.IO.File.ReadAllText(cfg); } catch (Exception) { }
+                if (t == null || t.Length == 0)
+                {
+                    try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S31"); } catch (Exception) { }
+                    return fs;
+                }
+                try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S4"); } catch (Exception) { }
+
+                // ---------- ap config -> prefs cua chinh process game ----------
+                int probeReq = 0;
+
+                {
+                    int p;
+                    int e;
+                    string s;
+                    int v;
+
+                    p = t.IndexOf("esp=");
                     if (p >= 0)
                     {
-                        int e = t.IndexOf('\n', p);
-                        string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                           : t.Substring(p + 4);
-                        int v;
-                        if (int.TryParse(s.Trim(), out v)) rev = v;
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v);
                     }
-                    if (rev == __mRev)
+
+                    p = t.IndexOf("bp=");
+                    if (p >= 0)
                     {
-                        PlayerPrefs.SetInt("iFix.Cfg.Step", 41);   // rev chua doi
-                        PlayerPrefs.Save();
-                        return fs;
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 3, e - p - 3) : t.Substring(p + 3);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
                     }
-                    __mRev = rev;
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 5);
 
+                    p = t.IndexOf("aim=");
+                    if (p >= 0)
                     {
-                        p = t.IndexOf("esp=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                               : t.Substring(p + 4);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v);
-                        }
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v);
+                    }
 
-                        p = t.IndexOf("bp=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 3, e - p - 3)
-                                               : t.Substring(p + 3);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
-                        }
+                    p = t.IndexOf("tmode=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", v);
+                    }
 
-                        p = t.IndexOf("aim=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                               : t.Substring(p + 4);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v);
-                        }
+                    p = t.IndexOf("lines=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AIM.Lines.v1", v);
+                    }
 
-                        p = t.IndexOf("tmode=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                               : t.Substring(p + 6);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", v);
-                        }
+                    p = t.IndexOf("draw=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 5, e - p - 5) : t.Substring(p + 5);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", v);
+                    }
 
-                        p = t.IndexOf("lines=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                               : t.Substring(p + 6);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AIM.Lines.v1", v);
-                        }
+                    p = t.IndexOf("smite=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v);
+                    }
 
-                        p = t.IndexOf("draw=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                               : t.Substring(p + 5);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", v);
-                        }
+                    p = t.IndexOf("smt=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
+                    }
 
-                        p = t.IndexOf("smite=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                               : t.Substring(p + 6);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v);
-                        }
-                        p = t.IndexOf("smt=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                               : t.Substring(p + 4);
-                            int v;
-                            if (int.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
-                        }
+                    p = t.IndexOf("zoom=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 5, e - p - 5) : t.Substring(p + 5);
+                        float f;
+                        if (float.TryParse(s.Trim(), out f))
+                            PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", f);
+                    }
 
-                        p = t.IndexOf("zoom=");
-                        if (p >= 0)
+                    // SKIN: app ghi san KEY dang CHUOI vao config
+                    //     skinkey=iFix.SelectedSkin.v1.<hero>
+                    //     skinmodel=<n>
+                    // Patch chi doc chuoi — KHONG ghep so (Int32::ToString
+                    // trong IFix patch resolve sai -> tra "True").
+                    p = t.IndexOf("skinmodel=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 10, e - p - 10) : t.Substring(p + 10);
+                        int model;
+                        if (int.TryParse(s.Trim(), out model))
                         {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                               : t.Substring(p + 5);
-                            float v;
-                            if (float.TryParse(s.Trim(), out v))
-                                PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", v);
-                        }
-
-                        p = t.IndexOf("skin=");
-                        if (p >= 0)
-                        {
-                            int e = t.IndexOf('\n', p);
-                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                               : t.Substring(p + 5);
-                            s = s.Trim();
-                            int c = s.IndexOf(':');
-                            if (c > 0)
+                            int kp = t.IndexOf("skinkey=");
+                            if (kp >= 0)
                             {
-                                int hero;
-                                int model;
-                                if (int.TryParse(s.Substring(0, c).Trim(), out hero)
-                                    && int.TryParse(s.Substring(c + 1).Trim(), out model))
-                                {
-                                    PlayerPrefs.SetInt("iFix.SelectedSkin.v1." + hero, model);
-                                }
+                                int ke = t.IndexOf('\n', kp);
+                                string keyStr = (ke > kp)
+                                    ? t.Substring(kp + 8, ke - kp - 8)
+                                    : t.Substring(kp + 8);
+                                keyStr = keyStr.Trim();
+                                if (keyStr.Length > 0)
+                                    PlayerPrefs.SetInt(keyStr, model);
                             }
                         }
                     }
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 6);
 
                     p = t.IndexOf("probe=");
                     if (p >= 0)
                     {
-                        int e = t.IndexOf('\n', p);
-                        string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                           : t.Substring(p + 6);
-                        int v;
-                        if (int.TryParse(s.Trim(), out v)) __mProbeReq = v;
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        int.TryParse(s.Trim(), out probeReq);
                     }
-                    PlayerPrefs.SetInt("iFix.Cfg.Step", 7);
-                    PlayerPrefs.Save();
                 }
-                catch (Exception ex)
-                {
-                    try
-                    {
-                        PlayerPrefs.SetInt("iFix.Cfg.Step", 99);
-                        PlayerPrefs.SetString("iFix.Cfg.Err", ex.GetType().Name);
-                        PlayerPrefs.Save();
-                    }
-                    catch (Exception) { }
-                    return fs;
-                }
+
+                PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
+                PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
+                PlayerPrefs.Save();
+                try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S5"); } catch (Exception) { }
 
                 // ================= do tuong (chi khi app yeu cau) =================
-                if (__mProbeReq != __mProbeDone)
+                int probeDone = PlayerPrefs.GetInt("iFix.Cfg.Probe", 0);
+                if (probeReq != probeDone && probeReq > 0)
                 {
-                    __mProbeDone = __mProbeReq;
+                    PlayerPrefs.SetInt("iFix.Cfg.Probe", probeReq);
 
-                    string stage = "s0";
+                    string stage = "D0";
                     int dHero = 0;
                     int dSkin = 0;
                     int dCount = 0;
@@ -342,29 +327,29 @@ namespace NucleusDrive.Logic
                     try
                     {
                         Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
-                        stage = "s1";
+                        stage = "D1";
                         if (host != null)
                         {
                             Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
-                            stage = "s2";
+                            stage = "D2";
                             if (pl != null)
                             {
                                 PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
-                                stage = "s3";
+                                stage = "D3";
                                 if (cap.HasValue)
                                 {
-                                    stage = "s4";
+                                    stage = "D4";
                                     Kyrios.Actor.ActorLinker al = cap.handle;
                                     if (al != null)
                                     {
-                                        stage = "s5";
+                                        stage = "D5";
                                         uint heroId = al.ConfigId;
-                                        stage = "s6";
+                                        stage = "D6";
                                         if (heroId > 0U && heroId < 100000U)
                                         {
                                             uint wear = Assets.Scripts.GameSystem.CSkinInfo
                                                 .GetWearSkinID(heroId);
-                                            stage = "s7";
+                                            stage = "D7";
                                             dHero = (int)heroId;
                                             dSkin = (int)wear;
 
@@ -384,7 +369,7 @@ namespace NucleusDrive.Logic
                                                 dCount++;
                                                 si++;
                                             }
-                                            stage = "ok";
+                                            stage = "DOK";
                                         }
                                     }
                                 }
@@ -393,7 +378,8 @@ namespace NucleusDrive.Logic
                     }
                     catch (Exception ex)
                     {
-                        stage = "err:" + ex.GetType().Name;
+                        stage = "DERR";
+                        try { PlayerPrefs.SetString("iFix.Detect.Err", ex.GetType().Name); } catch (Exception) { }
                     }
 
                     try
@@ -406,11 +392,20 @@ namespace NucleusDrive.Logic
                         PlayerPrefs.Save();
                     }
                     catch (Exception) { }
+
+                    try { System.IO.File.WriteAllText(good + "/nvh_detect.txt", stage); } catch (Exception) { }
+                    try
+                    {
+                        if (dNames.Length > 0)
+                            System.IO.File.WriteAllText(good + "/nvh_skin.txt", dNames);
+                    }
+                    catch (Exception) { }
                 }
             }
             catch (Exception)
             {
                 // nuot het — khong cho exception lan ra duong goi cua game
+                try { System.IO.File.WriteAllText("/var/mobile/Documents/nvh_step.txt", "S9"); } catch (Exception) { }
             }
 
             return fs;

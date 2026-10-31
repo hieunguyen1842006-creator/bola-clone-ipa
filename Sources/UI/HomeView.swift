@@ -300,96 +300,57 @@ public struct HomeView: View {
 
 // MARK: - Full Mod AOV card (thay list gói Liên Quân)
 
-/// Thẻ lệnh trong game — chạm để copy, dán vào chat lúc vào trận.
-/// Chat là kênh duy nhất chạy được: lệnh được payload xử lý NGAY trong
-/// tiến trình game nên có hiệu lực tức thì, không bị cfprefsd cache.
+/// Thẻ điều khiển Full Mod AOV bằng app.
+/// App ghi `nvh_aov.txt` vào đúng thư mục game khai ra (`iFix.Path`), patch
+/// trong game đọc mỗi giây → áp PlayerPrefs ngay trong process game.
 struct LQModCard: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack {
-                Text("LỆNH TRONG GAME").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Text("FULL MOD (AOV)").font(Theme.monoFont).foregroundStyle(Theme.dim)
                 Spacer()
-                Button { model.copyCommand("/listskin", label: "xem skin") } label: {
-                    Text("Xem skin").font(Theme.monoFont).foregroundStyle(Theme.accent)
+                Button { model.diagnoseAOV() } label: {
+                    Text("?").font(Theme.monoFont).foregroundStyle(Theme.dim)
                 }
             }
-            Text("Chạm dòng để COPY → vào chat trong trận, giữ ô chat rồi Paste. Chạy ngay, không cần tắt game.")
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
 
-            LQCmdRow(title: "ESP xuyên tường", cmd: "/esp") {
-                model.copyCommand("/esp", label: "ESP")
-            }
-            LQCmdRow(title: "Tự động BP", cmd: "/bocpha") {
-                model.copyCommand("/bocpha", label: "BP")
-            }
+            LQToggleRow(title: "ESP xuyên tường",
+                        isOn: Binding(get: { model.aovEsp }, set: { model.setAOVEsp($0) }))
+            LQToggleRow(title: "Tự động BP",
+                        isOn: Binding(get: { model.aovBocpha }, set: { model.setAOVBocpha($0) }))
+            LQToggleRow(title: "Aim assist",
+                        isOn: Binding(get: { model.aovAim }, set: { model.setAOVAim($0) }))
 
-            LQSection("AIM")
-            LQCmdRow(title: "Bật aim", cmd: "/aim on") {
-                model.copyCommand("/aim on", label: "aim on")
-            }
-            LQCmdRow(title: "Tắt aim", cmd: "/aim off") {
-                model.copyCommand("/aim off", label: "aim off")
-            }
-            LQCmdRow(title: "Mục tiêu: HP", cmd: "/aim target hp") {
-                model.copyCommand("/aim target hp", label: "target hp")
-            }
-            LQCmdRow(title: "Mục tiêu: % máu", cmd: "/aim target percent") {
-                model.copyCommand("/aim target percent", label: "target %")
-            }
-            LQCmdRow(title: "Mục tiêu: gần nhất", cmd: "/aim target near") {
-                model.copyCommand("/aim target near", label: "target near")
-            }
-            LQCmdRow(title: "Mục tiêu: tia", cmd: "/aim target ray") {
-                model.copyCommand("/aim target ray", label: "target ray")
-            }
-
-            LQSection("VẼ LINE")
-            LQCmdRow(title: "Line: tắt", cmd: "/line off") {
-                model.copyCommand("/line off", label: "line off")
-            }
-            LQCmdRow(title: "Line: luôn hiện", cmd: "/line all") {
-                model.copyCommand("/line all", label: "line all")
-            }
-            LQCmdRow(title: "Line: khi dùng chiêu", cmd: "/line skill") {
-                model.copyCommand("/line skill", label: "line skill")
+            if model.aovAim {
+                LQSection("AIM")
+                LQSegRow(title: "Mục tiêu", options: ["HP", "PCT", "NEAR", "RAY"],
+                         index: model.aovTargetMode) { model.setAOVTargetMode($0) }
+                LQSegRow(title: "Vẽ line", options: ["TẮT", "LUÔN", "SKILL"],
+                         index: model.aovDrawMode) { model.setAOVDrawMode($0) }
             }
 
             LQSection("TRUNG TRÍ")
-            LQCmdRow(title: "Boss", cmd: "/trungtri boss") {
-                model.copyCommand("/trungtri boss", label: "smite boss")
-            }
-            LQCmdRow(title: "Buff", cmd: "/trungtri buff") {
-                model.copyCommand("/trungtri buff", label: "smite buff")
-            }
-            LQCmdRow(title: "Tất cả", cmd: "/trungtri all") {
-                model.copyCommand("/trungtri all", label: "smite all")
-            }
+            LQSegRow(title: "Đối tượng", options: ["TẮT", "BOSS", "BUFF", "ALL"],
+                     index: model.aovSmiteMode) { model.setAOVSmiteMode($0) }
 
             LQSection("CAMERA")
             LQStepperRow(title: "Zoom", value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
-            LQCmdRow(title: "Áp zoom",
-                     cmd: String(format: "/camera %.1f", model.aovZoom)) {
-                model.copyCommand(String(format: "/camera %.1f", model.aovZoom),
-                                  label: "camera")
-            }
 
             LQSection("SKIN")
             LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })
-            LQCmdRow(title: "Đổi skin ngay", cmd: "/skin \(model.aovModel)") {
-                model.copyCommand("/skin \(model.aovModel)", label: "skin")
-            }
-            Text("Skin đổi ngay giữa trận bằng lệnh. Gõ /listskin để xem chỉ số từng skin của tướng đang chơi.")
+            Text("Đổi là áp trong ~1 giây. Nếu không ăn, bấm «?» để gửi tớ log chẩn đoán.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
+        .onAppear { model.refreshAOVDetection() }
     }
 }
 

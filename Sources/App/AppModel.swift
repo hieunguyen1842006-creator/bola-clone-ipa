@@ -821,7 +821,16 @@ public final class AppModel: ObservableObject {
             + "smite=\(aovSmiteMode == 0 ? 0 : 1)\n"
             + "smt=\(max(aovSmiteMode - 1, 0))\n"
             + "zoom=\(zoom)\n"
-            + "skin=\(aovHero):\(aovModel)\n"
+            + "skinkey=iFix.SelectedSkin.v1.\(aovHero)\n"
+            + "skinmodel=\(aovModel)\n"
+    }
+
+    /// Thư mục game THẬT (patch khai ra qua `iFix.Path`) — app ghi config vào đây
+    /// thay vì đoán theo container Documents.
+    public func gameLiveDirectory() -> String? {
+        guard let dict = LQModConfig.load(access: access, game: game),
+              let p = dict["iFix.Path"] as? String, !p.isEmpty else { return nil }
+        return (p as NSString).deletingLastPathComponent
     }
 
     /// Ghi cấu hình vào game: (1) file live — payload đọc mỗi giây, áp cả khi
@@ -835,7 +844,33 @@ public final class AppModel: ObservableObject {
         }
         aovRev += 1
         UserDefaults.standard.set(aovRev, forKey: "nvh.aov.rev")
-        let liveOK = LQModConfig.writeLive(aovLiveText, access: box, game: game)
+
+        let text = aovLiveText
+        var liveOK = false
+
+        // Ghi vào MỌI chỗ patch có thể nhìn thấy — patch tự quét và chọn cái
+        // đầu tiên tồn tại, nên không cần đoán đúng container một lần.
+        var targets: [String] = []
+        if let dir = gameLiveDirectory() { targets.append(dir) }
+        if let doc = box.documentsPath(for: game), !targets.contains(doc) { targets.append(doc) }
+        for extra in ["/var/mobile/Documents", "/var/mobile/Media"] where !targets.contains(extra) {
+            targets.append(extra)
+        }
+
+        for dir in targets {
+            let url = URL(fileURLWithPath: dir).appendingPathComponent(LQModConfig.liveFileName)
+            do {
+                try Data(text.utf8).write(to: url, options: .atomic)
+                liveOK = true
+                log("aov: ghi live vào \(dir)")
+            } catch {
+                log("aov: không ghi được \(dir) — \(error.localizedDescription)")
+            }
+        }
+        // dự phòng: qua đường ghi của container
+        if !liveOK {
+            liveOK = LQModConfig.writeLive(text, access: box, game: game)
+        }
         let plistOK = LQModConfig.apply(aovValues(), access: box, game: game)
         if liveOK {
             log("aov: đã ghi cấu hình live — payload áp trong ~1 giây")
@@ -911,6 +946,19 @@ public final class AppModel: ObservableObject {
     public func refreshAOVDetection() {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
 
+        // 0. kênh FILE — patch ghi thẳng vào Documents, không qua cfprefsd
+        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_detect.txt"] {
+            if let d = (try? access.read(name, in: game)) ?? nil,
+               let s = String(data: d, encoding: .utf8) {
+                log("aov-file: \(name) = \(s.trimmingCharacters(in: .whitespacesAndNewlines))")
+            }
+        }
+        if let d = (try? access.read("nvh_skin.txt", in: game)) ?? nil,
+           let s = String(data: d, encoding: .utf8), !s.isEmpty {
+            aovSkinNames = s.components(separatedBy: "|")
+            log("aov-file: nvh_skin.txt = \(aovSkinNames.count) tên")
+        }
+
         // 1. PlayerPrefs kiểu số — đường patch chắc chắn ghi được
         if let dict = LQModConfig.load(access: access, game: game) {
             let hbLoaded = (dict["iFix.HB.Loaded"] as? NSNumber)?.intValue ?? 0
@@ -959,7 +1007,8 @@ public final class AppModel: ObservableObject {
         let files = (try? access.list("", in: game)) ?? []
         let mine = files.filter { $0.contains("nvh_") || $0.contains("iFix") }
         log("diag: Documents \(files.count) mục • liên quan: \(mine)")
-        for name in [LQModConfig.logFileName, LQModConfig.liveFileName] {
+        for name in [LQModConfig.logFileName, LQModConfig.liveFileName,
+                     "nvh_step.txt", "nvh_where.txt", "nvh_detect.txt", "nvh_skin.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil {
                 let s = String(data: d, encoding: .utf8) ?? "<binary>"
                 log("diag: \(name) \(d.count)B → \(s.replacingOccurrences(of: "\n", with: " ⏎ ").prefix(160))")
@@ -970,6 +1019,7 @@ public final class AppModel: ObservableObject {
         if let dict = LQModConfig.load(access: access, game: game) {
             let keys = dict.keys.filter { $0.hasPrefix("iFix.") }.sorted()
             log("diag: prefs iFix.* = \(keys.count) key")
+            if let p = dict["iFix.Path"] as? String { log("diag: iFix.Path = \(p)") }
             for k in keys where k.hasPrefix("iFix.Detect.") || k.hasPrefix("iFix.HB.")
                 || k.hasPrefix("iFix.Cfg.") {
                 log("diag: \(k) = \(dict[k] ?? "-")")
