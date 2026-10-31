@@ -345,8 +345,17 @@ struct LQModCard: View {
                          value: model.aovWearSkin == 0 ? "TẮT" : "\(model.aovWearSkin)",
                          dec: { model.setAOVWearSkin(model.aovWearSkin - 1) },
                          inc: { model.setAOVWearSkin(model.aovWearSkin + 1) })
-            Text("Đặt số skin → game coi như đang mặc skin đó từ đầu trận → nút chiêu và hiệu ứng diệt đi kèm. Đặt 0 để tắt.")
+            Text("Đặt số skin → game coi như đang mặc skin đó từ đầu trận → nút chiêu đổi theo. Đặt 0 để tắt.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
+
+            LQSection("HIỆU ỨNG DIỆT")
+            LQToggleRow(title: "Hiệu ứng diệt (thử)",
+                        isOn: Binding(get: { model.aovKillFx },
+                                      set: { model.setAOVKillFx($0) }))
+            Text("Banner thông báo diệt lấy skin từ dữ liệu server → patch phải tự nạp lại cache `KillNotifyUT` mỗi ~3 giây. Bật ô này rồi vào trận ăn mạng để xem.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            Text("chẩn đoán: \(model.aovKfFlag) • \(model.aovKfInfo)")
+                .font(Theme.monoFont).foregroundStyle(Theme.dim)
 
             LQSection("SKIN — CHAT TRONG TRẬN")
             Text("Mã này chỉ đổi mesh ngay lập tức, không kèm nút/hiệu ứng. Muốn đủ hiệu ứng thì dùng ô «Skin nạp» ở trên.")

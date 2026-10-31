@@ -79,6 +79,10 @@ TRUE_ASSEMBLY = {
     # nam trong Project_d (dwShowSkinID @0x26C la field chon nut chieu).
     "Assets.Scripts.GameSystem.CRoleInfo": "Project_d",
     "Assets.Scripts.GameSystem.CRoleInfoManager": "Project_d",
+    # KillNotifyUT (TypeDefIndex 7086) nam cung Project_d voi CRoleInfo.
+    # Khong khai -> merge_menu mac dinh gan vao assembly dich (Project.Plugins_d)
+    # -> IFix di tim sai assembly -> hook chet hoac goi rac.
+    "Assets.Scripts.GameSystem.KillNotifyUT": "Project_d",
     "ResData.ResHeroSkin": "AovTdr",
     "PoolObjHandle`1": "CoreLib",
 }

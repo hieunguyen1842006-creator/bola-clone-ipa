@@ -68,9 +68,18 @@ public final class AppModel: ObservableObject {
     @Published public var aovZoom: Float =
         (UserDefaults.standard.object(forKey: "nvh.aov.zoom") as? Float) ?? 1.6
     /// Skin nạp trước trận (0 = tắt). Patch ghi vào `CRoleInfo.dwShowSkinID` —
-    /// field mà hệ thống nút chiêu + thông báo diệt đọc để chọn skin.
+    /// field mà hệ thống NÚT CHIÊU đọc để chọn skin.
     @Published public var aovWearSkin: Int =
         UserDefaults.standard.integer(forKey: "nvh.aov.wearskin")
+    /// Hiệu ứng diệt (banner thông báo diệt theo skin). Bật = patch tự nạp lại
+    /// cache `KillNotifyUT` (map playId→skinId + skinId→billboard) vì cache đó
+    /// game lấy từ dữ liệu server nên đổi skin local không tự có.
+    @Published public var aovKillFx: Bool =
+        UserDefaults.standard.integer(forKey: "nvh.aov.killfx") == 1
+    /// Chẩn đoán hiệu ứng diệt: "KF:......" (chữ nào resolve được).
+    @Published public var aovKfFlag: String = "—"
+    /// Chẩn đoán: skin toàn cục patch tính ra + broadcastID của mình / cả trận.
+    @Published public var aovKfInfo: String = "—"
     /// Điểm dừng cuối của khung đọc config trong game (S1…S5 / S2 / S9).
     @Published public var aovStep: String = "—"
     /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
@@ -732,6 +741,7 @@ public final class AppModel: ObservableObject {
         d.set(aovSmiteMode, forKey: "nvh.aov.smite")
         d.set(aovZoom, forKey: "nvh.aov.zoom")
         d.set(aovWearSkin, forKey: "nvh.aov.wearskin")
+        d.set(aovKillFx ? 1 : 0, forKey: "nvh.aov.killfx")
     }
 
     /// Bộ key iFix.* tương ứng UI đang hiển thị.
@@ -769,6 +779,7 @@ public final class AppModel: ObservableObject {
             + "smt=\(max(aovSmiteMode - 1, 0))\n"
             + "zoom=\(zoom)\n"
             + "wearskin=\(aovWearSkin)\n"
+            + "killfx=\(aovKillFx ? 1 : 0)\n"
     }
 
     /// Thư mục game THẬT (patch khai ra qua `iFix.Path`) — app ghi config vào đây
@@ -849,6 +860,7 @@ public final class AppModel: ObservableObject {
         aovSmiteMode = smEn == 1 ? smTm + 1 : 0
         aovZoom = min(max(LQModConfig.float(dict, LQModConfig.zoomKey, aovZoom), 1.0), 5.0)
         aovWearSkin = min(max(LQModConfig.int(dict, "iFix.WearSkin.v1", aovWearSkin), 0), 99)
+        aovKillFx = LQModConfig.int(dict, "iFix.KillFx.v1", aovKillFx ? 1 : 0) == 1
         saveAOV()
         toast("Đã đọc cấu hình từ game")
     }
@@ -858,12 +870,13 @@ public final class AppModel: ObservableObject {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
 
         // Kênh FILE — patch ghi thẳng vào Documents, không qua cfprefsd
-        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt"] {
+        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt", "nvh_kf.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil,
                let s = String(data: d, encoding: .utf8) {
                 let v = s.trimmingCharacters(in: .whitespacesAndNewlines)
                 log("aov-file: \(name) = \(v)")
                 if name == "nvh_step.txt" { aovStep = v }
+                if name == "nvh_kf.txt" { aovKfFlag = v }
                 if name == "nvh_hb.txt" {
                     if v == aovBeat {
                         log("aov-hb2: nhịp ĐỨNG — game chưa chạy (background) hoặc patch chết")
@@ -873,11 +886,20 @@ public final class AppModel: ObservableObject {
             }
         }
 
-        // Nhịp tim bằng prefs (kênh phụ)
+        // Nhịp tim + chẩn đoán hiệu ứng diệt (kênh prefs)
         if let dict = LQModConfig.load(access: access, game: game) {
             let loaded = (dict["iFix.HB.Loaded"] as? NSNumber)?.intValue ?? 0
             let calls = (dict["iFix.HB.Calls"] as? NSNumber)?.intValue ?? 0
             log("aov-hb: loaded=\(loaded) calls=\(calls)")
+
+            let skin = LQModConfig.int(dict, "iFix.KF.SkinID", 0)
+            let myId = LQModConfig.int(dict, "iFix.KF.MyId", 0)
+            let bb = LQModConfig.int(dict, "iFix.KF.Broadcast", 0)
+            let psn = LQModConfig.int(dict, "iFix.KF.PersonalBtn", 0)
+            let bbCnt = LQModConfig.int(dict, "iFix.KF.BbCount", 0)
+            let bbMax = LQModConfig.int(dict, "iFix.KF.BbMax", 0)
+            aovKfInfo = "skin=\(skin) id=\(myId) bb=\(bb) psn=\(psn) cả trận=\(bbCnt)/\(bbMax)"
+            log("aov-kf: \(aovKfInfo)")
         }
     }
 
@@ -938,6 +960,10 @@ public final class AppModel: ObservableObject {
     }
     public func setAOVWearSkin(_ v: Int) {
         aovWearSkin = min(max(v, 0), 99)
+        saveAOV(); pushAOVConfig()
+    }
+    public func setAOVKillFx(_ on: Bool) {
+        aovKillFx = on
         saveAOV(); pushAOVConfig()
     }
 
