@@ -896,9 +896,7 @@ public final class AppModel: ObservableObject {
             let myId = LQModConfig.int(dict, "iFix.KF.MyId", 0)
             let bb = LQModConfig.int(dict, "iFix.KF.Broadcast", 0)
             let psn = LQModConfig.int(dict, "iFix.KF.PersonalBtn", 0)
-            let bbCnt = LQModConfig.int(dict, "iFix.KF.BbCount", 0)
-            let bbMax = LQModConfig.int(dict, "iFix.KF.BbMax", 0)
-            aovKfInfo = "skin=\(skin) id=\(myId) bb=\(bb) psn=\(psn) cả trận=\(bbCnt)/\(bbMax)"
+            aovKfInfo = "skin=\(skin) id=\(myId) bb=\(bb) psn=\(psn)"
             log("aov-kf: \(aovKfInfo)")
         }
     }

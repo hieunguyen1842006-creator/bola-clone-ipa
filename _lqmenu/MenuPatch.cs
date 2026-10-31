@@ -345,112 +345,82 @@ namespace NucleusDrive.Logic
                 // Banner diet (KillNotify3D/KillNotifyUT) KHONG doc dwShowSkinID
                 // ma doc cache rieng theo (playId -> skinId) va (skinId -> billboard).
                 // Cache do game nap tu du lieu SERVER cua actor, nen hack local
-                // phai tu nap lai. Buoc 1 la chan doan: resolve "minh" va ghi lai
-                // broadcastID that cua minh + cua ca tran (so sanh la biet thieu gi).
-                //   prefs:  iFix.KF.MyId / SkinID / Broadcast / PersonalBtn
-                //           iFix.KF.BbCount / BbMax
-                //   file :  nvh_kf.txt = "KF:CMUS-BP F" (chu nao resolve duoc)
-                try
+                // phai tu nap lai.
+                //
+                // QUAN TRONG: ca khoi nay NAM SAU CONG TAC iFix.KillFx.v1.
+                // Truoc day no chay vo dieu kien moi 20 tick -> goi
+                // KyriosFramework.get_playerCenter() luc lobby/loading, khi
+                // Kyrios CHUA init -> game dung ngay khi dang load.
+                // Mac dinh = 0 => patch hanh xu y het v14.
+                if (PlayerPrefs.GetInt("iFix.KillFx.v1", 0) == 1)
                 {
-                    Assets.Scripts.GameSystem.CRoleInfoManager kfMgr =
-                        Assets.Scripts.GameSystem.CRoleInfoManager.GetInstance();
-                    Assets.Scripts.GameSystem.CRoleInfo kfRi =
-                        (kfMgr != null) ? kfMgr.GetMasterRoleInfo() : null;
-
-                    if (kfRi == null)
+                    try
                     {
-                        try { System.IO.File.WriteAllText(good + "/nvh_kf.txt", "KF:nori"); } catch (Exception) { }
-                    }
-                    else
-                    {
-                        ulong kfUid = 0;
-                        try { kfUid = kfRi.get_playerUllUID(); } catch (Exception) { }
+                        Assets.Scripts.GameSystem.CRoleInfoManager kfMgr =
+                            Assets.Scripts.GameSystem.CRoleInfoManager.GetInstance();
+                        Assets.Scripts.GameSystem.CRoleInfo kfRi =
+                            (kfMgr != null) ? kfMgr.GetMasterRoleInfo() : null;
 
-                        NucleusDrive.Logic.GameKernal.GamePlayerCenter kfPc = null;
-                        try { kfPc = Kyrios.KyriosFramework.get_playerCenter(); } catch (Exception) { }
-
-                        string kfFlag = "KF:";
-                        kfFlag = kfFlag + ((kfPc != null) ? "C" : "-") + ((kfUid != 0) ? "U" : "-");
-
-                        LDataProvider.PlayerBase kfMe = null;
-                        if (kfPc != null && kfUid != 0)
+                        if (kfRi != null)
                         {
-                            try { kfMe = kfPc.GetPlayerByUid(kfUid); } catch (Exception) { }
-                        }
-                        kfFlag = kfFlag + ((kfMe != null) ? "M" : "-");
+                            ulong kfUid = 0;
+                            try { kfUid = kfRi.get_playerUllUID(); } catch (Exception) { }
 
-                        int kfWear = PlayerPrefs.GetInt("iFix.WearSkin.v1", 0);
-                        uint kfSkin = 0;
-                        if (kfWear > 0)
-                        {
-                            try
+                            NucleusDrive.Logic.GameKernal.GamePlayerCenter kfPc = null;
+                            try { kfPc = Kyrios.KyriosFramework.get_playerCenter(); } catch (Exception) { }
+
+                            string kfFlag = "KF:";
+                            kfFlag = kfFlag + ((kfPc != null) ? "C" : "-") + ((kfUid != 0) ? "U" : "-");
+
+                            LDataProvider.PlayerBase kfMe = null;
+                            if (kfPc != null && kfUid != 0)
                             {
-                                kfSkin = Assets.Scripts.GameSystem.CSkinInfo.GetHeroSkinID(
-                                    kfRi.dwShowHeroID, (uint)kfWear);
+                                try { kfMe = kfPc.GetPlayerByUid(kfUid); } catch (Exception) { }
                             }
-                            catch (Exception) { }
-                        }
-                        kfFlag = kfFlag + ((kfSkin != 0) ? "S" : "-");
-                        PlayerPrefs.SetInt("iFix.KF.SkinID", (int)kfSkin);
+                            kfFlag = kfFlag + ((kfMe != null) ? "M" : "-");
 
-                        if (kfMe != null)
-                        {
-                            PlayerPrefs.SetInt("iFix.KF.MyId", (int)kfMe.PlayerId);
-                            PlayerPrefs.SetInt("iFix.KF.Broadcast", kfMe.broadcastID);
-                            PlayerPrefs.SetInt("iFix.KF.PersonalBtn", kfMe.PersonalButtonID);
-                            PlayerPrefs.SetInt("iFix.KF.StartSkin", (int)kfMe.GameStartSkin);
-                            kfFlag = kfFlag + ((kfMe.broadcastID != 0) ? "B" : "-")
-                                            + ((kfMe.PersonalButtonID != 0) ? "P" : "-");
-                        }
-
-                        // ca tran: co bao nhieu nguoi co broadcastID != 0, va gia tri
-                        // lon nhat la bao nhieu -> biet "mien gia tri" cua billboard id
-                        try
-                        {
-                            if (kfPc != null)
+                            int kfWear = PlayerPrefs.GetInt("iFix.WearSkin.v1", 0);
+                            uint kfSkin = 0;
+                            if (kfWear > 0)
                             {
-                                System.Collections.Generic.List<LDataProvider.PlayerBase> kfAll =
-                                    kfPc.GetAllPlayers();
-                                int kfCnt = 0;
-                                int kfMax = 0;
-                                if (kfAll != null)
+                                try
                                 {
-                                    int kfN = kfAll.Count;
-                                    for (int kfI = 0; kfI < kfN; kfI++)
-                                    {
-                                        LDataProvider.PlayerBase kfPb = kfAll[kfI];
-                                        if (kfPb == null) continue;
-                                        if (kfPb.broadcastID != 0)
-                                        {
-                                            kfCnt = kfCnt + 1;
-                                            if (kfPb.broadcastID > kfMax) kfMax = kfPb.broadcastID;
-                                        }
-                                    }
+                                    kfSkin = Assets.Scripts.GameSystem.CSkinInfo.GetHeroSkinID(
+                                        kfRi.dwShowHeroID, (uint)kfWear);
                                 }
-                                PlayerPrefs.SetInt("iFix.KF.BbCount", kfCnt);
-                                PlayerPrefs.SetInt("iFix.KF.BbMax", kfMax);
+                                catch (Exception) { }
                             }
-                        }
-                        catch (Exception) { }
+                            kfFlag = kfFlag + ((kfSkin != 0) ? "S" : "-");
+                            PlayerPrefs.SetInt("iFix.KF.SkinID", (int)kfSkin);
 
-                        // nap cache banner bang CHINH ham cua game (3s/lan)
-                        if (PlayerPrefs.GetInt("iFix.KillFx.v1", 0) == 1
-                            && kfMe != null && kfSkin != 0 && ((__mCalls % 180) == 0))
-                        {
-                            try
+                            if (kfMe != null)
                             {
-                                Assets.Scripts.GameSystem.KillNotifyUT.AddCacheNotifySkinIDMap(
-                                    kfMe.PlayerId, kfSkin);
-                                Assets.Scripts.GameSystem.KillNotifyUT.AddCacheSkinBillBoardDict(kfSkin);
-                                kfFlag = kfFlag + "F";
+                                PlayerPrefs.SetInt("iFix.KF.MyId", (int)kfMe.PlayerId);
+                                PlayerPrefs.SetInt("iFix.KF.Broadcast", kfMe.broadcastID);
+                                PlayerPrefs.SetInt("iFix.KF.PersonalBtn", kfMe.PersonalButtonID);
+                                PlayerPrefs.SetInt("iFix.KF.StartSkin", (int)kfMe.GameStartSkin);
+                                kfFlag = kfFlag + ((kfMe.broadcastID != 0) ? "B" : "-")
+                                                + ((kfMe.PersonalButtonID != 0) ? "P" : "-");
                             }
-                            catch (Exception) { }
-                        }
 
-                        try { System.IO.File.WriteAllText(good + "/nvh_kf.txt", kfFlag); } catch (Exception) { }
+                            // nap cache banner bang CHINH ham cua game (~3 giay/lan)
+                            if (kfMe != null && kfSkin != 0 && ((__mCalls % 180) == 0))
+                            {
+                                try
+                                {
+                                    Assets.Scripts.GameSystem.KillNotifyUT.AddCacheNotifySkinIDMap(
+                                        kfMe.PlayerId, kfSkin);
+                                    Assets.Scripts.GameSystem.KillNotifyUT.AddCacheSkinBillBoardDict(kfSkin);
+                                    kfFlag = kfFlag + "F";
+                                }
+                                catch (Exception) { }
+                            }
+
+                            try { System.IO.File.WriteAllText(good + "/nvh_kf.txt", kfFlag); } catch (Exception) { }
+                        }
                     }
+                    catch (Exception) { }
                 }
-                catch (Exception) { }
 
                 PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
                 PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
