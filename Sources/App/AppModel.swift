@@ -866,6 +866,9 @@ public final class AppModel: ObservableObject {
 
         // 1. PlayerPrefs kiểu số — đường patch chắc chắn ghi được
         if let dict = LQModConfig.load(access: access, game: game) {
+            let hbLoaded = (dict["iFix.HB.Loaded"] as? NSNumber)?.intValue ?? 0
+            let hbCalls = (dict["iFix.HB.Calls"] as? NSNumber)?.intValue ?? 0
+            log("aov-hb: loaded=\(hbLoaded) calls=\(hbCalls)")
             let hero = (dict["iFix.Detect.Hero"] as? NSNumber)?.intValue ?? 0
             let skin = (dict["iFix.Detect.Skin"] as? NSNumber)?.intValue ?? 0
             let count = (dict["iFix.Detect.Count"] as? NSNumber)?.intValue ?? 0
@@ -920,7 +923,7 @@ public final class AppModel: ObservableObject {
         if let dict = LQModConfig.load(access: access, game: game) {
             let keys = dict.keys.filter { $0.hasPrefix("iFix.") }.sorted()
             log("diag: prefs iFix.* = \(keys.count) key")
-            for k in keys where k.hasPrefix("iFix.Detect.") {
+            for k in keys where k.hasPrefix("iFix.Detect.") || k.hasPrefix("iFix.HB.") {
                 log("diag: \(k) = \(dict[k] ?? "-")")
             }
             if let e = dict[LQModConfig.espKey] { log("diag: ESP=\(e)") }

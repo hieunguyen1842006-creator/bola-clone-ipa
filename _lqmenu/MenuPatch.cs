@@ -1,93 +1,19 @@
-// NVH LQ LIVE CONFIG v4 — patch IFix hook LFramework.get_frameSynchr
+// NVH LQ HB PROBE — build CHAN DOAN
 //
-// NHIEM VU:
-//   1. Doc Documents/nvh_aov.txt (app ghi) moi giay -> ap vao PlayerPrefs
-//      key iFix.* ma payload AOV doc (ESP/aim/smite/zoom/skin).
-//   2. Khi app YEU CAU (dong "probe="): doc hostPlayer -> CaptainLinker ->
-//      ConfigId + CSkinInfo -> ghi ma tuong / skin dang mac / ten skin vao
-//      nvh_aov.log de app hien bang skin bam chon.
+// Muc dich DUY NHAT: xac dinh patch co THUC THI hay khong.
+//   - Khong detection, khong goi API nao cua game.
+//   - Chi doc nvh_aov.txt (live config nhu v2) + ghi 2 con dem vao PlayerPrefs:
+//       iFix.HB.Loaded   = 1            (da vao duoc hook)
+//       iFix.HB.Calls    = <so frame>   (tang dan moi 30 frame)
+//   - Neu app KHONG thay iFix.HB.Loaded sau khi mo game => hook khong chay
+//     => loi nam o payload/load, khong phai o logic ben trong.
 //
-// SUA LOI TREO (v4):
-//   v3 khai `class GameKernal { class Player }` -> ten metadata
-//   Assets.Scripts.GameLogic.GameKernal+Player, trong khi game la
-//   NAMESPACE Assets.Scripts.GameLogic.GameKernal + class Player.
-//   Lech ten => IFix resolve hut NGAY LUC NAP PATCH => treo truoc khi hook
-//   chay (nen khoa detection bang co probe khong cuu duoc). Da sua:
-//   namespace Assets.Scripts.GameLogic.GameKernal { public class Player }
-//
-// Da doi chieu dump.cs (chinh xac tung chu):
-//   PoolObjHandle<T> : struct, co HasValue / handle (property)
-//   Kyrios.Actor.ActorLinker::get_ConfigId -> uint
-//   Kyrios.VHostLogic::get_hostPlayer() -> Player
-//   ResData.ResHeroSkin::szSkinName (string, field)
-//   CSkinInfo::GetWearSkinID(uint) / GetHeroSkin(uint,uint)
-//
-// AN TOAN RUNTIME: GetHeroSkin khi MISS key goi TableManager::Reload (nang).
-//   => chi do khi app yeu cau, chan heroId vo ly, toi da 8 skin, dung som.
-//   Duong mac dinh (khong probe) khong goi API nao cua game.
-// 3 lop chan: L1 chi thread chinh | L2 probe Input.touchCount | L3 try/catch.
+// 3 lop chan nhu v2: L1 chi thread chinh | L2 probe Input | L3 try/catch.
 
 using System;
 using UnityEngine;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
-
-// ---------------- type gia lap (IFix resolve ten) ----------------
-
-public struct PoolObjHandle<T>
-{
-    public uint _handleSeq;
-    public T _handleObj;
-    public bool HasValue { get { return false; } }
-    public T handle { get { return default(T); } }
-}
-
-namespace Kyrios.Actor
-{
-    public class ActorLinker
-    {
-        public uint ConfigId { get { return 0; } }
-    }
-}
-
-namespace Assets.Scripts.GameLogic.GameKernal
-{
-    // CHU Y: GameKernal la NAMESPACE trong game, khong phai class.
-    public class Player
-    {
-        public PoolObjHandle<Kyrios.Actor.ActorLinker> CaptainLinker;
-    }
-}
-
-namespace Kyrios
-{
-    public class VHostLogic
-    {
-        public Assets.Scripts.GameLogic.GameKernal.Player get_hostPlayer() { return null; }
-    }
-
-    public class KyriosFramework
-    {
-        public static VHostLogic get_hostLogic() { return null; }
-    }
-}
-
-namespace ResData
-{
-    public class ResHeroSkin
-    {
-        public string szSkinName;
-    }
-}
-
-namespace Assets.Scripts.GameSystem
-{
-    public static class CSkinInfo
-    {
-        public static uint GetWearSkinID(uint heroId) { return 0; }
-        public static ResData.ResHeroSkin GetHeroSkin(uint heroId, uint skinId) { return null; }
-    }
-}
 
 namespace NucleusDrive.Logic
 {
@@ -101,12 +27,8 @@ namespace NucleusDrive.Logic
         // ---- field moi ----
         public int   __mMainTid;    // thread id ghi danh dau tien = thread chinh
         public int   __mRev;        // rev da ap (bo qua file khong doi)
-        public int   __mProbeReq;   // so hieu yeu cau do tuong (app tang)
-        public int   __mProbeDone;  // so hieu da do xong
-        public int   __mCalls;      // dem luot chay qua phan viec (heartbeat)
+        public int   __mCalls;      // so frame da chay qua
         public float __mNext;       // moc thoi gian doc config tiep
-        public float __mLogNext;    // moc thoi gian ghi heartbeat tiep
-        public string __mLastLog;   // trang thai da ghi lan truoc (tranh ghi lap)
 
         public LFrameSynchr get_frameSynchr()
         {
@@ -119,14 +41,27 @@ namespace NucleusDrive.Logic
                 if (__mMainTid == 0) __mMainTid = tid;
                 if (tid != __mMainTid) return fs;
 
-                // ==== L2: probe Input — ngu canh xau nem exception, bo qua ====
+                // ==== HB: bang chung patch dang chay ====
+                __mCalls = __mCalls + 1;
+                try
+                {
+                    if (__mCalls == 1)
+                    {
+                        PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
+                        PlayerPrefs.Save();
+                    }
+                    PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
+                    if ((__mCalls % 30) == 0) PlayerPrefs.Save();
+                }
+                catch (Exception) { }
+
+                // ==== L2: probe Input ====
                 int probe = Input.touchCount;
                 if (probe < -1) return fs;
 
-                __mCalls = __mCalls + 1;
                 float now = Time.realtimeSinceStartup;
 
-                // ==== doc config moi giay ====
+                // ==== doc live config moi giay (giong v2 da chay on) ====
                 if (now >= __mNext)
                 {
                     __mNext = now + 1.0f;
@@ -268,115 +203,9 @@ namespace NucleusDrive.Logic
                                     }
                                 }
 
-                                p = t.IndexOf("probe=");
-                                if (p >= 0)
-                                {
-                                    int e = t.IndexOf('\n', p);
-                                    string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                                       : t.Substring(p + 6);
-                                    int v;
-                                    if (int.TryParse(s.Trim(), out v)) __mProbeReq = v;
-                                }
-
                                 PlayerPrefs.Save();
                             }
                         }
-                    }
-                }
-
-                // ==== heartbeat 2 giay + do tuong (chi khi app yeu cau) ====
-                // LUU Y: KHONG noi so vao chuoi — Int32::ToString trong IFix patch
-                // resolve sai (tra "True"), nen moi gia tri so ghi bang PlayerPrefs
-                // key rieng (SetInt), app doc truc tiep.
-                if (now >= __mLogNext)
-                {
-                    __mLogNext = now + 2.0f;
-
-                    if (__mProbeReq != __mProbeDone)
-                    {
-                        __mProbeDone = __mProbeReq;
-
-                        string stage = "s0";
-                        int dHero = 0;
-                        int dSkin = 0;
-                        int dCount = 0;
-                        string dNames = "";
-
-                        try
-                        {
-                            Kyrios.VHostLogic host = Kyrios.KyriosFramework.get_hostLogic();
-                            stage = "s1";
-                            if (host != null)
-                            {
-                                Assets.Scripts.GameLogic.GameKernal.Player pl = host.get_hostPlayer();
-                                stage = "s2";
-                                if (pl != null)
-                                {
-                                    PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
-                                    stage = "s3";
-                                    if (cap.HasValue)
-                                    {
-                                        stage = "s4";
-                                        Kyrios.Actor.ActorLinker al = cap.handle;
-                                        if (al != null)
-                                        {
-                                            stage = "s5";
-                                            uint heroId = al.ConfigId;
-                                            stage = "s6";
-                                            if (heroId > 0U && heroId < 100000U)
-                                            {
-                                                uint wear = Assets.Scripts.GameSystem.CSkinInfo
-                                                    .GetWearSkinID(heroId);
-                                                stage = "s7";
-                                                dHero = (int)heroId;
-                                                dSkin = (int)wear;
-
-                                                uint si = 0U;
-                                                string prevName = "";
-                                                while (si < 8U)
-                                                {
-                                                    ResData.ResHeroSkin rs = Assets.Scripts.GameSystem
-                                                        .CSkinInfo.GetHeroSkin(heroId, si);
-                                                    if (rs == null) break;
-                                                    string nm = rs.szSkinName;
-                                                    if (nm == null || nm.Length == 0) break;
-                                                    if (nm == prevName) break;
-                                                    prevName = nm;
-                                                    if (dCount > 0) dNames += "|";
-                                                    dNames += nm;
-                                                    dCount++;
-                                                    si++;
-                                                }
-                                                stage = "ok";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            stage = "err:" + ex.GetType().Name;
-                        }
-
-                        try
-                        {
-                            PlayerPrefs.SetString("iFix.Detect.Stage", stage);
-                            PlayerPrefs.SetInt("iFix.Detect.Hero", dHero);
-                            PlayerPrefs.SetInt("iFix.Detect.Skin", dSkin);
-                            PlayerPrefs.SetInt("iFix.Detect.Count", dCount);
-                            PlayerPrefs.SetString("iFix.Detect.Names", dNames);
-                            PlayerPrefs.Save();
-                        }
-                        catch (Exception) { }
-
-                        // file phu (khong quan trong — chi de doc tay)
-                        try
-                        {
-                            System.IO.File.WriteAllText(
-                                Application.persistentDataPath + "/nvh_aov.log", dNames);
-                        }
-                        catch (Exception) { }
                     }
                 }
             }
