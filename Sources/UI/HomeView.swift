@@ -341,6 +341,17 @@ struct LQModCard: View {
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
 
             LQSection("SKIN")
+            HStack(spacing: 8) {
+                Text(model.aovDetectedHero > 0
+                     ? "Tướng \(model.aovDetectedHero) • skin \(model.aovDetectedSkin)"
+                     : "Chưa biết tướng")
+                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
+                Spacer()
+                Button("Dò tướng") { model.requestAOVDetection() }
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Theme.accent)
+                    .disabled(!model.patchInstalled)
+            }
             LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })

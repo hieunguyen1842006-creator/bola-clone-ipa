@@ -624,6 +624,8 @@ public final class AppModel: ObservableObject {
                     if outcome.ok {
                         // cấu hình toggle hiện tại → PlayerPrefs của game luôn
                         self.pushAOVConfig(via: live)
+                        // dọn log rác của đời cũ (định dạng ToString đã bỏ)
+                        try? live.remove(LQModConfig.logFileName, in: self.game)
                     }
                     if outcome.ok, self.cfgFlags.contains("autolaunch") {
                         self.launchGame()
@@ -901,30 +903,30 @@ public final class AppModel: ObservableObject {
         toast("Đã đọc cấu hình từ game")
     }
 
-    /// Yêu cầu patch trong game DÒ tướng đang chơi (chỉ khi bấm nút — patch
-    /// không gọi API game ở đường chạy mặc định). Đọc lại log sau ~2.5 giây.
+    /// Yêu cầu patch trong game DÒ tướng đang chơi. Patch chỉ đọc được
+    /// CaptainLinker khi ĐANG TRONG TRẬN, nên app bơm lại yêu cầu mỗi ~2 giây
+    /// trong ~24 giây: vào trận muộn cỡ nào cũng bắt được.
     public func requestAOVDetection() {
         guard game.isLienQuan else { return }
         guard access.isAvailable(for: game) else {
             toast("Chưa mở được thư mục game — mở game 1 lần rồi thử lại")
             return
         }
-        aovProbe += 1
-        UserDefaults.standard.set(aovProbe, forKey: "nvh.aov.probe")
-        pushAOVConfig()
-        log("aov: đã yêu cầu dò tướng — chờ patch trong game trả kết quả")
+        log("aov: dò tướng — cần ĐANG TRONG TRẬN mới thấy Captain")
         Task { @MainActor in
-            // patch ghi heartbeat mỗi 2 giây -> poll tới ~10 giây
-            for _ in 0..<6 {
-                try? await Task.sleep(nanoseconds: 1_700_000_000)
+            for i in 0..<12 {
+                self.aovProbe += 1
+                UserDefaults.standard.set(self.aovProbe, forKey: "nvh.aov.probe")
+                self.pushAOVConfig()
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self.refreshAOVDetection()
                 if self.aovDetectedHero > 0 { break }
+                if i == 11 { self.diagnoseAOV() }
             }
             if self.aovDetectedHero > 0 {
                 self.toast("Đã nhận diện tướng \(self.aovDetectedHero)")
             } else {
-                self.diagnoseAOV()
-                self.toast("Chưa thấy tướng — đã ghi chẩn đoán vào log")
+                self.toast("Chưa thấy tướng — phải đang trong trận. Đã ghi chẩn đoán vào log")
             }
         }
     }

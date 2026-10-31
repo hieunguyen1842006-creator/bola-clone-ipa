@@ -313,11 +313,12 @@ namespace NucleusDrive.Logic
                 try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S5"); } catch (Exception) { }
 
                 // ================= do tuong (chi khi app yeu cau) =================
+                // LUU Y: CaptainLinker chi co gia tri khi DANG TRONG TRAN. Neu chua
+                // thay tuong thi KHONG chot probeReq -> tu thu lai moi tick cho toi
+                // khi vao tran (khong can bam dung thoi diem).
                 int probeDone = PlayerPrefs.GetInt("iFix.Cfg.Probe", 0);
                 if (probeReq != probeDone && probeReq > 0)
                 {
-                    PlayerPrefs.SetInt("iFix.Cfg.Probe", probeReq);
-
                     string stage = "D0";
                     int dHero = 0;
                     int dSkin = 0;
@@ -400,6 +401,12 @@ namespace NucleusDrive.Logic
                             System.IO.File.WriteAllText(good + "/nvh_skin.txt", dNames);
                     }
                     catch (Exception) { }
+
+                    // chi chot khi DA TIM THAY tuong -> con o sanh thi tick sau thu tiep
+                    if (dHero > 0)
+                    {
+                        try { PlayerPrefs.SetInt("iFix.Cfg.Probe", probeReq); } catch (Exception) { }
+                    }
                 }
             }
             catch (Exception)
