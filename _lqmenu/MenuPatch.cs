@@ -311,6 +311,14 @@ namespace NucleusDrive.Logic
                 PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
                 PlayerPrefs.Save();
                 try { System.IO.File.WriteAllText(good + "/nvh_step.txt", "S5"); } catch (Exception) { }
+                // Nhip tim: KHONG dung ToString (IFix resolve sai, tra "True").
+                // Ghi chuoi hang luan phien theo tick -> app thay doi = patch dang chay.
+                try
+                {
+                    int beat = (__mCalls / 20) % 2;
+                    System.IO.File.WriteAllText(good + "/nvh_hb.txt", (beat == 0) ? "B0" : "B1");
+                }
+                catch (Exception) { }
 
                 // ================= do tuong (chi khi app yeu cau) =================
                 // LUU Y: CaptainLinker chi co gia tri khi DANG TRONG TRAN. Neu chua
@@ -336,42 +344,41 @@ namespace NucleusDrive.Logic
                             if (pl != null)
                             {
                                 PoolObjHandle<Kyrios.Actor.ActorLinker> cap = pl.CaptainLinker;
+                                // Bo qua cap.HasValue: chi can handle khac null la du.
+                                // stage D3n = handle null | D3y = co handle
                                 stage = "D3";
-                                if (cap.HasValue)
+                                Kyrios.Actor.ActorLinker al = cap.handle;
+                                stage = (al == null) ? "D3n" : "D3y";
+                                if (al != null)
                                 {
-                                    stage = "D4";
-                                    Kyrios.Actor.ActorLinker al = cap.handle;
-                                    if (al != null)
+                                    stage = "D5";
+                                    uint heroId = al.ConfigId;
+                                    stage = "D6";
+                                    if (heroId > 0U && heroId < 100000U)
                                     {
-                                        stage = "D5";
-                                        uint heroId = al.ConfigId;
-                                        stage = "D6";
-                                        if (heroId > 0U && heroId < 100000U)
-                                        {
-                                            uint wear = Assets.Scripts.GameSystem.CSkinInfo
-                                                .GetWearSkinID(heroId);
-                                            stage = "D7";
-                                            dHero = (int)heroId;
-                                            dSkin = (int)wear;
+                                        uint wear = Assets.Scripts.GameSystem.CSkinInfo
+                                            .GetWearSkinID(heroId);
+                                        stage = "D7";
+                                        dHero = (int)heroId;
+                                        dSkin = (int)wear;
 
-                                            uint si = 0U;
-                                            string prevName = "";
-                                            while (si < 8U)
-                                            {
-                                                ResData.ResHeroSkin rs = Assets.Scripts.GameSystem
-                                                    .CSkinInfo.GetHeroSkin(heroId, si);
-                                                if (rs == null) break;
-                                                string nm = rs.szSkinName;
-                                                if (nm == null || nm.Length == 0) break;
-                                                if (nm == prevName) break;
-                                                prevName = nm;
-                                                if (dCount > 0) dNames += "|";
-                                                dNames += nm;
-                                                dCount++;
-                                                si++;
-                                            }
-                                            stage = "DOK";
+                                        uint si = 0U;
+                                        string prevName = "";
+                                        while (si < 8U)
+                                        {
+                                            ResData.ResHeroSkin rs = Assets.Scripts.GameSystem
+                                                .CSkinInfo.GetHeroSkin(heroId, si);
+                                            if (rs == null) break;
+                                            string nm = rs.szSkinName;
+                                            if (nm == null || nm.Length == 0) break;
+                                            if (nm == prevName) break;
+                                            prevName = nm;
+                                            if (dCount > 0) dNames += "|";
+                                            dNames += nm;
+                                            dCount++;
+                                            si++;
                                         }
+                                        stage = "DOK";
                                     }
                                 }
                             }

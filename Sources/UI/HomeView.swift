@@ -377,7 +377,7 @@ struct LQModCard: View {
             Text("Skin chỉ áp lúc game dựng lại model: chọn TRƯỚC khi pick tướng, hoặc chết/hồi sinh trong trận. Toggle khác thì ăn ngay.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
             HStack(spacing: 6) {
-                Text("patch: \(model.aovStep)")
+                Text("patch: \(model.aovStep) • nhịp: \(model.aovBeat.isEmpty ? "—" : model.aovBeat)")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
                 Spacer()
                 Button("Làm mới") { model.refreshAOVDetection() }

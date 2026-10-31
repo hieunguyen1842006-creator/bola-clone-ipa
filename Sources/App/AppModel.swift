@@ -77,6 +77,8 @@ public final class AppModel: ObservableObject {
         (UserDefaults.standard.object(forKey: "nvh.aov.dhero") as? Int) ?? 0
     /// Điểm dừng cuối của khung đọc config trong game (S1…S5 / S2 / S9).
     @Published public var aovStep: String = "—"
+    /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
+    @Published public var aovBeat: String = ""
     @Published public var aovDetectedSkin: Int =
         (UserDefaults.standard.object(forKey: "nvh.aov.dskin") as? Int) ?? 0
     @Published public var aovSkinNames: [String] =
@@ -937,12 +939,16 @@ public final class AppModel: ObservableObject {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
 
         // 0. kênh FILE — patch ghi thẳng vào Documents, không qua cfprefsd
-        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_detect.txt"] {
+        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_detect.txt", "nvh_hb.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil,
                let s = String(data: d, encoding: .utf8) {
                 let v = s.trimmingCharacters(in: .whitespacesAndNewlines)
                 log("aov-file: \(name) = \(v)")
                 if name == "nvh_step.txt" { aovStep = v }
+                if name == "nvh_hb.txt" {
+                    if v == aovBeat { log("aov-hb2: nhịp ĐỨNG — game chưa chạy (background) hoặc patch chết") }
+                    aovBeat = v
+                }
             }
         }
         if let d = (try? access.read("nvh_skin.txt", in: game)) ?? nil,
