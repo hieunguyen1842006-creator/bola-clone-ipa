@@ -340,42 +340,17 @@ struct LQModCard: View {
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
 
-            LQSection("SKIN")
-            HStack(spacing: 8) {
-                Text(model.aovDetectedHero > 0
-                     ? "Tướng \(model.aovDetectedHero) • skin \(model.aovDetectedSkin)"
-                     : "Chưa biết tướng")
-                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
-                Spacer()
-                Button("Dò tướng") { model.requestAOVDetection() }
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Theme.accent)
-                    .disabled(!model.patchInstalled)
-            }
-            LQStepperRow(title: "Mã tướng", value: "\(model.aovHero)",
-                         dec: { model.setAOVHero(model.aovHero - 1) },
-                         inc: { model.setAOVHero(model.aovHero + 1) })
-            HStack(spacing: 6) {
-                ForEach([-10, -1, 1, 10], id: \.self) { step in
-                    Button {
-                        model.setAOVHero(model.aovHero + step)
-                    } label: {
-                        Text(step > 0 ? "+\(step)" : "\(step)")
-                            .font(Theme.monoFont)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 5)
-                            .background(RoundedRectangle(cornerRadius: 8)
-                                .fill(Theme.cardHi.opacity(0.6)))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .foregroundStyle(Theme.dim)
+            LQSection("SKIN — BẰNG CHAT TRONG TRẬN")
+            Text("Đổi skin dùng lệnh chat: gõ /skin <0..99> trong trận. Copy sẵn dưới đây rồi dán.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            if model.installedInfo[model.game] == true {
+                HStack(spacing: 6) {
+                    LQSkinCmdRow(title: "/skin 6", cmd: "/skin 6",
+                                 hint: "đổi sang skin số 6")
+                    LQSkinCmdRow(title: "/listskin 1", cmd: "/listskin 1",
+                                 hint: "liệt kê 8 skin + mã")
                 }
             }
-            LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
-                         dec: { model.setAOVModel(model.aovModel - 1) },
-                         inc: { model.setAOVModel(model.aovModel + 1) })
-            Text("Skin chỉ áp lúc game dựng lại model: chọn TRƯỚC khi pick tướng, hoặc chết/hồi sinh trong trận. Toggle khác thì ăn ngay.")
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
             HStack(spacing: 6) {
                 Text("patch: \(model.aovStep) • nhịp: \(model.aovBeat.isEmpty ? "—" : model.aovBeat)")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
@@ -389,6 +364,39 @@ struct LQModCard: View {
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
         .onAppear { model.refreshAOVDetection() }
+    }
+}
+
+private struct LQSkinCmdRow: View {
+    let title: String
+    let cmd: String
+    let hint: String
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            #if canImport(UIKit)
+            UIPasteboard.general.string = cmd
+            #endif
+            copied = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { copied = false }
+        } label: {
+            VStack(spacing: 2) {
+                HStack(spacing: 4) {
+                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 9))
+                    Text(copied ? "Đã copy" : title)
+                        .font(Theme.monoFont)
+                }
+                .foregroundStyle(copied ? Theme.accent : Theme.text)
+                Text(hint)
+                    .font(.system(size: 9)).foregroundStyle(Theme.dim)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Theme.cardHi.opacity(0.6)))
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
