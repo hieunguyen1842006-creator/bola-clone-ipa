@@ -355,10 +355,26 @@ struct LQModCard: View {
             LQStepperRow(title: "Mã tướng", value: "\(model.aovHero)",
                          dec: { model.setAOVHero(model.aovHero - 1) },
                          inc: { model.setAOVHero(model.aovHero + 1) })
+            HStack(spacing: 6) {
+                ForEach([-10, -1, 1, 10], id: \.self) { step in
+                    Button {
+                        model.setAOVHero(model.aovHero + step)
+                    } label: {
+                        Text(step > 0 ? "+\(step)" : "\(step)")
+                            .font(Theme.monoFont)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 5)
+                            .background(RoundedRectangle(cornerRadius: 8)
+                                .fill(Theme.cardHi.opacity(0.6)))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .foregroundStyle(Theme.dim)
+                }
+            }
             LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })
-            Text("Đổi là áp trong ~1 giây. Nếu không ăn, bấm «?» để gửi tớ log chẩn đoán.")
+            Text("Skin chỉ áp lúc game dựng lại model: chọn TRƯỚC khi pick tướng, hoặc chết/hồi sinh trong trận. Toggle khác thì ăn ngay.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
             HStack(spacing: 6) {
                 Text("patch: \(model.aovStep)")
