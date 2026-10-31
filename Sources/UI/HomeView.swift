@@ -360,7 +360,7 @@ struct LQModCard: View {
                 }
             }
             HStack(spacing: 6) {
-                Text("patch: \(model.aovStep) • nhịp: \(model.aovBeat.isEmpty ? "—" : model.aovBeat)")
+                Text("payload: \(model.aovPayloadVer) • patch: \(model.aovStep) • nhịp: \(model.aovBeat.isEmpty ? "—" : model.aovBeat)")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
                 Spacer()
                 Button("Làm mới") { model.refreshAOVDetection() }

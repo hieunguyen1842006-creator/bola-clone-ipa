@@ -75,6 +75,8 @@ public final class AppModel: ObservableObject {
     @Published public var aovStep: String = "—"
     /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
     @Published public var aovBeat: String = ""
+    /// Dấu vết payload đang chạy trong game (nvh_ver.txt, vd "P15D").
+    @Published public var aovPayloadVer: String = "—"
 
     // MARK: gói "Patch máy" (runtime) — sửa trực tiếp file trong game
     /// Hệ số zoom camera. 0 = không đụng (giữ nguyên game).
@@ -858,12 +860,13 @@ public final class AppModel: ObservableObject {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
 
         // Kênh FILE — patch ghi thẳng vào Documents, không qua cfprefsd
-        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt"] {
+        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt", "nvh_ver.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil,
                let s = String(data: d, encoding: .utf8) {
                 let v = s.trimmingCharacters(in: .whitespacesAndNewlines)
                 log("aov-file: \(name) = \(v)")
                 if name == "nvh_step.txt" { aovStep = v }
+                if name == "nvh_ver.txt" { aovPayloadVer = v }
                 if name == "nvh_hb.txt" {
                     if v == aovBeat {
                         log("aov-hb2: nhịp ĐỨNG — game chưa chạy (background) hoặc patch chết")

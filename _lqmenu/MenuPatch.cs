@@ -286,6 +286,9 @@ namespace NucleusDrive.Logic
                     System.IO.File.WriteAllText(good + "/nvh_hb.txt", (beat == 0) ? "B0" : "B1");
                 }
                 catch (Exception) { }
+                // DAC DIEN payload: app doc nvh_ver.txt de biet CHINH XAC payload
+                // nao dang chay trong game (phat hien truong hop file cu con nam).
+                try { System.IO.File.WriteAllText(good + "/nvh_ver.txt", "P15D"); } catch (Exception) { }
             }
             catch (Exception)
             {
