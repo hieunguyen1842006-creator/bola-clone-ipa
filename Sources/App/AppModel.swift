@@ -721,6 +721,20 @@ public final class AppModel: ObservableObject {
         toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
     }
 
+    // MARK: lệnh chat (kênh DUY NHẤT chạy được — thực thi trong tiến trình game)
+
+    /// Copy lệnh vào clipboard để dán vào chat trong trận.
+    /// Lệnh chat do payload xử lý NGAY trong process game (Unity PlayerPrefs
+    /// của chính nó) nên có hiệu lực tức thì — khác với việc app sửa plist
+    /// bên ngoài (bị cfprefsd cache + game ghi đè).
+    public func copyCommand(_ cmd: String, label: String) {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = cmd
+        #endif
+        toast("Đã copy \(cmd) — dán vào chat trong trận")
+        log("cmd: copy \(cmd) (\(label))")
+    }
+
     // MARK: áp skin cho MỌI tướng (không cần game báo mã tướng)
 
     /// Ghi `iFix.SelectedSkin.v1.<id>` = `skin` cho toàn dải mã tướng.

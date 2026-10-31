@@ -300,74 +300,128 @@ public struct HomeView: View {
 
 // MARK: - Full Mod AOV card (thay list gói Liên Quân)
 
-/// Thẻ cấu hình Full Mod AOV — bật/tắt tính năng ngay trong app; giá trị ghi vào
-/// PlayerPrefs của game (key iFix.*), payload đọc khi mở game.
+/// Thẻ lệnh trong game — chạm để copy, dán vào chat lúc vào trận.
+/// Chat là kênh duy nhất chạy được: lệnh được payload xử lý NGAY trong
+/// tiến trình game nên có hiệu lực tức thì, không bị cfprefsd cache.
 struct LQModCard: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 9) {
             HStack {
-                Text("FULL MOD (AOV)").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Text("LỆNH TRONG GAME").font(Theme.monoFont).foregroundStyle(Theme.dim)
                 Spacer()
-                Button { model.requestAOVDetection() } label: {
-                    Text("Dò tướng").font(Theme.monoFont).foregroundStyle(Theme.accent)
-                }
-                Button { model.diagnoseAOV() } label: {
-                    Text("?").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Button { model.copyCommand("/listskin", label: "xem skin") } label: {
+                    Text("Xem skin").font(Theme.monoFont).foregroundStyle(Theme.accent)
                 }
             }
+            Text("Chạm dòng để COPY → vào chat trong trận, giữ ô chat rồi Paste. Chạy ngay, không cần tắt game.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
 
-            LQToggleRow(title: "ESP xuyên tường",
-                        isOn: Binding(get: { model.aovEsp }, set: { model.setAOVEsp($0) }))
-            LQToggleRow(title: "Tự động BP",
-                        isOn: Binding(get: { model.aovBocpha }, set: { model.setAOVBocpha($0) }))
-            LQToggleRow(title: "Aim assist",
-                        isOn: Binding(get: { model.aovAim }, set: { model.setAOVAim($0) }))
-
-            if model.aovAim {
-                LQSegRow(title: "AIM TARGET", options: ["HP", "PCT", "NEAR", "RAY"],
-                         index: model.aovTargetMode) { model.setAOVTargetMode($0) }
-                LQStepperRow(title: "AIM LINES", value: "\(model.aovLines)",
-                             dec: { model.setAOVLines(model.aovLines - 1) },
-                             inc: { model.setAOVLines(model.aovLines + 1) })
-                LQSegRow(title: "VẼ LINE", options: ["TẮT", "LUÔN", "SKILL"],
-                         index: model.aovDrawMode) { model.setAOVDrawMode($0) }
+            LQCmdRow(title: "ESP xuyên tường", cmd: "/esp") {
+                model.copyCommand("/esp", label: "ESP")
+            }
+            LQCmdRow(title: "Tự động BP", cmd: "/bocpha") {
+                model.copyCommand("/bocpha", label: "BP")
             }
 
-            LQSegRow(title: "TRUNG TRÍ (SMITE)", options: ["TẮT", "BOSS", "BUFF", "ALL"],
-                     index: model.aovSmiteMode) { model.setAOVSmiteMode($0) }
-            LQStepperRow(title: "ZOOM CAMERA",
-                         value: String(format: "%.1fx", model.aovZoom),
+            LQSection("AIM")
+            LQCmdRow(title: "Bật aim", cmd: "/aim on") {
+                model.copyCommand("/aim on", label: "aim on")
+            }
+            LQCmdRow(title: "Tắt aim", cmd: "/aim off") {
+                model.copyCommand("/aim off", label: "aim off")
+            }
+            LQCmdRow(title: "Mục tiêu: HP", cmd: "/aim target hp") {
+                model.copyCommand("/aim target hp", label: "target hp")
+            }
+            LQCmdRow(title: "Mục tiêu: % máu", cmd: "/aim target percent") {
+                model.copyCommand("/aim target percent", label: "target %")
+            }
+            LQCmdRow(title: "Mục tiêu: gần nhất", cmd: "/aim target near") {
+                model.copyCommand("/aim target near", label: "target near")
+            }
+            LQCmdRow(title: "Mục tiêu: tia", cmd: "/aim target ray") {
+                model.copyCommand("/aim target ray", label: "target ray")
+            }
+
+            LQSection("VẼ LINE")
+            LQCmdRow(title: "Line: tắt", cmd: "/line off") {
+                model.copyCommand("/line off", label: "line off")
+            }
+            LQCmdRow(title: "Line: luôn hiện", cmd: "/line all") {
+                model.copyCommand("/line all", label: "line all")
+            }
+            LQCmdRow(title: "Line: khi dùng chiêu", cmd: "/line skill") {
+                model.copyCommand("/line skill", label: "line skill")
+            }
+
+            LQSection("TRUNG TRÍ")
+            LQCmdRow(title: "Boss", cmd: "/trungtri boss") {
+                model.copyCommand("/trungtri boss", label: "smite boss")
+            }
+            LQCmdRow(title: "Buff", cmd: "/trungtri buff") {
+                model.copyCommand("/trungtri buff", label: "smite buff")
+            }
+            LQCmdRow(title: "Tất cả", cmd: "/trungtri all") {
+                model.copyCommand("/trungtri all", label: "smite all")
+            }
+
+            LQSection("CAMERA")
+            LQStepperRow(title: "Zoom", value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
-            // SKIN — áp cho MỌI tướng (không cần biết mã tướng đang chơi)
-            Text("SKIN").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.dim)
+            LQCmdRow(title: "Áp zoom",
+                     cmd: String(format: "/camera %.1f", model.aovZoom)) {
+                model.copyCommand(String(format: "/camera %.1f", model.aovZoom),
+                                  label: "camera")
+            }
+
+            LQSection("SKIN")
             LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })
-            HStack(spacing: 8) {
-                Button { model.applySkinToAllHeroes(skin: model.aovModel) } label: {
-                    Text("Ghi cho mọi tướng")
-                        .font(.system(size: 12, weight: .bold))
-                        .padding(.vertical, 7).frame(maxWidth: .infinity)
-                        .background(RoundedRectangle(cornerRadius: 9).fill(Theme.cardHi))
-                        .overlay(RoundedRectangle(cornerRadius: 9)
-                            .stroke(Theme.accent, lineWidth: 1))
-                        .foregroundStyle(Theme.accent)
-                }
-                .buttonStyle(PlainButtonStyle())
+            LQCmdRow(title: "Đổi skin ngay", cmd: "/skin \(model.aovModel)") {
+                model.copyCommand("/skin \(model.aovModel)", label: "skin")
             }
-            Text("Ghi chỉ số skin cho toàn dải mã tướng → chơi con nào cũng dính. TẮT HẲN GAME trước khi ghi, rồi mở lại. Xem chỉ số: gõ /listskin trong chat lúc vào trận")
+            Text("Skin đổi ngay giữa trận bằng lệnh. Gõ /listskin để xem chỉ số từng skin của tướng đang chơi.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
-
-            Text("Đổi là áp trong ~1 giây — payload trong game đọc file live, không cần tắt game")
-                .font(.system(size: 10)).foregroundStyle(Theme.warn)
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1)))
-        .onAppear { model.refreshAOVDetection() }
+    }
+}
+
+private struct LQSection: View {
+    let title: String
+    init(_ t: String) { title = t }
+    var body: some View {
+        Text(title)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(Theme.dim)
+            .padding(.top, 2)
+    }
+}
+
+private struct LQCmdRow: View {
+    let title: String
+    let cmd: String
+    let onCopy: () -> Void
+
+    var body: some View {
+        Button(action: onCopy) {
+            HStack(spacing: 8) {
+                Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
+                Spacer()
+                Text(cmd).font(Theme.monoFont).foregroundStyle(Theme.accent)
+                Image(systemName: "doc.on.doc").font(.system(size: 10))
+                    .foregroundStyle(Theme.dim)
+            }
+            .padding(.vertical, 6).padding(.horizontal, 8)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Theme.cardHi.opacity(0.55)))
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
