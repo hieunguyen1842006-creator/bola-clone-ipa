@@ -138,156 +138,194 @@ namespace NucleusDrive.Logic
                 if ((__mTick % 20) != 0) return fs;
 
                 // ================= doc live config =================
-                if (System.IO.File.Exists(__mPath))
+                // May do: ghi so hieu buoc vao iFix.Cfg.Step de biet chan o dau
+                //   1 = qua throttle | 2 = File.Exists FALSE | 3 = co file
+                //   4 = doc xong | 5 = rev doi | 6 = da ap key | 7 = da doc probe
+                //   99 = exception (xem iFix.Cfg.Err)
+                string cfgPath = __mPath;
+                try
                 {
-                    string t = System.IO.File.ReadAllText(__mPath);
-                    if (t != null && t.Length > 0)
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 1);
+                    bool hasFile = System.IO.File.Exists(cfgPath);
+                    if (!hasFile)
                     {
-                        int rev = __mRev;
-                        int p = t.IndexOf("rev=");
+                        PlayerPrefs.SetInt("iFix.Cfg.Step", 2);
+                        PlayerPrefs.Save();
+                        return fs;
+                    }
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 3);
+
+                    string t = System.IO.File.ReadAllText(cfgPath);
+                    if (t == null || t.Length == 0)
+                    {
+                        PlayerPrefs.SetInt("iFix.Cfg.Step", 31);
+                        PlayerPrefs.Save();
+                        return fs;
+                    }
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 4);
+
+                    int rev = __mRev;
+                    int p = t.IndexOf("rev=");
+                    if (p >= 0)
+                    {
+                        int e = t.IndexOf('\n', p);
+                        string s = (e > p) ? t.Substring(p + 4, e - p - 4)
+                                           : t.Substring(p + 4);
+                        int v;
+                        if (int.TryParse(s.Trim(), out v)) rev = v;
+                    }
+                    if (rev == __mRev)
+                    {
+                        PlayerPrefs.SetInt("iFix.Cfg.Step", 41);   // rev chua doi
+                        PlayerPrefs.Save();
+                        return fs;
+                    }
+                    __mRev = rev;
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 5);
+
+                    {
+                        p = t.IndexOf("esp=");
                         if (p >= 0)
                         {
                             int e = t.IndexOf('\n', p);
                             string s = (e > p) ? t.Substring(p + 4, e - p - 4)
                                                : t.Substring(p + 4);
                             int v;
-                            if (int.TryParse(s.Trim(), out v)) rev = v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v);
                         }
-                        if (rev != __mRev)
+
+                        p = t.IndexOf("bp=");
+                        if (p >= 0)
                         {
-                            __mRev = rev;
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 3, e - p - 3)
+                                               : t.Substring(p + 3);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
+                        }
 
-                            p = t.IndexOf("esp=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                                   : t.Substring(p + 4);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.ESP.Enabled.v1", v);
-                            }
+                        p = t.IndexOf("aim=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 4, e - p - 4)
+                                               : t.Substring(p + 4);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v);
+                        }
 
-                            p = t.IndexOf("bp=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 3, e - p - 3)
-                                                   : t.Substring(p + 3);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
-                            }
+                        p = t.IndexOf("tmode=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
+                                               : t.Substring(p + 6);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", v);
+                        }
 
-                            p = t.IndexOf("aim=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                                   : t.Substring(p + 4);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AIM.Enabled.v1", v);
-                            }
+                        p = t.IndexOf("lines=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
+                                               : t.Substring(p + 6);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AIM.Lines.v1", v);
+                        }
 
-                            p = t.IndexOf("tmode=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                                   : t.Substring(p + 6);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AIM.TargetMode.v1", v);
-                            }
+                        p = t.IndexOf("draw=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
+                                               : t.Substring(p + 5);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", v);
+                        }
 
-                            p = t.IndexOf("lines=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                                   : t.Substring(p + 6);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AIM.Lines.v1", v);
-                            }
+                        p = t.IndexOf("smite=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 6, e - p - 6)
+                                               : t.Substring(p + 6);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v);
+                        }
+                        p = t.IndexOf("smt=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 4, e - p - 4)
+                                               : t.Substring(p + 4);
+                            int v;
+                            if (int.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
+                        }
 
-                            p = t.IndexOf("draw=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                                   : t.Substring(p + 5);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AIM.DrawMode.v1", v);
-                            }
+                        p = t.IndexOf("zoom=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
+                                               : t.Substring(p + 5);
+                            float v;
+                            if (float.TryParse(s.Trim(), out v))
+                                PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", v);
+                        }
 
-                            p = t.IndexOf("smite=");
-                            if (p >= 0)
+                        p = t.IndexOf("skin=");
+                        if (p >= 0)
+                        {
+                            int e = t.IndexOf('\n', p);
+                            string s = (e > p) ? t.Substring(p + 5, e - p - 5)
+                                               : t.Substring(p + 5);
+                            s = s.Trim();
+                            int c = s.IndexOf(':');
+                            if (c > 0)
                             {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                                   : t.Substring(p + 6);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AutoSmite.Enabled.v1", v);
-                            }
-                            p = t.IndexOf("smt=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 4, e - p - 4)
-                                                   : t.Substring(p + 4);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
-                            }
-
-                            p = t.IndexOf("zoom=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                                   : t.Substring(p + 5);
-                                float v;
-                                if (float.TryParse(s.Trim(), out v))
-                                    PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", v);
-                            }
-
-                            p = t.IndexOf("skin=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 5, e - p - 5)
-                                                   : t.Substring(p + 5);
-                                s = s.Trim();
-                                int c = s.IndexOf(':');
-                                if (c > 0)
+                                int hero;
+                                int model;
+                                if (int.TryParse(s.Substring(0, c).Trim(), out hero)
+                                    && int.TryParse(s.Substring(c + 1).Trim(), out model))
                                 {
-                                    int hero;
-                                    int model;
-                                    if (int.TryParse(s.Substring(0, c).Trim(), out hero)
-                                        && int.TryParse(s.Substring(c + 1).Trim(), out model))
-                                    {
-                                        PlayerPrefs.SetInt("iFix.SelectedSkin.v1." + hero, model);
-                                    }
+                                    PlayerPrefs.SetInt("iFix.SelectedSkin.v1." + hero, model);
                                 }
                             }
-
-                            p = t.IndexOf("probe=");
-                            if (p >= 0)
-                            {
-                                int e = t.IndexOf('\n', p);
-                                string s = (e > p) ? t.Substring(p + 6, e - p - 6)
-                                                   : t.Substring(p + 6);
-                                int v;
-                                if (int.TryParse(s.Trim(), out v)) __mProbeReq = v;
-                            }
-
-                            PlayerPrefs.Save();
                         }
                     }
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 6);
+
+                    p = t.IndexOf("probe=");
+                    if (p >= 0)
+                    {
+                        int e = t.IndexOf('\n', p);
+                        string s = (e > p) ? t.Substring(p + 6, e - p - 6)
+                                           : t.Substring(p + 6);
+                        int v;
+                        if (int.TryParse(s.Trim(), out v)) __mProbeReq = v;
+                    }
+                    PlayerPrefs.SetInt("iFix.Cfg.Step", 7);
+                    PlayerPrefs.Save();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        PlayerPrefs.SetInt("iFix.Cfg.Step", 99);
+                        PlayerPrefs.SetString("iFix.Cfg.Err", ex.GetType().Name);
+                        PlayerPrefs.Save();
+                    }
+                    catch (Exception) { }
+                    return fs;
                 }
 
                 // ================= do tuong (chi khi app yeu cau) =================

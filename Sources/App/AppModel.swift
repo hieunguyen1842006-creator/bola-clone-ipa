@@ -721,7 +721,40 @@ public final class AppModel: ObservableObject {
         toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
     }
 
-    // MARK: setter Full Mod AOV — lưu trong app + ghi plist của game
+    // MARK: áp skin cho MỌI tướng (không cần game báo mã tướng)
+
+    /// Ghi `iFix.SelectedSkin.v1.<id>` = `skin` cho toàn dải mã tướng.
+    /// Nhờ vậy chơi tướng nào cũng nhận đúng chỉ số skin đã chọn, không cần
+    /// biết trước mã tướng và không phụ thuộc patch trong game.
+    /// LƯU Ý: phải TẮT HẲN GAME trước khi ghi (Unity cache PlayerPrefs).
+    @discardableResult
+    public func applySkinToAllHeroes(skin: Int, from: Int = 1, to: Int = 300,
+                                     via provider: ContainerAccess? = nil) -> Bool {
+        guard game.isLienQuan else { return false }
+        let box = provider ?? access
+        guard box.isAvailable(for: game) else {
+            toast("Chưa mở được thư mục game")
+            return false
+        }
+        guard from >= 1, to >= from, to - from <= 400 else {
+            toast("Dải mã tướng không hợp lệ")
+            return false
+        }
+        var values: [String: Any] = [:]
+        for id in from...to { values[LQModConfig.skinKey(hero: id)] = skin }
+        let ok = LQModConfig.apply(values, access: box, game: game)
+        if ok {
+            aovModel = skin
+            aovHero = 0            // 0 = "mọi tướng"
+            saveAOV()
+            log("aov: đã ghi skin \(skin) cho mã tướng \(from)…\(to) (\(values.count) key)")
+            toast("Đã ghi skin \(skin) cho mọi tướng — mở lại game để nhận")
+        } else {
+            log("aov: ghi skin thất bại")
+            toast("Ghi thất bại")
+        }
+        return ok
+    }
 
     private func saveAOV() {
         let d = UserDefaults.standard
@@ -923,7 +956,8 @@ public final class AppModel: ObservableObject {
         if let dict = LQModConfig.load(access: access, game: game) {
             let keys = dict.keys.filter { $0.hasPrefix("iFix.") }.sorted()
             log("diag: prefs iFix.* = \(keys.count) key")
-            for k in keys where k.hasPrefix("iFix.Detect.") || k.hasPrefix("iFix.HB.") {
+            for k in keys where k.hasPrefix("iFix.Detect.") || k.hasPrefix("iFix.HB.")
+                || k.hasPrefix("iFix.Cfg.") {
                 log("diag: \(k) = \(dict[k] ?? "-")")
             }
             if let e = dict[LQModConfig.espKey] { log("diag: ESP=\(e)") }
