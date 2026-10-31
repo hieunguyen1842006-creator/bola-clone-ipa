@@ -352,6 +352,9 @@ struct LQModCard: View {
                     .foregroundStyle(Theme.accent)
                     .disabled(!model.patchInstalled)
             }
+            LQStepperRow(title: "Mã tướng", value: "\(model.aovHero)",
+                         dec: { model.setAOVHero(model.aovHero - 1) },
+                         inc: { model.setAOVHero(model.aovHero + 1) })
             LQStepperRow(title: "Chỉ số skin", value: "\(model.aovModel)",
                          dec: { model.setAOVModel(model.aovModel - 1) },
                          inc: { model.setAOVModel(model.aovModel + 1) })

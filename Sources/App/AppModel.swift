@@ -988,6 +988,8 @@ public final class AppModel: ObservableObject {
         d.set(aovSkinNames, forKey: "nvh.aov.dnames")
         saveAOV()
         log("aov: nhận diện tướng \(hero) • đang mặc skin \(skin) • \(count) skin")
+        // biết tướng rồi thì ghi ngay key đúng tướng: iFix.SelectedSkin.v1.<hero>
+        pushAOVConfig()
     }
 
     /// Log chẩn đoán: quyền container, thư mục, file trạng thái, giá trị thật.
