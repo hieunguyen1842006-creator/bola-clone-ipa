@@ -309,7 +309,7 @@ struct LQModCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack {
-                Text("FULL MOD (AOV)").font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Text("FULL MOD (AOV) · LIVE v8").font(Theme.monoFont).foregroundStyle(Theme.accent)
                 Spacer()
                 Button { model.diagnoseAOV() } label: {
                     Text("?").font(Theme.monoFont).foregroundStyle(Theme.dim)
@@ -346,6 +346,14 @@ struct LQModCard: View {
                          inc: { model.setAOVModel(model.aovModel + 1) })
             Text("Đổi là áp trong ~1 giây. Nếu không ăn, bấm «?» để gửi tớ log chẩn đoán.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            HStack(spacing: 6) {
+                Text("patch: \(model.aovStep)")
+                    .font(Theme.monoFont).foregroundStyle(Theme.dim)
+                Spacer()
+                Button("Làm mới") { model.refreshAOVDetection() }
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Theme.accent)
+            }
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card)
@@ -362,27 +370,6 @@ private struct LQSection: View {
             .font(.system(size: 10, weight: .bold))
             .foregroundStyle(Theme.dim)
             .padding(.top, 2)
-    }
-}
-
-private struct LQCmdRow: View {
-    let title: String
-    let cmd: String
-    let onCopy: () -> Void
-
-    var body: some View {
-        Button(action: onCopy) {
-            HStack(spacing: 8) {
-                Text(title).font(Theme.bodyFont).foregroundStyle(Theme.text)
-                Spacer()
-                Text(cmd).font(Theme.monoFont).foregroundStyle(Theme.accent)
-                Image(systemName: "doc.on.doc").font(.system(size: 10))
-                    .foregroundStyle(Theme.dim)
-            }
-            .padding(.vertical, 6).padding(.horizontal, 8)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Theme.cardHi.opacity(0.55)))
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 

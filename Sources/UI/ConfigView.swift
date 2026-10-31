@@ -319,72 +319,36 @@ public struct ConfigView: View {
 
     // MARK: LQ
 
-    /// Liên Quân dùng hotfix payload đóng sẵn — chọn gói thay vì bật/tắt từng tính năng.
+    /// Liên Quân: điều khiển Full Mod AOV bằng TOGGLE trong app.
+    /// Payload deploy luôn là LQFull; app ghi nvh_aov.txt → patch trong game đọc
+    /// và áp PlayerPrefs ngay (không cần lệnh chat, không cần chọn gói).
     private var lqContent: some View {
         VStack(spacing: 12) {
-            card("Gói hotfix") {
-                ForEach(LQPack.allCases) { p in
-                    Button { model.setLQPack(p) } label: {
-                        HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: p.symbol)
-                                .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.dim)
-                                .frame(width: 22)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(p.title).font(Theme.bodyFont).foregroundStyle(Theme.text)
-                                Text(p.subtitle).font(.system(size: 10))
-                                    .foregroundStyle(Theme.dim)
-                            }
-                            Spacer()
-                            Image(systemName: model.lqPack == p
-                                  ? "largecircle.fill.circle" : "circle")
-                                .foregroundStyle(model.lqPack == p ? Theme.accent : Theme.border)
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(RowButtonStyle())
-                }
-            }
-            if model.lqPack == .runtime {
-                runtimeOptions
-            }
+            LQModCard(model: model)
             card("Đích ghi") {
                 Text("Documents/Resources/<ver>/Thanos/HeroSkin_*.bytes")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
-                if model.lqPack == .runtime {
-                    Text("Tool tự dò mọi file HeroSkin_*.bytes có trong máy, giải mã ResD, sửa IL rồi ghi lại. "
-                         + "Bản gốc luôn được backup trước khi ghi.")
-                        .font(.system(size: 11)).foregroundStyle(Theme.dim)
-                } else {
-                    Text("Gói đôi ghi thêm HeroSkin_1.bytes cùng thư mục.")
-                        .font(.system(size: 11)).foregroundStyle(Theme.dim)
-                }
-                Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
-            }
-            if model.lqPack == .runtime, !model.lqLastReport.isEmpty {
-                card("Lần patch gần nhất") {
+                if !model.lqLastReport.isEmpty {
                     ForEach(model.lqLastReport, id: \.file) { r in
                         HStack {
                             Text(r.file).font(Theme.monoFont).foregroundStyle(Theme.text)
                             Spacer()
-                            Text(r.container).font(.system(size: 10))
-                                .foregroundStyle(Theme.dim)
                             Text(r.report.summary).font(.system(size: 10))
                                 .foregroundStyle(Theme.accent)
                         }
                     }
                 }
+                Text("UN INJECT sẽ khôi phục bản gốc đã backup trong app.")
+                    .font(.system(size: 11)).foregroundStyle(Theme.dim)
             }
             card("Tuỳ chọn") {
                 toggleRowInline("autolaunch", "Tự mở game sau khi inject",
                                 "Inject xong tự tắt game cũ và mở lại")
             }
             card("Lưu ý") {
-                Text(model.lqPack == .runtime
-                     ? "Patch máy chỉ ghi đè operand của lệnh có sẵn — không thêm/bớt lệnh, "
-                       + "không đổi độ dài file. Nhờ vậy game vẫn đọc bình thường."
-                     : "Payload LQ là gói đóng sẵn (HUD/skin), không có file cfg runtime như Free Fire. "
-                       + "App chọn gói rồi ghi — muốn thêm toggle từng tính năng thì phải build payload mới.")
+                Text("Toggle ở trên ghi file cấu hình vào thư mục game; patch đang chạy "
+                     + "trong game đọc lại và áp ngay trong tiến trình — đổi là ăn, "
+                     + "kể cả khi đang trong trận.")
                     .font(.system(size: 11)).foregroundStyle(Theme.dim)
             }
         }

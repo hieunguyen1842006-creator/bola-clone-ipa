@@ -36,7 +36,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .unlockSkin:
             return "Gói 4in1 LiqiMobi 16/10 (FullSkin/HUD/ESP) — HeroSkin_1 + HeroSkin_2"
         case .fullMod:
-            return "32 hook: FullSkin, ESP xuyên tường, aim assist, zoom, tắt privacy, giả host, auto BP/Smite, chat trận. Guard đã gỡ. Điều khiển bằng lệnh chat /skin /aim /esp /camera"
+            return "32 hook: FullSkin, ESP xuyên tường, aim assist, zoom, tắt privacy, giả host, auto BP/Smite. Guard đã gỡ. Điều khiển bằng toggle trong app (live)."
         }
     }
 
