@@ -73,8 +73,6 @@ public final class AppModel: ObservableObject {
     @Published public var aovStep: String = "—"
     /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
     @Published public var aovBeat: String = ""
-    /// Dấu vết payload đang chạy trong game (nvh_ver.txt, vd "P15D").
-    @Published public var aovPayloadVer: String = "—"
 
     // MARK: gói "Patch máy" (runtime) — sửa trực tiếp file trong game
     /// Hệ số zoom camera. 0 = không đụng (giữ nguyên game).
