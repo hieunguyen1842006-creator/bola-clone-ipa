@@ -340,16 +340,8 @@ struct LQModCard: View {
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
 
-            LQSection("SKIN — NẠP TRƯỚC TRẬN")
-            LQStepperRow(title: "Skin nạp",
-                         value: model.aovWearSkin == 0 ? "TẮT" : "\(model.aovWearSkin)",
-                         dec: { model.setAOVWearSkin(model.aovWearSkin - 1) },
-                         inc: { model.setAOVWearSkin(model.aovWearSkin + 1) })
-            Text("Đặt số skin → game coi như đang mặc skin đó từ đầu trận → nút chiêu đổi theo. Đặt 0 để tắt.")
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
-
-            LQSection("SKIN — CHAT TRONG TRẬN")
-            Text("Mã này chỉ đổi mesh ngay lập tức, không kèm nút/hiệu ứng. Muốn đủ hiệu ứng thì dùng ô «Skin nạp» ở trên.")
+            LQSection("SKIN — ĐỔI TRONG TRẬN")
+            Text("Đổi skin bằng lệnh chat trong trận (copy rồi dán vào khung chat). Muốn nút chiêu + hiệu ứng đi kèm thì chọn skin ở màn pick tướng.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
             if model.installedInfo[model.game] == true {
                 HStack(spacing: 6) {

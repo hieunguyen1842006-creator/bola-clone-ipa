@@ -67,10 +67,8 @@ public final class AppModel: ObservableObject {
     /// Zoom camera 1.0..5.0.
     @Published public var aovZoom: Float =
         (UserDefaults.standard.object(forKey: "nvh.aov.zoom") as? Float) ?? 1.6
-    /// Skin nạp trước trận (0 = tắt). Patch ghi vào `CRoleInfo.dwShowSkinID` —
-    /// field mà hệ thống NÚT CHIÊU đọc để chọn skin.
-    @Published public var aovWearSkin: Int =
-        UserDefaults.standard.integer(forKey: "nvh.aov.wearskin")
+    /// Dấu vết payload đang chạy trong game (nvh_ver.txt, vd "P15D").
+    @Published public var aovPayloadVer: String = "—"
     /// Điểm dừng cuối của khung đọc config trong game (S1…S5 / S2 / S9).
     @Published public var aovStep: String = "—"
     /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
@@ -733,7 +731,6 @@ public final class AppModel: ObservableObject {
         d.set(aovDrawMode, forKey: "nvh.aov.draw")
         d.set(aovSmiteMode, forKey: "nvh.aov.smite")
         d.set(aovZoom, forKey: "nvh.aov.zoom")
-        d.set(aovWearSkin, forKey: "nvh.aov.wearskin")
     }
 
     /// Bộ key iFix.* tương ứng UI đang hiển thị.
@@ -770,7 +767,6 @@ public final class AppModel: ObservableObject {
             + "smite=\(aovSmiteMode == 0 ? 0 : 1)\n"
             + "smt=\(max(aovSmiteMode - 1, 0))\n"
             + "zoom=\(zoom)\n"
-            + "wearskin=\(aovWearSkin)\n"
     }
 
     /// Thư mục game THẬT (patch khai ra qua `iFix.Path`) — app ghi config vào đây
@@ -850,7 +846,6 @@ public final class AppModel: ObservableObject {
         let smTm = min(max(LQModConfig.int(dict, LQModConfig.smiteTargetKey, 0), 0), 2)
         aovSmiteMode = smEn == 1 ? smTm + 1 : 0
         aovZoom = min(max(LQModConfig.float(dict, LQModConfig.zoomKey, aovZoom), 1.0), 5.0)
-        aovWearSkin = min(max(LQModConfig.int(dict, "iFix.WearSkin.v1", aovWearSkin), 0), 99)
         saveAOV()
         toast("Đã đọc cấu hình từ game")
     }
@@ -937,10 +932,6 @@ public final class AppModel: ObservableObject {
     public func setAOVSmiteMode(_ v: Int) { aovSmiteMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
     public func setAOVZoom(_ v: Float) {
         aovZoom = min(max((v * 10).rounded() / 10, 1.0), 5.0)
-        saveAOV(); pushAOVConfig()
-    }
-    public func setAOVWearSkin(_ v: Int) {
-        aovWearSkin = min(max(v, 0), 99)
         saveAOV(); pushAOVConfig()
     }
 
