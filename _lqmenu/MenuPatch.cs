@@ -1,7 +1,10 @@
-// NVH LQ LIVE CONFIG v12 — patch IFix hook LFramework.get_frameSynchr
+// NVH LQ LIVE CONFIG v13+MON — patch IFix hook LFramework.get_frameSynchr
 //
 // Pham vi: CHI dieu khien cac toggle doc tu nvh_aov.txt
-//   esp / bp / aim / tmode / lines / draw / smite / smt / zoom
+//   esp / bp / aim / tmode / lines / draw / smite / smt / zoom / mon
+// mon=1 -> chot danh sach MONSTER / SOLDIER / DRAGON tu ActorManager
+//        va ghi ra nvh_monster.txt cho app hien thi (khong ve truc tiep —
+//        ve overlay 2D phai qua LQHud payload quen thuoc tung client).
 //
 // SKIN KHONG nam trong patch nay. Doi skin bang lenh chat /skin <0..99>
 // trong tran — payload goc goi thang ChangeActorMesh nen model doi NGAY,
@@ -34,8 +37,39 @@
 
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+
+namespace Kyrios
+{
+    public class ActorLinker
+    {
+        public uint mRealObjID; // 0x148 (dung field nay de lay ID)
+        public void DummyMethod() { }
+    }
+
+    public class PoolObjHandle<T> where T : class
+    {
+        public static T get_Current() { return null; }
+    }
+
+    public class ActorManager
+    {
+        // Ground truth dump.cs (TypeDefIndex 2607):
+        //   List<PoolObjHandle<ActorLinker>> MonsterActors  // 0x48
+        //   List<PoolObjHandle<ActorLinker>> SoldierActors  // 0x38
+        //   List<PoolObjHandle<ActorLinker>> DragonActors   // 0x40
+        public List<PoolObjHandle<ActorLinker>> MonsterActors;
+        public List<PoolObjHandle<ActorLinker>> SoldierActors;
+        public List<PoolObjHandle<ActorLinker>> DragonActors;
+    }
+
+    public class KyriosFramework
+    {
+        public static ActorManager get_actorManager() { return null; }
+    }
+}
 
 namespace NucleusDrive.Logic
 {
@@ -217,11 +251,39 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", f);
                     }
 
-                    // SKIN: KHONG xu ly o day. Doi skin bang lenh chat /skin <n>
+                    // ESP QUAI VIEN (thử nghiệm): mon=<0|1>
+                    p = t.IndexOf("mon=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.ESP.Monster.v1", v);
+                    }
+                }
+
+                // ---- ESP QUAI (số lượng từ ActorManager) ----
+                // Chỉ đếm (không deref handle) → an toàn khi loading Kyrios chưa init.
+                // Ghi 3 prefs số cho app đọc (không nối chuỗi để tránh Concat argc sai)
+                if (PlayerPrefs.GetInt("iFix.ESP.Monster.v1", 0) == 1)
+                {
+                    try
+                    {
+                        Kyrios.ActorManager am = Kyrios.KyriosFramework.get_actorManager();
+                        int cM = (am != null && am.MonsterActors != null) ? am.MonsterActors.Count : 0;
+                        int cS = (am != null && am.SoldierActors != null) ? am.SoldierActors.Count : 0;
+                        int cD = (am != null && am.DragonActors != null) ? am.DragonActors.Count : 0;
+                        PlayerPrefs.SetInt("iFix.ESP.Monster.M", cM);
+                        PlayerPrefs.SetInt("iFix.ESP.Monster.S", cS);
+                        PlayerPrefs.SetInt("iFix.ESP.Monster.D", cD);
+                    }
+                    catch (Exception) { }
+                }
+
+                // SKIN: KHONG xu ly o day. Doi skin bang lenh chat /skin <n>
                     // trong tran (payload goc tu goi ChangeActorMesh ngay -> thay lien).
                     // Neu patch cung ghi iFix.SelectedSkin.v1.* thi se de len lua
                     // chon cua chat -> bo hoan toan.
-                }
 
                 PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
                 PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);

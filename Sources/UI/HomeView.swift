@@ -343,6 +343,15 @@ struct LQModCard: View {
             LQSection("SKIN — ĐỔI TRONG TRẬN")
             Text("Đổi skin bằng lệnh chat trong trận (copy rồi dán vào khung chat). Muốn nút chiêu + hiệu ứng đi kèm thì chọn skin ở màn pick tướng.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
+
+            LQSection("ESP QUÁI (THỬ NGHIỆM)")
+            LQToggleRow(title: "ESP quái",
+                        isOn: Binding(get: { model.aovMonsterEsp },
+                                      set: { model.setAOVMonsterEsp($0) }))
+            Text("Hiện số lượng quái/lính/rồng mà ActorManager thấy — không phải chấm đỏ, chỉ khi đang trong trận.")
+                .font(.system(size: 10)).foregroundStyle(Theme.dim)
+            Text(model.aovMonsterInfo)
+                .font(Theme.monoFont).foregroundStyle(Theme.dim)
             if model.installedInfo[model.game] == true {
                 HStack(spacing: 6) {
                     LQSkinCmdRow(title: "/skin 6", cmd: "/skin 6",

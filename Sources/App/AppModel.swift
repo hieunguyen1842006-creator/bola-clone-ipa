@@ -69,6 +69,11 @@ public final class AppModel: ObservableObject {
         (UserDefaults.standard.object(forKey: "nvh.aov.zoom") as? Float) ?? 1.6
     /// Dấu vết payload đang chạy trong game (nvh_ver.txt, vd "P15D").
     @Published public var aovPayloadVer: String = "—"
+    /// ESP quái (thử nghiệm) — app set mon=1/0, patch đọc iFix.ESP.Monster.v1
+    @Published public var aovMonsterEsp: Bool =
+        UserDefaults.standard.integer(forKey: "nvh.aov.monster") == 1
+    /// Số lượng quái/lính/rồng patch thấy (Monsters/Soldiers/Dragons)
+    @Published public var aovMonsterInfo: String = "—"
     /// Điểm dừng cuối của khung đọc config trong game (S1…S5 / S2 / S9).
     @Published public var aovStep: String = "—"
     /// Nhịp tim patch ghi ra (B0/B1) — đứng im = hook không chạy.
@@ -729,6 +734,7 @@ public final class AppModel: ObservableObject {
         d.set(aovDrawMode, forKey: "nvh.aov.draw")
         d.set(aovSmiteMode, forKey: "nvh.aov.smite")
         d.set(aovZoom, forKey: "nvh.aov.zoom")
+        d.set(aovMonsterEsp ? 1 : 0, forKey: "nvh.aov.monster")
     }
 
     /// Bộ key iFix.* tương ứng UI đang hiển thị.
@@ -765,6 +771,7 @@ public final class AppModel: ObservableObject {
             + "smite=\(aovSmiteMode == 0 ? 0 : 1)\n"
             + "smt=\(max(aovSmiteMode - 1, 0))\n"
             + "zoom=\(zoom)\n"
+            + "mon=\(aovMonsterEsp ? 1 : 0)\n"
     }
 
     /// Thư mục game THẬT (patch khai ra qua `iFix.Path`) — app ghi config vào đây
@@ -844,6 +851,7 @@ public final class AppModel: ObservableObject {
         let smTm = min(max(LQModConfig.int(dict, LQModConfig.smiteTargetKey, 0), 0), 2)
         aovSmiteMode = smEn == 1 ? smTm + 1 : 0
         aovZoom = min(max(LQModConfig.float(dict, LQModConfig.zoomKey, aovZoom), 1.0), 5.0)
+        aovMonsterEsp = LQModConfig.int(dict, "iFix.ESP.Monster.v1", aovMonsterEsp ? 1 : 0) == 1
         saveAOV()
         toast("Đã đọc cấu hình từ game")
     }
@@ -874,6 +882,11 @@ public final class AppModel: ObservableObject {
             let loaded = (dict["iFix.HB.Loaded"] as? NSNumber)?.intValue ?? 0
             let calls = (dict["iFix.HB.Calls"] as? NSNumber)?.intValue ?? 0
             log("aov-hb: loaded=\(loaded) calls=\(calls)")
+            let m = LQModConfig.int(dict, "iFix.ESP.Monster.M", 0)
+            let s = LQModConfig.int(dict, "iFix.ESP.Monster.S", 0)
+            let drg = LQModConfig.int(dict, "iFix.ESP.Monster.D", 0)
+            aovMonsterInfo = "Quái=\(m) • Lính=\(s) • Rồng=\(drg)"
+            log("aov-monster: \(aovMonsterInfo)")
         }
     }
 
@@ -930,6 +943,10 @@ public final class AppModel: ObservableObject {
     public func setAOVSmiteMode(_ v: Int) { aovSmiteMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
     public func setAOVZoom(_ v: Float) {
         aovZoom = min(max((v * 10).rounded() / 10, 1.0), 5.0)
+        saveAOV(); pushAOVConfig()
+    }
+    public func setAOVMonsterEsp(_ on: Bool) {
+        aovMonsterEsp = on
         saveAOV(); pushAOVConfig()
     }
 
