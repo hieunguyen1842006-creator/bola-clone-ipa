@@ -90,6 +90,10 @@ TRUE_ASSEMBLY = {
 
 def fix_assembly(full: str) -> str:
     """Thay assembly bia (Project.Plugins_d) bang assembly that neu biet."""
+    full = full.replace(
+        "[PoolObjHandle`1[[NucleusDrive.Logic.LActorRoot, Project.Plugins_d, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], Project.Plugins_d, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]",
+        "[PoolObjHandle`1[[NucleusDrive.Logic.LActorRoot, Project.Plugins_d, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], CoreLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]",
+    )
     s = short_name(full)
     asm = TRUE_ASSEMBLY.get(s)
     if asm is None:

@@ -41,16 +41,15 @@ using System.Collections.Generic;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
+public struct PoolObjHandle<T> where T : class
+{
+}
+
 namespace NucleusDrive.Logic
 {
     public class LActorRoot
     {
         public void DummyMethod() { }
-    }
-
-    public class PoolObjHandle<T> where T : class
-    {
-        public static T get_Current() { return null; }
     }
 
     public class LGameActorMgr
@@ -74,9 +73,13 @@ namespace NucleusDrive.Logic
         public LGameActorMgr get_gameActorMgr() { return null; }
     }
 
+    public class LMainBattleLogic : LBattleLogic
+    {
+    }
+
     public class LFramework
     {
-        public static LBattleLogic get_mainBattleLogic() { return null; }
+        public LMainBattleLogic get_mainBattleLogic() { return null; }
 
         // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public LFrameSynchr _frameSynchr;
@@ -272,7 +275,7 @@ namespace NucleusDrive.Logic
                     try
                     {
                         NucleusDrive.Logic.LGameActorMgr gm = null;
-                        try { gm = NucleusDrive.Logic.LFramework.get_mainBattleLogic().get_gameActorMgr(); }
+                        try { gm = get_mainBattleLogic().get_gameActorMgr(); }
                         catch (Exception) { }
 
                         int cM = 0, cS = 0, cD = 0;
@@ -283,8 +286,11 @@ namespace NucleusDrive.Logic
                             try { cD = (gm.JungleMonsters != null) ? gm.JungleMonsters.Count : 0; } catch (Exception) { }
                             try
                             {
-                                List<PoolObjHandle<LActorRoot>> all = gm.GetAllMonsters();
-                                if (all != null) cM = all.Count;
+                                if (cM == 0)
+                                {
+                                    List<PoolObjHandle<LActorRoot>> all = gm.GetAllMonsters();
+                                    if (all != null) cM = all.Count;
+                                }
                             }
                             catch (Exception) { }
                         }
