@@ -41,11 +41,10 @@ using System.Collections.Generic;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
-namespace Kyrios
+namespace NucleusDrive.Logic
 {
-    public class ActorLinker
+    public class LActorRoot
     {
-        public uint mRealObjID; // 0x148 (dung field nay de lay ID)
         public void DummyMethod() { }
     }
 
@@ -54,29 +53,31 @@ namespace Kyrios
         public static T get_Current() { return null; }
     }
 
-    public class ActorManager
+    public class LGameActorMgr
     {
-        // Ground truth dump.cs (TypeDefIndex 2607):
-        //   List<PoolObjHandle<ActorLinker>> MonsterActors  // 0x48
-        //   List<PoolObjHandle<ActorLinker>> SoldierActors  // 0x38
-        //   List<PoolObjHandle<ActorLinker>> DragonActors   // 0x40
-        public List<PoolObjHandle<ActorLinker>> MonsterActors;
-        public List<PoolObjHandle<ActorLinker>> SoldierActors;
-        public List<PoolObjHandle<ActorLinker>> DragonActors;
+        // Ground truth (TypeDefIndex 11793):
+        //   List<PoolObjHandle<LActorRoot>> MonsterActors   // 0x70
+        //   List<PoolObjHandle<LActorRoot>> SoldierActors   // 0xA0
+        //   List<PoolObjHandle<LActorRoot>> JungleMonsters  // 0xA8
+        public List<PoolObjHandle<LActorRoot>> MonsterActors;
+        public List<PoolObjHandle<LActorRoot>> SoldierActors;
+        public List<PoolObjHandle<LActorRoot>> JungleMonsters;
+
+        public List<PoolObjHandle<LActorRoot>> GetAllMonsters() { return null; }
+        public List<PoolObjHandle<LActorRoot>> GetAllJungleMonsters() { return null; }
     }
 
-    public class KyriosFramework
-    {
-        public static ActorManager get_actorManager() { return null; }
-    }
-}
-
-namespace NucleusDrive.Logic
-{
     public class LFrameSynchr { }
+
+    public class LBattleLogic
+    {
+        public LGameActorMgr get_gameActorMgr() { return null; }
+    }
 
     public class LFramework
     {
+        public static LBattleLogic get_mainBattleLogic() { return null; }
+
         // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public LFrameSynchr _frameSynchr;
 
@@ -262,17 +263,31 @@ namespace NucleusDrive.Logic
                     }
                 }
 
-                // ---- ESP QUAI (số lượng từ ActorManager) ----
-                // Chỉ đếm (không deref handle) → an toàn khi loading Kyrios chưa init.
+                // ---- ESP QUAI (số lượng từ LGameActorMgr) ----
+                // Nguồn gameplay thật (NucleusDrive), không phải Kyrios.ActorManager
+                // (logic/visual). Chỉ đếm (không deref handle) → an toàn khi loading.
                 // Ghi 3 prefs số cho app đọc (không nối chuỗi để tránh Concat argc sai)
                 if (PlayerPrefs.GetInt("iFix.ESP.Monster.v1", 0) == 1)
                 {
                     try
                     {
-                        Kyrios.ActorManager am = Kyrios.KyriosFramework.get_actorManager();
-                        int cM = (am != null && am.MonsterActors != null) ? am.MonsterActors.Count : 0;
-                        int cS = (am != null && am.SoldierActors != null) ? am.SoldierActors.Count : 0;
-                        int cD = (am != null && am.DragonActors != null) ? am.DragonActors.Count : 0;
+                        NucleusDrive.Logic.LGameActorMgr gm = null;
+                        try { gm = NucleusDrive.Logic.LFramework.get_mainBattleLogic().get_gameActorMgr(); }
+                        catch (Exception) { }
+
+                        int cM = 0, cS = 0, cD = 0;
+                        if (gm != null)
+                        {
+                            try { cM = (gm.MonsterActors != null) ? gm.MonsterActors.Count : 0; } catch (Exception) { }
+                            try { cS = (gm.SoldierActors != null) ? gm.SoldierActors.Count : 0; } catch (Exception) { }
+                            try { cD = (gm.JungleMonsters != null) ? gm.JungleMonsters.Count : 0; } catch (Exception) { }
+                            try
+                            {
+                                List<PoolObjHandle<LActorRoot>> all = gm.GetAllMonsters();
+                                if (all != null) cM = all.Count;
+                            }
+                            catch (Exception) { }
+                        }
                         PlayerPrefs.SetInt("iFix.ESP.Monster.M", cM);
                         PlayerPrefs.SetInt("iFix.ESP.Monster.S", cS);
                         PlayerPrefs.SetInt("iFix.ESP.Monster.D", cD);

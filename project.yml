@@ -38,8 +38,8 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: NVH MOD
-        CFBundleShortVersionString: "1.1.5"
-        CFBundleVersion: "115"
+        CFBundleShortVersionString: "1.1.6"
+        CFBundleVersion: "116"
     settings:
       base:
         PRODUCT_NAME: NVHMOD
