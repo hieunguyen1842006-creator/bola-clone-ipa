@@ -250,14 +250,7 @@ def inject_monster_esp(dst) -> None:
     ins14[2 * 38 + 1] += 13
     ins14[2 * 51:2 * 52] = ins14_patch
 
-    # 2. Trong vm15: bo chan get_bVisible o dau ham (vi vm3 da check get_bVisible
-    #    cho hero o lenh 395..401 roi; bo o vm15 giup quai rung hien 3D box + line
-    #    ca khi trong fog lan khi dung canh).
-    ins15 = dst["blocks"][15]["instrs"]
-    assert ins15[2 * 18] == 0xA4 and ins15[2 * 19] == 0x7A and ins15[2 * 20] == 0x7F
-    ins15[2 * 18:2 * 21] = [0x67, 0, 0x67, 0, 0x67, 0]
-
-    # 3. Trong vm3: luon tao Canvas "iFix.HiddenHeroLines.v4" (loc 3) khi dang
+    # 2. Trong vm3: luon tao Canvas "iFix.HiddenHeroLines.v4" (loc 3) khi dang
     #    trong tran (ke ca khi tat ESP tuong nhung bat ESP quai).
     assert ins[2 * 139] == 0x48 and ins[2 * 140] == 0x86
     ins[2 * 139:2 * 141] = [0x67, 0, 0x67, 0]
@@ -292,7 +285,7 @@ def inject_monster_esp(dst) -> None:
         0x48, 44,
         0x7A, 65722,
         0x7A, call_set_int,
-        # 14..25: loc 37 = loc8.MonsterActors; if (loc37 == null) goto END (141)
+        # 14..25: loc 37 = loc8.MonsterActors; if (loc37 == null) goto END (131)
         0x48, 8,
         0xA7, 41,
         0x24, 37,
@@ -304,7 +297,7 @@ def inject_monster_esp(dst) -> None:
         0x24, 45,
         0x48, 45,
         0x7F, 2,
-        0x5D, 116,
+        0x5D, 106,
         # 26..29: PlayerPrefs.SetInt("iFix.ESP.Monster.M", loc37.Count)
         0x27, s_m,
         0x48, 37,
@@ -315,7 +308,7 @@ def inject_monster_esp(dst) -> None:
         0x24, 48,
         0x8F, 0,
         0x24, 4,
-        0x5D, 97,
+        0x5D, 87,
         # 35..53: LOOP_BODY — lay ActorLinker (loc 38)
         0x48, 37,
         0x48, 4,
@@ -335,7 +328,7 @@ def inject_monster_esp(dst) -> None:
         0x24, 45,
         0x48, 45,
         0x7F, 2,
-        0x5D, 74,
+        0x5D, 64,
         # 54..80: lay LActorRoot (loc 21)
         0x0D, 25,
         0x7A, 65597,
@@ -360,7 +353,7 @@ def inject_monster_esp(dst) -> None:
         0x24, 45,
         0x48, 45,
         0x7F, 2,
-        0x5D, 50,
+        0x5D, 40,
         0x0D, 20,
         0x7A, 65601,
         0x24, 21,
@@ -383,13 +376,13 @@ def inject_monster_esp(dst) -> None:
         0x8F, 0,
         0x24, 45,
         0x48, 45,
-        0x86, 29,
-        # 99..122: neu loc5 (ESP quai) && loc3 != null -> goi vm14 (HP) + vm15 (3D box + line)
+        0x86, 19,
+        # 99..112: neu loc5 (ESP quai) && loc3 != null -> goi vm14 (HP) (KHONG goi vm15 box/line)
         0x48, 5,
-        0x86, 23,
+        0x86, 13,
         0x48, 3,
         0x7A, 65573,
-        0x86, 20,
+        0x86, 10,
         0x48, 3,
         0x7A, 65576,
         0x48, 11,
@@ -399,43 +392,33 @@ def inject_monster_esp(dst) -> None:
         0x48, 38,
         0x48, 21,
         0x2D, 327694,
-        0x48, 3,
-        0x7A, 65576,
-        0x48, 11,
-        0x48, 12,
-        0x48, 48,
-        0x8F, 6,
-        0x50, 0,
-        0x48, 38,
-        0x48, 21,
-        0x2D, 393231,
-        # 123..126: INC_ALIVE — loc48++
+        # 113..116: INC_ALIVE — loc48++
         0x48, 48,
         0x8F, 1,
         0x50, 0,
         0x24, 48,
-        # 127..130: LOOP_NEXT — loc4++
+        # 117..120: LOOP_NEXT — loc4++
         0x48, 4,
         0x8F, 1,
         0x50, 0,
         0x24, 4,
-        # 131..137: LOOP_COND — loc4 < loc37.Count
+        # 121..127: LOOP_COND — loc4 < loc37.Count
         0x48, 4,
         0x48, 37,
         0x7A, 65722,
         0x6D, 0,
         0x24, 45,
         0x48, 45,
-        0x7F, -102,
-        # 138..140: PlayerPrefs.SetInt("iFix.ESP.Monster.D", loc48)
+        0x7F, -92,
+        # 128..130: PlayerPrefs.SetInt("iFix.ESP.Monster.D", loc48)
         0x27, s_d,
         0x48, 48,
         0x7A, call_set_int,
-        # 141: END
+        # 131: END
         0xAD, 0,
     ]
-    n_ext = (len(ext) // 2) - 1  # so lenh chen truoc Ret (141 lenh)
-    assert n_ext == 141, f"n_ext={n_ext}"
+    n_ext = (len(ext) // 2) - 1  # so lenh chen truoc Ret (131 lenh)
+    assert n_ext == 131, f"n_ext={n_ext}"
     # 2 lenh Br nhay ve Ret cuoi khi chua vao tran (115, 138) -> cong them n_ext
     # Lenh 956 (khi SoldierActors == null) giu nguyen offset 76 de nhay vao dau ext (1032)!
     assert ins[2 * 115] == 0x5D and ins[2 * 115 + 1] == 917
@@ -445,7 +428,7 @@ def inject_monster_esp(dst) -> None:
     ins[2 * 138 + 1] += n_ext
     # thay lenh Ret cuoi (1032) bang ext
     ins[-2:] = ext
-    print(f"   + inject_monster_esp vao vm3/vm14/vm15: +{n_ext} lenh (tong {len(ins)//2} lenh)")
+    print(f"   + inject_monster_esp vao vm3/vm14: +{n_ext} lenh (tong {len(ins)//2} lenh)")
 
 
 def merge(dst_path: str, menu_path: str, out_path: str) -> None:
@@ -574,9 +557,9 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
                 assert (o & 0xFFFF) < len(back["blocks"]), "vm idx sai"
     print("   verify: moi operand cua block moi trong pham vi OK")
 
-    # block goc (tru vm3, vm14, vm15 da chen monster esp) phai KHONG doi tung i32
+    # block goc (tru vm3, vm14 da chen monster esp) phai KHONG doi tung i32
     for i in range(before[4]):
-        if i in (3, 14, 15):
+        if i in (3, 14):
             continue
         assert back["blocks"][i]["instrs"] == dst["blocks"][i]["instrs"], \
             f"block goc vm{i} bi doi"

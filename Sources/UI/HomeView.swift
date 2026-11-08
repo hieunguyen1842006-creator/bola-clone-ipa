@@ -348,7 +348,7 @@ struct LQModCard: View {
             LQToggleRow(title: "ESP quái",
                         isOn: Binding(get: { model.aovMonsterEsp },
                                       set: { model.setAOVMonsterEsp($0) }))
-            Text("Hiện vị trí + máu quái rừng trên bản đồ nhỏ & màn hình trận, đồng thời báo số lượng quái/lính/rồng.")
+            Text("Hiện chấm đỏ quái/lính trên bản đồ nhỏ & số máu quái trên màn hình, đồng thời báo số lượng quái/lính/rồng.")
                 .font(.system(size: 10)).foregroundStyle(Theme.dim)
             Text(model.aovMonsterInfo)
                 .font(Theme.monoFont).foregroundStyle(Theme.dim)
