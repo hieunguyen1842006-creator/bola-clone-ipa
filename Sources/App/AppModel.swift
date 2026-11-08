@@ -861,7 +861,8 @@ public final class AppModel: ObservableObject {
         guard game.isLienQuan, access.isAvailable(for: game) else { return }
 
         // Kênh FILE — patch ghi thẳng vào Documents, không qua cfprefsd
-        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt", "nvh_ver.txt"] {
+        var gotFileMonster = false
+        for name in ["nvh_step.txt", "nvh_where.txt", "nvh_hb.txt", "nvh_ver.txt", "nvh_mon.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil,
                let s = String(data: d, encoding: .utf8) {
                 let v = s.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -874,6 +875,10 @@ public final class AppModel: ObservableObject {
                     }
                     aovBeat = v
                 }
+                if name == "nvh_mon.txt" && !v.isEmpty {
+                    aovMonsterInfo = v
+                    gotFileMonster = true
+                }
             }
         }
 
@@ -885,7 +890,9 @@ public final class AppModel: ObservableObject {
             let m = LQModConfig.int(dict, "iFix.ESP.Monster.M", 0)
             let s = LQModConfig.int(dict, "iFix.ESP.Monster.S", 0)
             let drg = LQModConfig.int(dict, "iFix.ESP.Monster.D", 0)
-            aovMonsterInfo = "Quái=\(m) • Lính=\(s) • Rồng=\(drg)"
+            if !gotFileMonster || (m > 0 || s > 0 || drg > 0) {
+                aovMonsterInfo = "Quái=\(m) • Lính=\(s) • Rồng=\(drg)"
+            }
             log("aov-monster: \(aovMonsterInfo)")
         }
     }
@@ -903,7 +910,7 @@ public final class AppModel: ObservableObject {
         let mine = files.filter { $0.contains("nvh_") || $0.contains("iFix") }
         log("diag: Documents \(files.count) mục • liên quan: \(mine)")
         for name in [LQModConfig.logFileName, LQModConfig.liveFileName,
-                     "nvh_step.txt", "nvh_where.txt", "nvh_hb.txt"] {
+                     "nvh_step.txt", "nvh_where.txt", "nvh_hb.txt", "nvh_ver.txt", "nvh_mon.txt"] {
             if let d = (try? access.read(name, in: game)) ?? nil {
                 let s = String(data: d, encoding: .utf8) ?? "<binary>"
                 log("diag: \(name) \(d.count)B → \(s.replacingOccurrences(of: "\n", with: " ⏎ ").prefix(160))")
@@ -916,7 +923,7 @@ public final class AppModel: ObservableObject {
             log("diag: prefs iFix.* = \(keys.count) key")
             if let p = dict["iFix.Path"] as? String { log("diag: iFix.Path = \(p)") }
             for k in keys where k.hasPrefix("iFix.Detect.") || k.hasPrefix("iFix.HB.")
-                || k.hasPrefix("iFix.Cfg.") {
+                || k.hasPrefix("iFix.Cfg.") || k.hasPrefix("iFix.ESP.") {
                 log("diag: \(k) = \(dict[k] ?? "-")")
             }
             if let e = dict[LQModConfig.espKey] { log("diag: ESP=\(e)") }

@@ -266,11 +266,12 @@ namespace NucleusDrive.Logic
                     }
                 }
 
-                // ---- ESP QUAI (số lượng từ LGameActorMgr) ----
-                // Nguồn gameplay thật (NucleusDrive), không phải Kyrios.ActorManager
-                // (logic/visual). Chỉ đếm (không deref handle) → an toàn khi loading.
-                // Ghi 3 prefs số cho app đọc (không nối chuỗi để tránh Concat argc sai)
-                if (PlayerPrefs.GetInt("iFix.ESP.Monster.v1", 0) == 1)
+                // ---- ESP QUAI (số lượng từ vm3 CPlayerLocationStat::UpdateLogic + LGameActorMgr) ----
+                // Hook CPlayerLocationStat::UpdateLogic (vm3) trên main thread đếm trực tiếp
+                // ActorManager.MonsterActors / SoldierActors và số quái đang sống, rồi ghi vào
+                // PlayerPrefs iFix.ESP.Monster.M / S / D đồng thời vẽ ESP quái (minimap + 3D box + tia + HP).
+                // Tại đây ta đọc lại 3 prefs đó và xuất thẳng ra file <Documents>/nvh_mon.txt
+                // để app đọc tức thì (không bị kẹt cache cfprefsd của iOS).
                 {
                     try
                     {
@@ -294,9 +295,65 @@ namespace NucleusDrive.Logic
                             }
                             catch (Exception) { }
                         }
-                        PlayerPrefs.SetInt("iFix.ESP.Monster.M", cM);
-                        PlayerPrefs.SetInt("iFix.ESP.Monster.S", cS);
-                        PlayerPrefs.SetInt("iFix.ESP.Monster.D", cD);
+                        if (cM > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.M", cM);
+                        if (cS > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.S", cS);
+                        if (cD > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.D", cD);
+
+                        int mVal = PlayerPrefs.GetInt("iFix.ESP.Monster.M", 0);
+                        int sVal = PlayerPrefs.GetInt("iFix.ESP.Monster.S", 0);
+                        int dVal = PlayerPrefs.GetInt("iFix.ESP.Monster.D", 0);
+                        if (mVal < 0) mVal = 0;
+                        if (mVal > 999) mVal = 999;
+                        if (sVal < 0) sVal = 0;
+                        if (sVal > 999) sVal = 999;
+                        if (dVal < 0) dVal = 0;
+                        if (dVal > 999) dVal = 999;
+
+                        string digits = "0123456789";
+                        string sm = digits.Substring(mVal % 10, 1);
+                        if (mVal >= 10)
+                        {
+                            string d1 = digits.Substring((mVal / 10) % 10, 1);
+                            sm = d1 + sm;
+                        }
+                        if (mVal >= 100)
+                        {
+                            string d2 = digits.Substring((mVal / 100) % 10, 1);
+                            sm = d2 + sm;
+                        }
+
+                        string ss = digits.Substring(sVal % 10, 1);
+                        if (sVal >= 10)
+                        {
+                            string d1 = digits.Substring((sVal / 10) % 10, 1);
+                            ss = d1 + ss;
+                        }
+                        if (sVal >= 100)
+                        {
+                            string d2 = digits.Substring((sVal / 100) % 10, 1);
+                            ss = d2 + ss;
+                        }
+
+                        string sd = digits.Substring(dVal % 10, 1);
+                        if (dVal >= 10)
+                        {
+                            string d1 = digits.Substring((dVal / 10) % 10, 1);
+                            sd = d1 + sd;
+                        }
+                        if (dVal >= 100)
+                        {
+                            string d2 = digits.Substring((dVal / 100) % 10, 1);
+                            sd = d2 + sd;
+                        }
+
+                        string monLine = "Quái=";
+                        monLine = monLine + sm;
+                        monLine = monLine + " • Lính=";
+                        monLine = monLine + ss;
+                        monLine = monLine + " • Rồng=";
+                        monLine = monLine + sd;
+                        System.IO.File.WriteAllText(good + "/nvh_mon.txt", monLine);
+                        System.IO.File.WriteAllText(good + "/nvh_ver.txt", "v17-mon-esp");
                     }
                     catch (Exception) { }
                 }
