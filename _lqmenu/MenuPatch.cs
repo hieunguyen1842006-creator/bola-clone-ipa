@@ -191,6 +191,33 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
                     }
 
+                    p = t.IndexOf("bppct=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoBP.Pct.v1", v);
+                    }
+
+                    p = t.IndexOf("ice=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoIce.Enabled.v1", v);
+                    }
+
+                    p = t.IndexOf("icepct=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 7, e - p - 7) : t.Substring(p + 7);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoIce.Pct.v1", v);
+                    }
+
                     p = t.IndexOf("aim=");
                     if (p >= 0)
                     {
@@ -243,6 +270,15 @@ namespace NucleusDrive.Logic
                         s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
                         if (int.TryParse(s.Trim(), out v))
                             PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
+                    }
+
+                    p = t.IndexOf("smthp=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Hp.v1", v);
                     }
 
                     p = t.IndexOf("zoom=");
@@ -353,7 +389,7 @@ namespace NucleusDrive.Logic
                         monLine = monLine + " • Rồng=";
                         monLine = monLine + sd;
                         System.IO.File.WriteAllText(good + "/nvh_mon.txt", monLine);
-                        System.IO.File.WriteAllText(good + "/nvh_ver.txt", "v17-mon-esp");
+                        System.IO.File.WriteAllText(good + "/nvh_ver.txt", "v18-smite-bp-ice");
                     }
                     catch (Exception) { }
                 }

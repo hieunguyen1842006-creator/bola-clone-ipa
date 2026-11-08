@@ -255,10 +255,99 @@ def inject_monster_esp(dst) -> None:
     assert ins[2 * 139] == 0x48 and ins[2 * 140] == 0x86
     ins[2 * 139:2 * 141] = [0x67, 0, 0x67, 0]
 
-    s_mon = dst["strings"].index("iFix.ESP.Monster.v1")
-    s_m = dst["strings"].index("iFix.ESP.Monster.M")
-    s_s = dst["strings"].index("iFix.ESP.Monster.S")
-    s_d = dst["strings"].index("iFix.ESP.Monster.D")
+    def _str_idx(s: str) -> int:
+        if s in dst["strings"]:
+            return dst["strings"].index(s)
+        dst["strings"].append(s)
+        return len(dst["strings"]) - 1
+
+    s_mon = _str_idx("iFix.ESP.Monster.v1")
+    s_m = _str_idx("iFix.ESP.Monster.M")
+    s_s = _str_idx("iFix.ESP.Monster.S")
+    s_d = _str_idx("iFix.ESP.Monster.D")
+    s_bp_en = _str_idx("iFix.AutoBP.Enabled.v1")
+    s_bp_pct = _str_idx("iFix.AutoBP.Pct.v1")
+    s_smt_en = _str_idx("iFix.AutoSmite.Enabled.v1")
+    s_smt_hp = _str_idx("iFix.AutoSmite.Hp.v1")
+    s_ice_en = _str_idx("iFix.AutoIce.Enabled.v1")
+    s_ice_pct = _str_idx("iFix.AutoIce.Pct.v1")
+
+    # 3. Patch AutoBP trong vm3 (pc 456..479: 24 lenh): dung nguong % mau tu iFix.AutoBP.Pct.v1
+    bp_patch = [
+        0x27, s_bp_en,
+        0x8F, 0,
+        0x7A, 131117,
+        0x86, 29,
+        0x48, 16,
+        0x86, 27,
+        0x48, 18,
+        0x7F, 25,
+        0x48, 21,
+        0xA7, 38,
+        0x86, 22,
+        0x48, 21,
+        0xA7, 38,
+        0x7A, 65716,
+        0x24, 46,
+        0x0D, 46,
+        0x7A, 65717,
+        0x27, s_bp_pct,
+        0x8F, 16,
+        0x7A, 131117,
+        0x3A, 0,
+        0x8D, 1017370378,
+        0xB3, 0,
+        0x1E, 9,
+    ]
+    assert len(bp_patch) == 48, f"bp_patch len={len(bp_patch)}"
+    ins[2 * 456 : 2 * 480] = bp_patch
+
+    # 4. Patch AutoSmite Target Mode trong vm3 (pc 757..778: 22 lenh):
+    #    Mode 1: chi quai nho va bua (loc 39 == 1 || loc 39 == 2, loai boss loc 39 == 3)
+    #    Mode 2: chi rong va Caesar (loc 39 == 3)
+    #    Mode 3: tat ca (loc 39 >= 1)
+    smt_tgt_patch = [
+        0x48, 33,
+        0x8F, 1,
+        0x2B, 5,
+        0x48, 39,
+        0x8F, 3,
+        0x6E, 155,
+        0x5D, 16,
+        0x48, 33,
+        0x8F, 2,
+        0x2B, 5,
+        0x48, 39,
+        0x8F, 3,
+        0x2B, 148,
+        0x5D, 9,
+        0x48, 39,
+        0x8F, 1,
+        0x2F, 144,
+        0x67, 0,
+        0x67, 0,
+        0x67, 0,
+        0x67, 0,
+        0x67, 0,
+    ]
+    assert len(smt_tgt_patch) == 44, f"smt_tgt_patch len={len(smt_tgt_patch)}"
+    ins[2 * 757 : 2 * 779] = smt_tgt_patch
+
+    # 5. Patch AutoSmite HP Check trong vm3 (pc 850..886: 37 lenh):
+    #    so sanh mau quai (loc 41) truc tiep voi iFix.AutoSmite.Hp.v1
+    smt_hp_patch = [
+        0x27, s_smt_hp,
+        0x8F, 1500,
+        0x7A, 131117,
+        0x24, 42,
+        0x48, 41,
+        0x48, 42,
+        0x0B, 61,
+    ]
+    while len(smt_hp_patch) < 37 * 2:
+        smt_hp_patch.extend([0x67, 0])
+    assert len(smt_hp_patch) == 74, f"smt_hp_patch len={len(smt_hp_patch)}"
+    ins[2 * 850 : 2 * 887] = smt_hp_patch
 
     m_set_int = -1
     for idx, m in enumerate(dst["methods"]):
@@ -414,11 +503,81 @@ def inject_monster_esp(dst) -> None:
         0x27, s_d,
         0x48, 48,
         0x7A, call_set_int,
-        # 131: END
-        0xAD, 0,
     ]
-    n_ext = (len(ext) // 2) - 1  # so lenh chen truoc Ret (131 lenh)
-    assert n_ext == 131, f"n_ext={n_ext}"
+
+    # AutoIce logic (59 lenh): kiem tra mau ban than (loc 13/21) & bat Bang Suong slot 9
+    ice_ops = [
+        (0x27, s_ice_en),  # 0
+        (0x8F, 0),         # 1
+        (0x7A, 131117),    # 2: GetInt
+        (0x86, 'END'),     # 3: Brfalse
+        (0x48, 13),        # 4
+        (0x86, 'END'),     # 5: Brfalse
+        (0x48, 13),        # 6
+        (0xA7, 19),        # 7: SkillControl
+        (0x86, 'END'),     # 8: Brfalse
+        (0x48, 13),        # 9
+        (0xA7, 19),        # 10
+        (0x8F, 9),         # 11: Slot 9 (trang bi kich hoat: Bang Suong)
+        (0x7A, 131141),    # 12: GetSkillSlot(9)
+        (0x24, 45),        # 13: Stloc 45 (slot9)
+        (0x48, 45),        # 14
+        (0x86, 'END'),     # 15: Brfalse
+        (0x48, 45),        # 16
+        (0x7A, 65606),     # 17: get_IsCDReady
+        (0x86, 'END'),     # 18: Brfalse
+        (0x48, 7),         # 19: loc 7 (LGameActorMgr)
+        (0x48, 13),        # 20: loc 13 (ActorLinker)
+        (0x7A, 65598),     # 21: get_ObjID
+        (0x8F, 0),         # 22
+        (0x7A, 196671),    # 23: GetActor
+        (0x24, 20),        # 24: Stloc 20
+        (0x0D, 20),        # 25: Ldloca 20
+        (0x7A, 65600),     # 26: get_HasValue
+        (0x86, 'END'),     # 27: Brfalse
+        (0x0D, 20),        # 28: Ldloca 20
+        (0x7A, 65601),     # 29: get_handle
+        (0x24, 21),        # 30: Stloc 21 (hostRoot)
+        (0x48, 21),        # 31
+        (0x86, 'END'),     # 32: Brfalse
+        (0x48, 21),        # 33
+        (0xA7, 18),        # 34: ActorControl
+        (0x86, 'END'),     # 35: Brfalse
+        (0x48, 21),        # 36
+        (0xA7, 18),        # 37: ActorControl
+        (0x7A, 65602),     # 38: get_IsDeadState
+        (0x7F, 'END'),     # 39: Brtrue
+        (0x48, 21),        # 40
+        (0xA7, 38),        # 41: ValueComponent
+        (0x86, 'END'),     # 42: Brfalse
+        (0x48, 21),        # 43
+        (0xA7, 38),        # 44
+        (0x7A, 65716),     # 45: GetHpRate
+        (0x24, 46),        # 46: Stloc 46
+        (0x0D, 46),        # 47: Ldloca 46
+        (0x7A, 65717),     # 48: get_single
+        (0x27, s_ice_pct), # 49
+        (0x8F, 15),        # 50: mac dinh 15%
+        (0x7A, 131117),    # 51: GetInt
+        (0x3A, 0),         # 52: Conv_R4
+        (0x8D, 1017370378),# 53: Ldc_R4 0.01f
+        (0xB3, 0),         # 54: Mul
+        (0x1E, 'END'),     # 55: Bgt_Un (hpRate > thresh -> END)
+        (0x48, 45),        # 56: Ldloc 45 (slot9)
+        (0x7A, 65721),     # 57: RequestUseSkill
+        (0x80, 0),         # 58: Pop
+    ]
+    end_idx = len(ice_ops)
+    ice_part = []
+    for i, (op, val) in enumerate(ice_ops):
+        ice_part.append(op)
+        ice_part.append(end_idx - i if val == 'END' else val)
+
+    ext.extend(ice_part)
+    ext.extend([0xAD, 0])  # Ret o cuoi
+
+    n_ext = (len(ext) // 2) - 1  # so lenh chen truoc Ret (190 lenh)
+    assert n_ext == 190, f"n_ext={n_ext}"
     # 2 lenh Br nhay ve Ret cuoi khi chua vao tran (115, 138) -> cong them n_ext
     # Lenh 956 (khi SoldierActors == null) giu nguyen offset 76 de nhay vao dau ext (1032)!
     assert ins[2 * 115] == 0x5D and ins[2 * 115 + 1] == 917
@@ -428,7 +587,7 @@ def inject_monster_esp(dst) -> None:
     ins[2 * 138 + 1] += n_ext
     # thay lenh Ret cuoi (1032) bang ext
     ins[-2:] = ext
-    print(f"   + inject_monster_esp vao vm3/vm14: +{n_ext} lenh (tong {len(ins)//2} lenh)")
+    print(f"   + inject_monster_esp + smite/bp/ice vao vm3/vm14: +{n_ext} lenh (tong {len(ins)//2} lenh)")
 
 
 def merge(dst_path: str, menu_path: str, out_path: str) -> None:

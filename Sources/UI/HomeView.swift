@@ -309,7 +309,7 @@ struct LQModCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack {
-                Text("FULL MOD (AOV) · LIVE v8").font(Theme.monoFont).foregroundStyle(Theme.accent)
+                Text("FULL MOD (AOV) · LIVE v18").font(Theme.monoFont).foregroundStyle(Theme.accent)
                 Spacer()
                 Button { model.diagnoseAOV() } label: {
                     Text("?").font(Theme.monoFont).foregroundStyle(Theme.dim)
@@ -318,8 +318,6 @@ struct LQModCard: View {
 
             LQToggleRow(title: "ESP xuyên tường",
                         isOn: Binding(get: { model.aovEsp }, set: { model.setAOVEsp($0) }))
-            LQToggleRow(title: "Tự động BP",
-                        isOn: Binding(get: { model.aovBocpha }, set: { model.setAOVBocpha($0) }))
             LQToggleRow(title: "Aim assist",
                         isOn: Binding(get: { model.aovAim }, set: { model.setAOVAim($0) }))
 
@@ -331,21 +329,55 @@ struct LQModCard: View {
                          index: model.aovDrawMode) { model.setAOVDrawMode($0) }
             }
 
-            LQSection("TRUNG TRÍ")
-            LQSegRow(title: "Đối tượng", options: ["TẮT", "BOSS", "BUFF", "ALL"],
+            LQSection("TRỪNG TRỊ (AUTO SMITE)")
+            LQSegRow(title: "Kiểu mục tiêu", options: ["TẮT", "BÙA/NHỎ", "RỒNG/CAESAR", "TẤT CẢ"],
                      index: model.aovSmiteMode) { model.setAOVSmiteMode($0) }
+            if model.aovSmiteMode > 0 {
+                LQSliderRow(title: "Máu quái trừng trị",
+                            value: "\(model.aovSmiteHp) HP",
+                            sliderValue: Binding(
+                                get: { Double(model.aovSmiteHp) },
+                                set: { model.setAOVSmiteHp(Int($0)) }
+                            ),
+                            range: 800...3000,
+                            step: 50)
+            }
+
+            LQSection("BỘC PHÁ (AUTO EXECUTE)")
+            LQToggleRow(title: "Tự động Bộc phá",
+                        isOn: Binding(get: { model.aovBocpha }, set: { model.setAOVBocpha($0) }))
+            if model.aovBocpha {
+                LQSliderRow(title: "Máu địch bộc phá",
+                            value: "\(model.aovBocphaPct)%",
+                            sliderValue: Binding(
+                                get: { Double(model.aovBocphaPct) },
+                                set: { model.setAOVBocphaPct(Int($0)) }
+                            ),
+                            range: 10...35,
+                            step: 1)
+            }
+
+            LQSection("BĂNG SƯƠNG (AUTO ARCTIC ORB)")
+            LQToggleRow(title: "Tự động Băng sương",
+                        isOn: Binding(get: { model.aovIce }, set: { model.setAOVIce($0) }))
+            if model.aovIce {
+                LQSliderRow(title: "Máu mình kích hoạt",
+                            value: "\(model.aovIcePct)%",
+                            sliderValue: Binding(
+                                get: { Double(model.aovIcePct) },
+                                set: { model.setAOVIcePct(Int($0)) }
+                            ),
+                            range: 5...35,
+                            step: 1)
+            }
 
             LQSection("CAMERA")
             LQStepperRow(title: "Zoom", value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
                          inc: { model.setAOVZoom(model.aovZoom + 0.1) })
 
-            LQSection("SKIN — ĐỔI TRONG TRẬN")
-            Text("Đổi skin bằng lệnh chat trong trận (copy rồi dán vào khung chat). Muốn nút chiêu + hiệu ứng đi kèm thì chọn skin ở màn pick tướng.")
-                .font(.system(size: 10)).foregroundStyle(Theme.dim)
-
             LQSection("ESP QUÁI (THỬ NGHIỆM)")
-            LQToggleRow(title: "ESP quái",
+            LQToggleRow(title: "ESP quái & lính",
                         isOn: Binding(get: { model.aovMonsterEsp },
                                       set: { model.setAOVMonsterEsp($0) }))
             Text("Hiện chấm đỏ quái/lính trên bản đồ nhỏ & số máu quái trên màn hình, đồng thời báo số lượng quái/lính/rồng.")
@@ -485,5 +517,26 @@ private struct LQStepperRow: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+    }
+}
+
+private struct LQSliderRow: View {
+    let title: String
+    let value: String
+    @Binding var sliderValue: Double
+    let range: ClosedRange<Double>
+    let step: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text(title).font(.system(size: 11)).foregroundStyle(Theme.dim)
+                Spacer()
+                Text(value).font(Theme.monoFont).foregroundStyle(Theme.accent)
+            }
+            Slider(value: $sliderValue, in: range, step: step)
+                .tint(Theme.accent)
+        }
+        .padding(.vertical, 2)
     }
 }

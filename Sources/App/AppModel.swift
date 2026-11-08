@@ -48,8 +48,16 @@ public final class AppModel: ObservableObject {
     /// ESP xuyên tường.
     @Published public var aovEsp: Bool =
         (UserDefaults.standard.object(forKey: "nvh.aov.esp") as? Bool) ?? true
-    /// Tự động banned/pick.
+    /// Tự động Bộc phá (Execute).
     @Published public var aovBocpha: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.bocpha")
+    /// Ngưỡng % máu địch để Bộc phá (10..35%, mặc định 16%).
+    @Published public var aovBocphaPct: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.bppct") as? Int) ?? 16
+    /// Tự động Băng sương (Arctic Orb / chiêu trang bị slot 9).
+    @Published public var aovIce: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.ice")
+    /// Ngưỡng % máu mình để kích hoạt Băng sương (5..35%, mặc định 15%).
+    @Published public var aovIcePct: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.icepct") as? Int) ?? 15
     /// Aim assist.
     @Published public var aovAim: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.aim")
     /// 0=hp 1=percent 2=near 3=ray.
@@ -61,9 +69,12 @@ public final class AppModel: ObservableObject {
     /// 0=off 1=always 2=skill.
     @Published public var aovDrawMode: Int =
         (UserDefaults.standard.object(forKey: "nvh.aov.draw") as? Int) ?? 0
-    /// 0=off 1=boss 2=buff 3=all.
+    /// 0=off 1=bùa/nhỏ 2=rồng/caesar 3=tất cả.
     @Published public var aovSmiteMode: Int =
         (UserDefaults.standard.object(forKey: "nvh.aov.smite") as? Int) ?? 0
+    /// Ngưỡng máu quái để Trừng trị (800..3000 HP, mặc định 1500 HP).
+    @Published public var aovSmiteHp: Int =
+        (UserDefaults.standard.object(forKey: "nvh.aov.smthp") as? Int) ?? 1500
     /// Zoom camera 1.0..5.0.
     @Published public var aovZoom: Float =
         (UserDefaults.standard.object(forKey: "nvh.aov.zoom") as? Float) ?? 1.6
@@ -728,11 +739,15 @@ public final class AppModel: ObservableObject {
         let d = UserDefaults.standard
         d.set(aovEsp, forKey: "nvh.aov.esp")
         d.set(aovBocpha, forKey: "nvh.aov.bocpha")
+        d.set(aovBocphaPct, forKey: "nvh.aov.bppct")
+        d.set(aovIce, forKey: "nvh.aov.ice")
+        d.set(aovIcePct, forKey: "nvh.aov.icepct")
         d.set(aovAim, forKey: "nvh.aov.aim")
         d.set(aovTargetMode, forKey: "nvh.aov.tmode")
         d.set(aovLines, forKey: "nvh.aov.lines")
         d.set(aovDrawMode, forKey: "nvh.aov.draw")
         d.set(aovSmiteMode, forKey: "nvh.aov.smite")
+        d.set(aovSmiteHp, forKey: "nvh.aov.smthp")
         d.set(aovZoom, forKey: "nvh.aov.zoom")
         d.set(aovMonsterEsp ? 1 : 0, forKey: "nvh.aov.monster")
     }
@@ -743,13 +758,18 @@ public final class AppModel: ObservableObject {
         [
             LQModConfig.espKey: aovEsp ? 1 : 0,
             LQModConfig.bocphaKey: aovBocpha ? 1 : 0,
+            "iFix.AutoBP.Pct.v1": aovBocphaPct,
+            "iFix.AutoIce.Enabled.v1": aovIce ? 1 : 0,
+            "iFix.AutoIce.Pct.v1": aovIcePct,
             LQModConfig.aimKey: aovAim ? 1 : 0,
             LQModConfig.aimTargetKey: aovTargetMode,
             LQModConfig.aimLinesKey: aovLines,
             LQModConfig.aimDrawKey: aovDrawMode,
             LQModConfig.smiteKey: aovSmiteMode == 0 ? 0 : 1,
-            LQModConfig.smiteTargetKey: max(aovSmiteMode - 1, 0),
+            LQModConfig.smiteTargetKey: aovSmiteMode,
+            "iFix.AutoSmite.Hp.v1": aovSmiteHp,
             LQModConfig.zoomKey: Double(aovZoom),
+            "iFix.ESP.Monster.v1": aovMonsterEsp ? 1 : 0,
         ]
     }
 
@@ -764,12 +784,16 @@ public final class AppModel: ObservableObject {
         return "rev=\(aovRev)\n"
             + "esp=\(aovEsp ? 1 : 0)\n"
             + "bp=\(aovBocpha ? 1 : 0)\n"
+            + "bppct=\(aovBocphaPct)\n"
+            + "ice=\(aovIce ? 1 : 0)\n"
+            + "icepct=\(aovIcePct)\n"
             + "aim=\(aovAim ? 1 : 0)\n"
             + "tmode=\(aovTargetMode)\n"
             + "lines=\(aovLines)\n"
             + "draw=\(aovDrawMode)\n"
             + "smite=\(aovSmiteMode == 0 ? 0 : 1)\n"
-            + "smt=\(max(aovSmiteMode - 1, 0))\n"
+            + "smt=\(aovSmiteMode)\n"
+            + "smthp=\(aovSmiteHp)\n"
             + "zoom=\(zoom)\n"
             + "mon=\(aovMonsterEsp ? 1 : 0)\n"
     }
@@ -943,11 +967,15 @@ public final class AppModel: ObservableObject {
 
     public func setAOVEsp(_ v: Bool) { aovEsp = v; saveAOV(); pushAOVConfig() }
     public func setAOVBocpha(_ v: Bool) { aovBocpha = v; saveAOV(); pushAOVConfig() }
+    public func setAOVBocphaPct(_ v: Int) { aovBocphaPct = min(max(v, 10), 35); saveAOV(); pushAOVConfig() }
+    public func setAOVIce(_ v: Bool) { aovIce = v; saveAOV(); pushAOVConfig() }
+    public func setAOVIcePct(_ v: Int) { aovIcePct = min(max(v, 5), 35); saveAOV(); pushAOVConfig() }
     public func setAOVAim(_ v: Bool) { aovAim = v; saveAOV(); pushAOVConfig() }
     public func setAOVTargetMode(_ v: Int) { aovTargetMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
     public func setAOVLines(_ v: Int) { aovLines = min(max(v, 1), 5); saveAOV(); pushAOVConfig() }
     public func setAOVDrawMode(_ v: Int) { aovDrawMode = min(max(v, 0), 2); saveAOV(); pushAOVConfig() }
     public func setAOVSmiteMode(_ v: Int) { aovSmiteMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
+    public func setAOVSmiteHp(_ v: Int) { aovSmiteHp = min(max(v, 800), 3000); saveAOV(); pushAOVConfig() }
     public func setAOVZoom(_ v: Float) {
         aovZoom = min(max((v * 10).rounded() / 10, 1.0), 5.0)
         saveAOV(); pushAOVConfig()
