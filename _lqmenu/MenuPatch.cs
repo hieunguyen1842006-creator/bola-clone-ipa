@@ -43,6 +43,94 @@ using System.Collections.Generic;
 
 public struct PoolObjHandle<T> where T : class
 {
+    public T _handleObj;
+    public bool HasValue { get { return _handleObj != null; } }
+    public T handle { get { return _handleObj; } }
+}
+
+public struct ActorMeta
+{
+    public uint SkinID;
+    public uint BoardID;
+}
+
+namespace Kyrios.Actor
+{
+    public class ActorLinker
+    {
+        public ActorMeta TheActorMeta;
+        public uint get_ConfigId() { return 0; }
+        public uint get_ObjID() { return 0; }
+    }
+}
+
+namespace LDataProvider
+{
+    public class PlayerBase
+    {
+        public uint PlayerId;
+        public ulong PlayerUId;
+        public int broadcastID;
+        public int PersonalButtonID;
+        public uint GameStartSkin;
+        public uint GameOverSkin;
+    }
+
+    public class Player : PlayerBase
+    {
+        public PoolObjHandle<Kyrios.Actor.ActorLinker> CaptainLinker;
+    }
+}
+
+namespace Kyrios
+{
+    public class VHostLogic
+    {
+        public LDataProvider.Player get_hostPlayer() { return null; }
+    }
+
+    public class KyriosFramework
+    {
+        public static VHostLogic get_hostLogic() { return null; }
+    }
+}
+
+namespace Assets.Scripts.GameSystem
+{
+    public class CRoleInfo
+    {
+        public uint dwShowSkinID;
+        public uint dwShowHeroID;
+    }
+
+    public class CRoleInfoManager
+    {
+        public static CRoleInfoManager GetInstance() { return null; }
+        public CRoleInfo GetMasterRoleInfo() { return null; }
+    }
+
+    public class CSkinInfo
+    {
+        public static uint GetHeroSkinID(uint heroId, uint skinId) { return 0; }
+    }
+
+    public class KillNotifyUT
+    {
+        public static void AddCacheNotifySkinIDMap(uint playId, uint skinId) { }
+        public static void AddCacheSkinBillBoardDict(uint skinId) { }
+    }
+
+    public class PersonalButton
+    {
+        public void RefreshPersonalButton(bool isReset) { }
+    }
+
+    public class CBattleSystem
+    {
+        public static CBattleSystem GetInstance() { return null; }
+        public bool m_isInBattle;
+        public PersonalButton ThePersonalButton { get { return null; } }
+    }
 }
 
 namespace NucleusDrive.Logic
@@ -394,10 +482,111 @@ namespace NucleusDrive.Logic
                     catch (Exception) { }
                 }
 
-                // SKIN: KHONG xu ly o day. Doi skin bang lenh chat /skin <n>
-                    // trong tran (payload goc tu goi ChangeActorMesh ngay -> thay lien).
-                    // Neu patch cung ghi iFix.SelectedSkin.v1.* thi se de len lua
-                    // chon cua chat -> bo hoan toan.
+                // ---- DONG BO SKIN, NUT BAM VA THONG BAO HA TRONG TRAN ----
+                try
+                {
+                    Assets.Scripts.GameSystem.CBattleSystem bs = null;
+                    try { bs = Assets.Scripts.GameSystem.CBattleSystem.GetInstance(); } catch (Exception) { }
+
+                    if (bs != null && bs.m_isInBattle)
+                    {
+                        Kyrios.VHostLogic hl = null;
+                        try { hl = Kyrios.KyriosFramework.get_hostLogic(); } catch (Exception) { }
+
+                        if (hl != null)
+                        {
+                            LDataProvider.Player me = null;
+                            try { me = hl.get_hostPlayer(); } catch (Exception) { }
+
+                            if (me != null && me.CaptainLinker.HasValue)
+                            {
+                                Kyrios.Actor.ActorLinker al = me.CaptainLinker.handle;
+                                if (al != null)
+                                {
+                                    int heroId = (int)al.get_ConfigId();
+                                    uint objId = al.get_ObjID();
+
+                                    // Tim skin da chon: uu tien lenh runtime /skin trong tran, sau do toi sanh
+                                    int targetSkin = -1;
+                                    for (int s = 99; s >= 0; s--)
+                                    {
+                                        string reqKey = "iFix.RuntimeSkin.Request.v1." + objId.ToString() + "." + heroId.ToString() + "." + s.ToString();
+                                        if (PlayerPrefs.HasKey(reqKey))
+                                        {
+                                            targetSkin = s;
+                                            break;
+                                        }
+                                    }
+
+                                    if (targetSkin < 0)
+                                    {
+                                        targetSkin = PlayerPrefs.GetInt("iFix.SelectedSkin.v1." + heroId.ToString(), -1);
+                                    }
+
+                                    if (targetSkin >= 0)
+                                    {
+                                        uint globalSkinId = 0;
+                                        try
+                                        {
+                                            globalSkinId = Assets.Scripts.GameSystem.CSkinInfo.GetHeroSkinID((uint)heroId, (uint)targetSkin);
+                                        }
+                                        catch (Exception) { }
+
+                                        // 1. Dong bo dwShowHeroID va dwShowSkinID (cho PersonalButton::get_PersonalBtnId vm47)
+                                        try
+                                        {
+                                            Assets.Scripts.GameSystem.CRoleInfoManager riMgr = Assets.Scripts.GameSystem.CRoleInfoManager.GetInstance();
+                                            if (riMgr != null)
+                                            {
+                                                Assets.Scripts.GameSystem.CRoleInfo ri = riMgr.GetMasterRoleInfo();
+                                                if (ri != null)
+                                                {
+                                                    ri.dwShowHeroID = (uint)heroId;
+                                                    ri.dwShowSkinID = (uint)targetSkin;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception) { }
+
+                                        // 2. Dong bo PlayerBase (PersonalButtonID, broadcastID, GameStartSkin)
+                                        me.PersonalButtonID = (int)globalSkinId;
+                                        me.broadcastID = (int)globalSkinId;
+                                        me.GameStartSkin = globalSkinId;
+                                        me.GameOverSkin = globalSkinId;
+
+                                        // 3. Dong bo TheActorMeta (cho 2-form skin: Liliana fox, Volkath, Thu Nguyen)
+                                        al.TheActorMeta.SkinID = (uint)targetSkin;
+                                        al.TheActorMeta.BoardID = globalSkinId;
+
+                                        // 4. Dong bo KillNotifyUT cache (Thong bao ha / Banner diet)
+                                        try
+                                        {
+                                            Assets.Scripts.GameSystem.KillNotifyUT.AddCacheNotifySkinIDMap(me.PlayerId, globalSkinId);
+                                            Assets.Scripts.GameSystem.KillNotifyUT.AddCacheSkinBillBoardDict(globalSkinId);
+                                        }
+                                        catch (Exception) { }
+
+                                        // 5. Cap nhat nut bam (PersonalButton) neu skin thay doi
+                                        int lastSynced = PlayerPrefs.GetInt("iFix.LastSyncedSkin.v1", -999);
+                                        if (lastSynced != targetSkin)
+                                        {
+                                            PlayerPrefs.SetInt("iFix.LastSyncedSkin.v1", targetSkin);
+                                            try
+                                            {
+                                                if (bs.ThePersonalButton != null)
+                                                {
+                                                    bs.ThePersonalButton.RefreshPersonalButton(false);
+                                                }
+                                            }
+                                            catch (Exception) { }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception) { }
 
                 PlayerPrefs.SetInt("iFix.HB.Loaded", 1);
                 PlayerPrefs.SetInt("iFix.HB.Calls", __mCalls);
