@@ -302,6 +302,31 @@ def inject_monster_esp(dst) -> None:
     assert len(bp_patch) == 48, f"bp_patch len={len(bp_patch)}"
     ins[2 * 456 : 2 * 480] = bp_patch
 
+    # 3.5. Patch Smite enable check trong vm3 (pc 513..524: 12 lenh):
+    #      Neu dang mang Boc Pha (loc 16 != 0) -> nhay qua Smite (945)
+    #      Neu iFix.AutoSmite.Enabled.v1 == 0  -> nhay qua Smite (945)
+    #      Khong phu thuoc vao loc 17 hay RealSkillObj!
+    smt_en_patch = [
+        0x48, 16,        # 513: Ldloc 16 (isBP)
+        0x7F, 431,       # 514: Brtrue 431 -> 945 (514 + 431 = 945)
+        0x27, s_smt_en,  # 515: Ldstr "iFix.AutoSmite.Enabled.v1"
+        0x8F, 0,         # 516: Ldc_I4 0
+        0x7A, 131117,    # 517: CallExtern PlayerPrefs::GetInt
+        0x86, 427,       # 518: Brfalse 427 -> 945 (518 + 427 = 945)
+        0x67, 0,         # 519: Nop
+        0x67, 0,         # 520: Nop
+        0x67, 0,         # 521: Nop
+        0x67, 0,         # 522: Nop
+        0x67, 0,         # 523: Nop
+        0x67, 0,         # 524: Nop
+    ]
+    assert len(smt_en_patch) == 24, f"smt_en_patch len={len(smt_en_patch)}"
+    ins[2 * 513 : 2 * 525] = smt_en_patch
+
+    # 3.6. Patch quai khong nam trong switch table goc -> mac dinh la Quai Nho (loc 39 = 1)
+    # pc 753 la: Ldc_I4 1; Stloc 39; Br 2 -> 757. Offset tu 756 sang 753 la -3.
+    ins[2 * 756 : 2 * 757] = [0x5D, -3]
+
     # 4. Patch AutoSmite Target Mode trong vm3 (pc 757..778: 22 lenh):
     #    Mode 1: chi quai nho va bua (loc 39 == 1 || loc 39 == 2, loai boss loc 39 == 3)
     #    Mode 2: chi rong va Caesar (loc 39 == 3)
@@ -332,6 +357,10 @@ def inject_monster_esp(dst) -> None:
     ]
     assert len(smt_tgt_patch) == 44, f"smt_tgt_patch len={len(smt_tgt_patch)}"
     ins[2 * 757 : 2 * 779] = smt_tgt_patch
+
+    # 4.5. Don sach stack evaluation truoc khi check HP: NOP lenh 849 (Ldloc 14)
+    # de khong bi du slot14 gay lech stack IFix VM
+    ins[2 * 849 : 2 * 850] = [0x67, 0]
 
     # 5. Patch AutoSmite HP Check trong vm3 (pc 850..886: 37 lenh):
     #    so sanh mau quai (loc 41) truc tiep voi iFix.AutoSmite.Hp.v1
