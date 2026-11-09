@@ -764,7 +764,7 @@ public final class AppModel: ObservableObject {
             "iFix.AutoBP.Pct.v1": aovBocphaPct,
             "iFix.AutoIce.Enabled.v1": aovIce ? 1 : 0,
             "iFix.AutoIce.Pct.v1": aovIcePct,
-            "iFix.Edras.Enabled.v1": aovEdras ? 1 : 0,
+            "iFix.Edras.AutoCombo.On.v1": aovEdras ? 1 : 0,
             LQModConfig.aimKey: aovAim ? 1 : 0,
             LQModConfig.aimTargetKey: aovTargetMode,
             LQModConfig.aimLinesKey: aovLines,
