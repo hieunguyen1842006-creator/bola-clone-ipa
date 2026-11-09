@@ -58,6 +58,8 @@ public final class AppModel: ObservableObject {
     /// Ngưỡng % máu mình để kích hoạt Băng sương (5..35%, mặc định 15%).
     @Published public var aovIcePct: Int =
         (UserDefaults.standard.object(forKey: "nvh.aov.icepct") as? Int) ?? 15
+    /// Edras Auto Combo (tướng Edras ID 595) — tự bắn chiêu 1-2-3 theo vòng xoay.
+    @Published public var aovEdras: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.edras")
     /// Aim assist.
     @Published public var aovAim: Bool = UserDefaults.standard.bool(forKey: "nvh.aov.aim")
     /// 0=hp 1=percent 2=near 3=ray.
@@ -742,6 +744,7 @@ public final class AppModel: ObservableObject {
         d.set(aovBocphaPct, forKey: "nvh.aov.bppct")
         d.set(aovIce, forKey: "nvh.aov.ice")
         d.set(aovIcePct, forKey: "nvh.aov.icepct")
+        d.set(aovEdras, forKey: "nvh.aov.edras")
         d.set(aovAim, forKey: "nvh.aov.aim")
         d.set(aovTargetMode, forKey: "nvh.aov.tmode")
         d.set(aovLines, forKey: "nvh.aov.lines")
@@ -761,6 +764,7 @@ public final class AppModel: ObservableObject {
             "iFix.AutoBP.Pct.v1": aovBocphaPct,
             "iFix.AutoIce.Enabled.v1": aovIce ? 1 : 0,
             "iFix.AutoIce.Pct.v1": aovIcePct,
+            "iFix.Edras.Enabled.v1": aovEdras ? 1 : 0,
             LQModConfig.aimKey: aovAim ? 1 : 0,
             LQModConfig.aimTargetKey: aovTargetMode,
             LQModConfig.aimLinesKey: aovLines,
@@ -787,6 +791,7 @@ public final class AppModel: ObservableObject {
             + "bppct=\(aovBocphaPct)\n"
             + "ice=\(aovIce ? 1 : 0)\n"
             + "icepct=\(aovIcePct)\n"
+            + "edras=\(aovEdras ? 1 : 0)\n"
             + "aim=\(aovAim ? 1 : 0)\n"
             + "tmode=\(aovTargetMode)\n"
             + "lines=\(aovLines)\n"
@@ -970,6 +975,7 @@ public final class AppModel: ObservableObject {
     public func setAOVBocphaPct(_ v: Int) { aovBocphaPct = min(max(v, 10), 35); saveAOV(); pushAOVConfig() }
     public func setAOVIce(_ v: Bool) { aovIce = v; saveAOV(); pushAOVConfig() }
     public func setAOVIcePct(_ v: Int) { aovIcePct = min(max(v, 5), 35); saveAOV(); pushAOVConfig() }
+    public func setAOVEdras(_ v: Bool) { aovEdras = v; saveAOV(); pushAOVConfig() }
     public func setAOVAim(_ v: Bool) { aovAim = v; saveAOV(); pushAOVConfig() }
     public func setAOVTargetMode(_ v: Int) { aovTargetMode = min(max(v, 0), 3); saveAOV(); pushAOVConfig() }
     public func setAOVLines(_ v: Int) { aovLines = min(max(v, 1), 5); saveAOV(); pushAOVConfig() }
