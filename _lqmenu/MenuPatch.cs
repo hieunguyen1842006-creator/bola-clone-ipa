@@ -218,6 +218,15 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetInt("iFix.AutoIce.Pct.v1", v);
                     }
 
+                    p = t.IndexOf("edras=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.Edras.Enabled.v1", v);
+                    }
+
                     p = t.IndexOf("aim=");
                     if (p >= 0)
                     {
