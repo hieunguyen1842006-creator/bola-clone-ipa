@@ -371,6 +371,10 @@ struct LQModCard: View {
                             step: 1)
             }
 
+            LQSection("EDRAS AUTO COMBO (ID 595)")
+            LQToggleRow(title: "Tự bắn chiêu 1-2-3 xoay vòng",
+                        isOn: Binding(get: { model.aovEdras }, set: { model.setAOVEdras($0) }))
+
             LQSection("CAMERA")
             LQStepperRow(title: "Zoom", value: String(format: "%.1fx", model.aovZoom),
                          dec: { model.setAOVZoom(model.aovZoom - 0.1) },
