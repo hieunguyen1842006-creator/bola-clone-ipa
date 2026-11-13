@@ -1,0 +1,22 @@
+fix(skin): v1.1.8 - hook PlayerBase::IsAtMyTeam ghi broadcastID (banner diet) + go khoi ESP quai lam dong khi load
+
+Nguyen nhan dong (da doi chieu lai payload dang ship):
+  Resources/LQFull.bytes = _lqdebug/v20_restored (HS1 + HS2) + edras v1.5.2.
+  Trong vm22 (LFramework::get_frameSynchr) khoi "mon=" goi
+  LFramework::get_mainBattleLogic() va LBattleLogic::get_gameActorMgr()
+  KHONG cong chan + khai sai declaring type -> game dung ngay khi load.
+  Rebuild: vm22 1381 -> 1012 lenh, khong con 2 call do.
+
+- MenuPatch.cs: them hook LDataProvider.PlayerBase::IsAtMyTeam(Int32,Int32)
+  ghi PlayerBase.broadcastID (bang skin gop -> billboard, 65 dong) +
+  GameStartSkin cho host player, doc CSkinInfo.GetWearSkinID/GetHeroSkinID.
+  IFix thay than ham nen cuoi ham viet lai dung logic team 1.64.1.
+- MenuPatch.cs: GO khoi ESP quai (mon=) khoi frameSynchr.
+- MenuPatch.cs: giu cac nguong cua khoi auto chen trong vm3
+  (bppct= / smthp= / ice= / icepct=) de 3 slider cua app con tac dung.
+- build_menu.py: process_cfg khai 2 hook (khai du param IsAtMyTeam vi
+  IFix isMatch() so ca danh sach param).
+- AppModel/HomeView: khoi phuc ban v18 (co aovEdras) cho khop ConfigView.
+- Payload: HS1 giu nguyen, HS2 72824 B (6 hook: 4 goc + vm22 sach + vm23
+  IsAtMyTeam, edras v1.5.2 van giu). Resources/LQFull.bytes 224594 -> 228210 B.
+- Version 1.1.8 / 118.

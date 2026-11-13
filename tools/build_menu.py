@@ -97,19 +97,22 @@ def write_cfg(path: str) -> None:
         print(f"      {name}: {ft}")
 
     out = bytearray()
-    # 1 nhom class
-    out += struct.pack("<i", 1)
+    # 1 nhom class — 2 hook (xem MenuPatch.cs):
+    #   NucleusDrive.Logic.LFramework   :: get_frameSynchr()  -> LFrameSynchr
+    #   LDataProvider.PlayerBase        :: IsAtMyTeam(Int32,Int32) -> Boolean
+    # isMatch() cua IFix so ca danh sach param, nen phai khai DUNG so luong +
+    # ten kieu tung param.
+    out += struct.pack("<i", 2)
     out += s("NucleusDrive.Logic.LFramework")
-    # CHI 1 method: get_frameSynchr.
-    # KHONG khai method nao khac: khai trong danh sach patch -> IFix THAY THE
-    # method that bang than ham trong file nay (get_IsGameLogicStarted tro
-    # thanh `return false` -> menu khong hien). Khai trong newMethodInfo ->
-    # IFix bien no thanh block VM `return null` thay vi method that cua game
-    # (get_mainBattleLogic luon null). Vi vay KHONG goi method nao cua
-    # LFramework trong patch, chi dung field _frameSynchr va Unity API.
     out += struct.pack("<i", 1)
     out += s("get_frameSynchr") + s("NucleusDrive.Logic.LFrameSynchr")
     out += struct.pack("<i", 0)                       # 0 param
+    out += s("LDataProvider.PlayerBase")
+    out += struct.pack("<i", 1)
+    out += s("IsAtMyTeam") + s("System.Boolean")
+    out += struct.pack("<i", 2)                       # 2 param
+    out += b"\x00" + s("System.Int32")
+    out += b"\x00" + s("System.Int32")
     # newMethodInfo: rong — khong them method moi vao assembly
     out += struct.pack("<i", 0)
     # field moi

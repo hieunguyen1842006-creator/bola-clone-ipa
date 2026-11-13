@@ -1,10 +1,27 @@
-// NVH LQ LIVE CONFIG v13+MON — patch IFix hook LFramework.get_frameSynchr
+// NVH LQ LIVE CONFIG v17 — 2 hook IFix:
+//   1. NucleusDrive.Logic.LFramework::get_frameSynchr()  (Project.Plugins_d)
+//      -> doc nvh_aov.txt, ap vao PlayerPrefs (esp/bp/aim/tmode/lines/draw/
+//         smite/smt/zoom + ban)
+//   2. LDataProvider.PlayerBase::IsAtMyTeam(Int32,Int32)  (Project.Plugins_d)
+//      -> ghi broadcastID (banner thong bao diet) + GameStartSkin theo skin
+//         dang mac thật của chính host player.
 //
-// Pham vi: CHI dieu khien cac toggle doc tu nvh_aov.txt
-//   esp / bp / aim / tmode / lines / draw / smite / smt / zoom / mon
-// mon=1 -> chot danh sach MONSTER / SOLDIER / DRAGON tu ActorManager
-//        va ghi ra nvh_monster.txt cho app hien thi (khong ve truc tiep —
-//        ve overlay 2D phai qua LQHud payload quen thuoc tung client).
+// BANG CHUNG cho hook 2 (goi tham chieu "LQ NS\THÔNG BÁO HẠ NÚT BẤM"):
+//   - PersonalButton::IsOpen() doi thanh `return true`  -> da co o HS1 (v13)
+//   - PlayerBase::IsAtMyTeam(int,int) la cho duy nhat ghi PlayerBase.broadcastID
+//     + PersonalButtonID + GameStartSkin (bang skin->id, khong tao banner gia,
+//     khong goi KillNotifySkinMono.Show).
+//   - PlayerBase (TypeDefIndex 10735, dump 1.64.1.7):
+//       uint PlayerId        @0x8
+//       int  broadcastID     @0xFC   <- banner diet
+//       int  PersonalButtonID@0x104
+//       uint GameStartSkin   @0x15C
+//       List<uint> _heroIds  @0x170
+//   - Ket qua team KHONG the goi lai ham goc (IFix thay than ham) nen phai
+//     viet lai dung logic 1.64.1; day la phan rui ro nhat, xem cuoi ham.
+//
+// ESP QUAI (mon=) DA GO: ban v16/v16b/v16c lam game dung khi dang load.
+// Se lam lai sau bang duong minimap (Set3DUIWorldPos_ByScreenPoint).
 //
 // SKIN KHONG nam trong patch nay. Doi skin bang lenh chat /skin <0..99>
 // trong tran — payload goc goi thang ChangeActorMesh nen model doi NGAY,
@@ -41,46 +58,12 @@ using System.Collections.Generic;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
-public struct PoolObjHandle<T> where T : class
-{
-}
-
 namespace NucleusDrive.Logic
 {
-    public class LActorRoot
-    {
-        public void DummyMethod() { }
-    }
-
-    public class LGameActorMgr
-    {
-        // Ground truth (TypeDefIndex 11793):
-        //   List<PoolObjHandle<LActorRoot>> MonsterActors   // 0x70
-        //   List<PoolObjHandle<LActorRoot>> SoldierActors   // 0xA0
-        //   List<PoolObjHandle<LActorRoot>> JungleMonsters  // 0xA8
-        public List<PoolObjHandle<LActorRoot>> MonsterActors;
-        public List<PoolObjHandle<LActorRoot>> SoldierActors;
-        public List<PoolObjHandle<LActorRoot>> JungleMonsters;
-
-        public List<PoolObjHandle<LActorRoot>> GetAllMonsters() { return null; }
-        public List<PoolObjHandle<LActorRoot>> GetAllJungleMonsters() { return null; }
-    }
-
     public class LFrameSynchr { }
-
-    public class LBattleLogic
-    {
-        public LGameActorMgr get_gameActorMgr() { return null; }
-    }
-
-    public class LMainBattleLogic : LBattleLogic
-    {
-    }
 
     public class LFramework
     {
-        public LMainBattleLogic get_mainBattleLogic() { return null; }
-
         // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public LFrameSynchr _frameSynchr;
 
@@ -191,42 +174,6 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetInt("iFix.AutoBP.Enabled.v1", v);
                     }
 
-                    p = t.IndexOf("bppct=");
-                    if (p >= 0)
-                    {
-                        e = t.IndexOf('\n', p);
-                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
-                        if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.AutoBP.Pct.v1", v);
-                    }
-
-                    p = t.IndexOf("ice=");
-                    if (p >= 0)
-                    {
-                        e = t.IndexOf('\n', p);
-                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
-                        if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.AutoIce.Enabled.v1", v);
-                    }
-
-                    p = t.IndexOf("icepct=");
-                    if (p >= 0)
-                    {
-                        e = t.IndexOf('\n', p);
-                        s = (e > p) ? t.Substring(p + 7, e - p - 7) : t.Substring(p + 7);
-                        if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.AutoIce.Pct.v1", v);
-                    }
-
-                    p = t.IndexOf("edras=");
-                    if (p >= 0)
-                    {
-                        e = t.IndexOf('\n', p);
-                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
-                        if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.Edras.AutoCombo.On.v1", v);
-                    }
-
                     p = t.IndexOf("aim=");
                     if (p >= 0)
                     {
@@ -281,15 +228,6 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetInt("iFix.AutoSmite.TargetMode.v1", v);
                     }
 
-                    p = t.IndexOf("smthp=");
-                    if (p >= 0)
-                    {
-                        e = t.IndexOf('\n', p);
-                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
-                        if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.AutoSmite.Hp.v1", v);
-                    }
-
                     p = t.IndexOf("zoom=");
                     if (p >= 0)
                     {
@@ -300,107 +238,52 @@ namespace NucleusDrive.Logic
                             PlayerPrefs.SetFloat("iFix.Camera.Zoom.v1", f);
                     }
 
-                    // ESP QUAI VIEN (thử nghiệm): mon=<0|1>
-                    p = t.IndexOf("mon=");
+                    // cac nguong cua khoi auto chen trong vm3 (merge_menu.py doc)
+                    p = t.IndexOf("bppct=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoBP.Pct.v1", v);
+                    }
+
+                    p = t.IndexOf("smthp=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 6, e - p - 6) : t.Substring(p + 6);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoSmite.Hp.v1", v);
+                    }
+
+                    p = t.IndexOf("ice=");
                     if (p >= 0)
                     {
                         e = t.IndexOf('\n', p);
                         s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
                         if (int.TryParse(s.Trim(), out v))
-                            PlayerPrefs.SetInt("iFix.ESP.Monster.v1", v);
+                            PlayerPrefs.SetInt("iFix.AutoIce.Enabled.v1", v);
                     }
-                }
 
-                // ---- ESP QUAI (số lượng từ vm3 CPlayerLocationStat::UpdateLogic + LGameActorMgr) ----
-                // Hook CPlayerLocationStat::UpdateLogic (vm3) trên main thread đếm trực tiếp
-                // ActorManager.MonsterActors / SoldierActors và số quái đang sống, rồi ghi vào
-                // PlayerPrefs iFix.ESP.Monster.M / S / D đồng thời vẽ ESP quái (minimap + 3D box + tia + HP).
-                // Tại đây ta đọc lại 3 prefs đó và xuất thẳng ra file <Documents>/nvh_mon.txt
-                // để app đọc tức thì (không bị kẹt cache cfprefsd của iOS).
-                {
-                    try
+                    p = t.IndexOf("icepct=");
+                    if (p >= 0)
                     {
-                        NucleusDrive.Logic.LGameActorMgr gm = null;
-                        try { gm = get_mainBattleLogic().get_gameActorMgr(); }
-                        catch (Exception) { }
-
-                        int cM = 0, cS = 0, cD = 0;
-                        if (gm != null)
-                        {
-                            try { cM = (gm.MonsterActors != null) ? gm.MonsterActors.Count : 0; } catch (Exception) { }
-                            try { cS = (gm.SoldierActors != null) ? gm.SoldierActors.Count : 0; } catch (Exception) { }
-                            try { cD = (gm.JungleMonsters != null) ? gm.JungleMonsters.Count : 0; } catch (Exception) { }
-                            try
-                            {
-                                if (cM == 0)
-                                {
-                                    List<PoolObjHandle<LActorRoot>> all = gm.GetAllMonsters();
-                                    if (all != null) cM = all.Count;
-                                }
-                            }
-                            catch (Exception) { }
-                        }
-                        if (cM > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.M", cM);
-                        if (cS > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.S", cS);
-                        if (cD > 0) PlayerPrefs.SetInt("iFix.ESP.Monster.D", cD);
-
-                        int mVal = PlayerPrefs.GetInt("iFix.ESP.Monster.M", 0);
-                        int sVal = PlayerPrefs.GetInt("iFix.ESP.Monster.S", 0);
-                        int dVal = PlayerPrefs.GetInt("iFix.ESP.Monster.D", 0);
-                        if (mVal < 0) mVal = 0;
-                        if (mVal > 999) mVal = 999;
-                        if (sVal < 0) sVal = 0;
-                        if (sVal > 999) sVal = 999;
-                        if (dVal < 0) dVal = 0;
-                        if (dVal > 999) dVal = 999;
-
-                        string digits = "0123456789";
-                        string sm = digits.Substring(mVal % 10, 1);
-                        if (mVal >= 10)
-                        {
-                            string d1 = digits.Substring((mVal / 10) % 10, 1);
-                            sm = d1 + sm;
-                        }
-                        if (mVal >= 100)
-                        {
-                            string d2 = digits.Substring((mVal / 100) % 10, 1);
-                            sm = d2 + sm;
-                        }
-
-                        string ss = digits.Substring(sVal % 10, 1);
-                        if (sVal >= 10)
-                        {
-                            string d1 = digits.Substring((sVal / 10) % 10, 1);
-                            ss = d1 + ss;
-                        }
-                        if (sVal >= 100)
-                        {
-                            string d2 = digits.Substring((sVal / 100) % 10, 1);
-                            ss = d2 + ss;
-                        }
-
-                        string sd = digits.Substring(dVal % 10, 1);
-                        if (dVal >= 10)
-                        {
-                            string d1 = digits.Substring((dVal / 10) % 10, 1);
-                            sd = d1 + sd;
-                        }
-                        if (dVal >= 100)
-                        {
-                            string d2 = digits.Substring((dVal / 100) % 10, 1);
-                            sd = d2 + sd;
-                        }
-
-                        string monLine = "Quái=";
-                        monLine = monLine + sm;
-                        monLine = monLine + " • Lính=";
-                        monLine = monLine + ss;
-                        monLine = monLine + " • Rồng=";
-                        monLine = monLine + sd;
-                        System.IO.File.WriteAllText(good + "/nvh_mon.txt", monLine);
-                        System.IO.File.WriteAllText(good + "/nvh_ver.txt", "v18-smite-bp-ice");
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 7, e - p - 7) : t.Substring(p + 7);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.AutoIce.Pct.v1", v);
                     }
-                    catch (Exception) { }
+
+                    // BANNER DIET: ban=<0|1> -> hook PlayerBase::IsAtMyTeam doc
+                    p = t.IndexOf("ban=");
+                    if (p >= 0)
+                    {
+                        e = t.IndexOf('\n', p);
+                        s = (e > p) ? t.Substring(p + 4, e - p - 4) : t.Substring(p + 4);
+                        if (int.TryParse(s.Trim(), out v))
+                            PlayerPrefs.SetInt("iFix.Banner.v1", v);
+                    }
                 }
 
                 // SKIN: KHONG xu ly o day. Doi skin bang lenh chat /skin <n>
@@ -428,6 +311,176 @@ namespace NucleusDrive.Logic
             }
 
             return fs;
+        }
+    }
+}
+
+// ============================================================================
+// BANNER DIET (v17) — hook LDataProvider.PlayerBase::IsAtMyTeam(Int32,Int32)
+//
+// IsAtMyTeam bi IFix THAY THAN, khong goi lai duoc ham goc. Nen:
+//   * phan ghi metadata (broadcastID/GameStartSkin) nam TRONG ham nay
+//   * cuoi ham phai TRA LAI dung ket qua team cua ban 1.64.1:
+//         PlayerId != playerId            -> false
+//         configId == 0                   -> true
+//         _heroIds == null                -> false
+//         !_heroIds.Contains(configId)    -> false
+//         con lai                         -> true
+//   Cac kieu duoi day chi la STUB de csc bien dich; IFix resolve theo
+//   ten type + ten field/method that trong Project.Plugins_d / Project_d.
+// ============================================================================
+
+namespace Kyrios
+{
+    public class Player
+    {
+    }
+
+    public class VHostLogic
+    {
+        public Player get_hostPlayer() { return null; }
+
+        public uint get_HostPlayerId() { return 0; }
+    }
+
+    public class KyriosFramework
+    {
+        public static VHostLogic get_hostLogic() { return null; }
+    }
+}
+
+namespace Assets.Scripts.GameSystem
+{
+    public class CSkinInfo
+    {
+        public static uint GetWearSkinID(uint heroId) { return 0; }
+
+        public static uint GetHeroSkinID(uint heroId, uint skinId) { return 0; }
+    }
+}
+
+namespace LDataProvider
+{
+    public class PlayerBase
+    {
+        // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
+        public uint PlayerId;
+        public int broadcastID;
+        public uint GameStartSkin;
+        public List<uint> _heroIds;
+
+        public bool IsAtMyTeam(int playerId, int configId)
+        {
+            // ---- ghi metadata banner diet cho dung host player ----
+            try
+            {
+                if (PlayerPrefs.GetInt("iFix.Banner.v1", 1) != 0)
+                {
+                    if (this.PlayerId == (uint)playerId && configId > 0)
+                    {
+                        Kyrios.VHostLogic hl = Kyrios.KyriosFramework.get_hostLogic();
+                        // dung 4 guard cua ban tham chieu (skin_presentation.py):
+                        // hostLogic != null, hostPlayer != null, dung host id,
+                        // dung player + hero thuoc danh sach cua player do.
+                        if (hl != null && hl.get_hostPlayer() != null
+                            && this.PlayerId == hl.get_HostPlayerId())
+                        {
+                            uint heroId = (uint)configId;
+                            List<uint> myHeroes = this._heroIds;
+                            if (myHeroes != null && myHeroes.Contains(heroId))
+                            {
+                                uint wear = Assets.Scripts.GameSystem.CSkinInfo.GetWearSkinID(heroId);
+                                if (wear > 0)
+                                {
+                                    uint c = Assets.Scripts.GameSystem.CSkinInfo.GetHeroSkinID(heroId, wear);
+                                    if (c > 0)
+                                    {
+                                    // bang skin gop -> billboard (65 dong,
+                                    // nguon: skin_billboard_mapping.json)
+                                    int b = 0;
+                                    if (c == 12910u) b = 1;
+                                    else if (c == 13210u) b = 2;
+                                    else if (c == 16710u) b = 3;
+                                    else if (c == 15212u) b = 4;
+                                    else if (c == 11812u) b = 5;
+                                    else if (c == 19906u) b = 6;
+                                    else if (c == 11616u) b = 7;
+                                    else if (c == 19508u) b = 8;
+                                    else if (c == 15012u) b = 9;
+                                    else if (c == 15711u) b = 10;
+                                    else if (c == 15412u) b = 11;
+                                    else if (c == 13015u) b = 12;
+                                    else if (c == 13116u) b = 13;
+                                    else if (c == 17517u) b = 14;
+                                    else if (c == 52011u) b = 15;
+                                    else if (c == 15013u) b = 16;
+                                    else if (c == 54307u) b = 17;
+                                    else if (c == 15014u) b = 18;
+                                    else if (c == 10620u) b = 19;
+                                    else if (c == 15015u) b = 20;
+                                    else if (c == 13118u) b = 21;
+                                    else if (c == 10914u) b = 22;
+                                    else if (c == 51015u) b = 23;
+                                    else if (c == 59702u) b = 24;
+                                    else if (c == 19015u) b = 25;
+                                    else if (c == 13613u) b = 26;
+                                    else if (c == 13314u) b = 27;
+                                    else if (c == 11107u) b = 28;
+                                    else if (c == 52414u) b = 29;
+                                    else if (c == 53708u) b = 30;
+                                    else if (c == 50119u) b = 31;
+                                    else if (c == 11620u) b = 32;
+                                    else if (c == 11120u) b = 33;
+                                    else if (c == 13706u) b = 34;
+                                    else if (c == 11215u) b = 35;
+                                    else if (c == 13213u) b = 36;
+                                    else if (c == 15306u) b = 37;
+                                    else if (c == 50108u) b = 38;
+                                    else if (c == 17408u) b = 42;
+                                    else if (c == 52415u) b = 43;
+                                    else if (c == 54805u) b = 44;
+                                    else if (c == 15009u) b = 45;
+                                    else if (c == 19614u) b = 46;
+                                    else if (c == 19908u) b = 47;
+                                    else if (c == 54507u) b = 48;
+                                    else if (c == 14111u) b = 49;
+                                    else if (c == 53806u) b = 50;
+                                    else if (c == 52809u) b = 51;
+                                    else if (c == 54309u) b = 52;
+                                    else if (c == 16612u) b = 53;
+                                    else if (c == 14214u) b = 54;
+                                    else if (c == 10916u) b = 55;
+                                    else if (c == 12107u) b = 56;
+                                    else if (c == 13119u) b = 57;
+                                    else if (c == 15217u) b = 58;
+                                    else if (c == 19016u) b = 59;
+                                    else if (c == 53612u) b = 60;
+                                    else if (c == 15016u) b = 61;
+                                    else if (c == 17108u) b = 62;
+                                    else if (c == 12312u) b = 63;
+                                    else if (c == 13215u) b = 64;
+                                    else if (c == 12313u) b = 65;
+                                    else if (c == 59903u) b = 66;
+                                    else if (c == 10812u) b = 67;
+                                    else if (c == 52417u) b = 68;
+
+                                    this.GameStartSkin = c;
+                                    this.broadcastID = b;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            // ---- ket qua team goc (logic 1.64.1) ----
+            if (this.PlayerId != (uint)playerId) return false;
+            if (configId == 0) return true;
+            List<uint> ids = this._heroIds;
+            if (ids == null) return false;
+            return ids.Contains((uint)configId);
         }
     }
 }
