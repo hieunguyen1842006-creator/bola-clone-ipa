@@ -387,10 +387,6 @@ public struct ConfigView: View {
                      "get_IsHostProfile → true",
                      get: { model.lqFakeHost },
                      set: { model.setLQFakeHost($0) })
-            lqToggle("Edras Auto Combo",
-                     "Tự bắn chiêu 1-2-3 xoay vòng khi cầm Edras (ID 595)",
-                     get: { model.aovEdras },
-                     set: { model.setAOVEdras($0) })
         }
     }
 
