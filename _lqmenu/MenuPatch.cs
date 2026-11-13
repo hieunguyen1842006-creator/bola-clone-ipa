@@ -366,6 +366,7 @@ namespace LDataProvider
         // ---- field CO SAN cua game (KHONG khai trong process_cfg) ----
         public uint PlayerId;
         public int broadcastID;
+        public int PersonalButtonID;
         public uint GameStartSkin;
         public List<uint> _heroIds;
 
@@ -395,9 +396,98 @@ namespace LDataProvider
                                     uint c = Assets.Scripts.GameSystem.CSkinInfo.GetHeroSkinID(heroId, wear);
                                     if (c > 0)
                                     {
-                                    // bang skin gop -> billboard (65 dong,
-                                    // nguon: skin_billboard_mapping.json)
+                                    // Map UI thuần: khong goi SkillSlot/RequestUseSkill.
+                                    // b = billboard/banner (65 dong), p = PersonalButtonID
+                                    // (86 dong), nguon LQ NS skin_*_mapping.json.
                                     int b = 0;
+                                    int p = 0;
+                                    if (c == 14111u) p = 1;
+                                    else if (c == 15212u) p = 2;
+                                    else if (c == 19906u) p = 3;
+                                    else if (c == 11115u) p = 4;
+                                    else if (c == 11812u) p = 5;
+                                    else if (c == 11614u) p = 6;
+                                    else if (c == 11616u) p = 7;
+                                    else if (c == 15711u) p = 8;
+                                    else if (c == 19508u) p = 9;
+                                    else if (c == 15012u) p = 10;
+                                    else if (c == 13116u) p = 11;
+                                    else if (c == 13015u) p = 12;
+                                    else if (c == 15412u) p = 13;
+                                    else if (c == 52011u) p = 14;
+                                    else if (c == 15013u) p = 15;
+                                    else if (c == 54307u) p = 16;
+                                    else if (c == 15015u) p = 17;
+                                    else if (c == 10620u) p = 19;
+                                    else if (c == 13118u) p = 20;
+                                    else if (c == 51015u) p = 21;
+                                    else if (c == 59702u) p = 22;
+                                    else if (c == 19015u) p = 23;
+                                    else if (c == 13613u) p = 24;
+                                    else if (c == 13314u) p = 25;
+                                    else if (c == 11107u) p = 26;
+                                    else if (c == 52414u) p = 27;
+                                    else if (c == 59901u) p = 28;
+                                    else if (c == 59802u) p = 29;
+                                    else if (c == 10915u) p = 30;
+                                    else if (c == 15413u) p = 31;
+                                    else if (c == 50119u) p = 32;
+                                    else if (c == 11620u) p = 33;
+                                    else if (c == 11120u) p = 34;
+                                    else if (c == 13706u) p = 35;
+                                    else if (c == 10714u) p = 36;
+                                    else if (c == 52113u) p = 37;
+                                    else if (c == 50120u) p = 38;
+                                    else if (c == 54805u) p = 39;
+                                    else if (c == 19109u) p = 40;
+                                    else if (c == 17408u) p = 42;
+                                    else if (c == 12913u) p = 43;
+                                    else if (c == 50108u) p = 44;
+                                    else if (c == 11215u) p = 45;
+                                    else if (c == 13213u) p = 46;
+                                    else if (c == 15903u) p = 47;
+                                    else if (c == 54507u) p = 48;
+                                    else if (c == 52415u) p = 49;
+                                    else if (c == 52908u) p = 50;
+                                    else if (c == 15009u) p = 52;
+                                    else if (c == 19908u) p = 53;
+                                    else if (c == 53806u) p = 54;
+                                    else if (c == 52809u) p = 55;
+                                    else if (c == 59902u) p = 56;
+                                    else if (c == 10713u) p = 57;
+                                    else if (c == 16612u) p = 58;
+                                    else if (c == 14214u) p = 59;
+                                    else if (c == 54309u) p = 60;
+                                    else if (c == 10916u) p = 61;
+                                    else if (c == 12107u) p = 62;
+                                    else if (c == 50613u) p = 63;
+                                    else if (c == 15217u) p = 64;
+                                    else if (c == 14120u) p = 65;
+                                    else if (c == 15905u) p = 67;
+                                    else if (c == 13316u) p = 68;
+                                    else if (c == 10618u) p = 69;
+                                    else if (c == 53612u) p = 70;
+                                    else if (c == 17108u) p = 71;
+                                    else if (c == 15016u) p = 72;
+                                    else if (c == 52810u) p = 73;
+                                    else if (c == 13707u) p = 74;
+                                    else if (c == 19016u) p = 75;
+                                    else if (c == 13215u) p = 76;
+                                    else if (c == 14215u) p = 77;
+                                    else if (c == 59602u) p = 78;
+                                    else if (c == 59703u) p = 79;
+                                    else if (c == 59903u) p = 80;
+                                    else if (c == 10812u) p = 81;
+                                    else if (c == 10917u) p = 82;
+                                    else if (c == 54807u) p = 83;
+                                    else if (c == 19111u) p = 84;
+                                    else if (c == 12313u) p = 85;
+                                    else if (c == 11122u) p = 89;
+                                    else if (c == 52016u) p = 90;
+                                    else if (c == 54508u) p = 91;
+                                    else if (c == 52417u) p = 92;
+                                    else if (c == 59501u) p = 93;
+
                                     if (c == 12910u) b = 1;
                                     else if (c == 13210u) b = 2;
                                     else if (c == 16710u) b = 3;
@@ -465,6 +555,7 @@ namespace LDataProvider
                                     else if (c == 52417u) b = 68;
 
                                     this.GameStartSkin = c;
+                                    this.PersonalButtonID = p;
                                     this.broadcastID = b;
                                     }
                                 }
