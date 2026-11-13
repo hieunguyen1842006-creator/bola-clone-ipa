@@ -1,11 +1,11 @@
-fix(runtime): remove Edras auto combo to isolate post-pick freeze
+fix(skin): fix kill banner bằng HS1 đọc ActorMeta::SkinID thay vì PlayerPrefs
 
-- Root suspect: Edras v1.5.2 overwrite region 2326..2444 (60 ops) in
-  CPlayerLocationStat::UpdateLogic, executed during battle actor setup.
-  It makes PlayerPrefs/GetSkillSlot/IsCDReady/RequestUseSkill calls every tick.
-- Remove the Edras rewrite entirely: HS2 built directly after menu/banner merge;
-  no _run_edras.py stage.
-- Verify HS2 has no iFix.Edras.AutoCombo.On.v1 marker.
-- Remove Edras UI/state/live-config key so stale UserDefaults gets reset false.
-- Keep existing baseline auto calls (Bộc phá/Trừng trị/Băng sương) unchanged.
-- Version 1.1.9 / 119.
+- Root cause: HS1 hiện tại (v20_restored) VM24 (ChangeMeshCallBack) đọc
+  skinId từ PlayerPrefs.GetInt("iFix.SelectedSkin.v1.<heroId>") — key này chỉ
+  có khi dùng chat /skin, nên chọn skin ở pick -> loc23 = 0 -> không gọi
+  KillNotifyUT.AddCacheSkinBillBoardDict -> không có banner diệt.
+- Bản chuẩn HeroSkin_1_skin.bytes (v13, đã test ổn) VM24 đọc thẳng
+  ActorMeta::SkinID rồi CSkinInfo.GetHeroSkinID(heroId, skinId) -> loc23 đúng
+  -> nạp CacheNotifySkinIDMap + banner diệt.
+- Đóng HS1 = HeroSkin_1_skin.bytes (155336 B, 42 hook) + HS2 = v21 (80584 B,
+  6 hook, bỏ Edras, có banner IsAtMyTeam). LQFull = 235970 B.
