@@ -97,12 +97,11 @@ def add_trampoline(menu_path, out_path, target_type, target_method):
     tram += [OP_LDARG, 0, OP_CALLEXTERN, (1 << 16) | m_orig]
     tram += [OP_LDLOC, la, OP_LDLOC, lb, OP_LDLOC, ls, OP_STELEM_REF, 0]
 
-    # chèn tại pc1 (giữ StackSpace ở pc0): shift mọi branch/handler +len(tram)//2
+    # chèn tại pc1 (giữ StackSpace ở pc0). Operand branch là TƯƠNG ĐỐI — site
+    # và target cùng dịch +width nên KHÔNG đổi operand (sai chỗ này là lý do
+    # v1.9 treo load). Chỉ handler offset (tuyệt đối) mới +width.
     width = len(tram) // 2
-    BR = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
-    for k in range(1, n):
-        if ins[2 * k] in BR:
-            ins[2 * k + 1] += width          # mọi target >= pc1 → +width
+    assert not any(ins[2 * k] == 149 for k in range(n)), "block có Switch — cần shift jump table"
     for h in blk["handlers"]:
         for j in (2, 3, 4, 5):
             if h[j] >= 1:
@@ -113,6 +112,24 @@ def add_trampoline(menu_path, out_path, target_type, target_method):
     back = mm.lqmb_parse(body)
     assert mm.lqmb_serialize(back) == body, "roundtrip loi"
     assert back["blocks"][0]["instrs"][2 * 1:2 * 1 + len(tram)] == tram
+
+    # soát branch: phần thân sau trampoline phải khớp origin từng cặp, và mọi
+    # nhánh phải trúng đúng lệnh cũ (site lẫn target cùng dịch +width)
+    BR = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
+    orig, _, _, _ = mm.load(menu_path)
+    oins = orig["blocks"][0]["instrs"]
+    b2 = back["blocks"][0]["instrs"]
+    for k in range(1, n):  # pc0 = StackSpace, giữ nguyên vị trí (operand locals đã +3)
+        oc, oo = oins[2 * k], oins[2 * k + 1]
+        nc, no = b2[2 * (k + width)], b2[2 * (k + width) + 1]
+        assert (oc, oo) == (nc, no), \
+            f"pc{k} bị lệch sau chèn: ({oc},{oo}) -> ({nc},{no})"
+        if oc in BR:
+            assert k + oo + width == (k + width) + no, \
+                f"nhánh pc{k} target sai: cũ {k + oo}, mới {(k + width) + no}"
+    assert b2[0] == 146 and b2[1] == ((max_loc + 4) << 16) | maxstack, \
+        "StackSpace sau chèn sai"
+    print(f"   branch audit OK: {n} ins, branch targets consistent")
     out = mm.resd_encrypt(body, res, tag, enc)
     open(out_path, "wb").write(out)
     print(f"trampoline: +{width} ins (fields {f_arr},{f_slot}, method {m_orig}), "
