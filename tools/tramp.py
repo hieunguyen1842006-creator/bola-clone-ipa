@@ -35,8 +35,14 @@ OP_CALLEXTERN = 122
 
 
 def ensure_type(p, full):
+    """full là chuỗi ĐẦY ĐỦ assembly-qualified (copy từ payload chạy-thật).
+
+    Chuỗi trần thiếu qualifier (vd 'IFix.IDMAP0') thì Type.GetType trên máy
+    trả NULL → hook chết ngay Ldsfld đầu → thân gốc không chạy → treo load.
+    """
+    short = full.split(",")[0].strip()
     for i, t in enumerate(p["types"]):
-        if t.split(",")[0].strip() == full:
+        if t == full or t.split(",")[0].strip() == short:
             return i
     p["types"].append(full)
     return len(p["types"]) - 1
@@ -69,8 +75,9 @@ def add_trampoline(menu_path, out_path, target_type, target_method):
     ins = blk["instrs"]
     n = len(ins) // 2
 
-    t_wrap = ensure_type(p, "IFix.ILFixDynamicMethodWrapper")
-    t_idmap = ensure_type(p, "IFix.IDMAP0")
+    # Chuỗi CHÍNH XÁC từ payload chạy-thật (menuesp) — thiếu qualifier là treo.
+    t_wrap = ensure_type(p, "IFix.ILFixDynamicMethodWrapper, Project.Plugins_d")
+    t_idmap = ensure_type(p, "IFix.IDMAP0, Project.Plugins_d")
     f_arr = ensure_field(p, t_wrap, "wrapperArray")
     f_slot = ensure_field(p, t_idmap, target_type + "-" + target_method + "0")
     m_orig = ensure_method(p, ensure_type(p, target_type), target_method)
