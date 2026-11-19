@@ -556,7 +556,8 @@ TAIL = '''
                         if (zr != null) zr.sizeDelta = new Vector2(97f + zu * 97f, 16f);
                     }
 
-                    // nhịp tim: ghi file, KHÔNG dùng ToString() trên số (IFix resolve sai)
+                    // nhịp tim + ĐO cấu trúc thật: B1 trần không cho biết vì sao
+                    // vô hình. Ghi số đo để phân biệt canvas chết / widget 0 kích thước.
                     try
                     {
                         string hb = System.Environment.GetEnvironmentVariable("HOME");
@@ -565,6 +566,54 @@ TAIL = '''
                             int beat = (__mMenuCalls / 20) % 2;
                             System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_hb.txt",
                                                         (beat == 0) ? "B0" : "B1");
+                            if (__mMenuCalls <= 60)
+                            {
+                                // KHÔNG nối chuỗi với số — ToString() trên số
+                                // resolve sai trong IFix. Chỉ ghi cờ so sánh.
+                                string diag = "";
+                                GameObject dcv = GameObject.Find("__nvhMenuCanvas");
+                                if (dcv == null) diag = "cv=NULL";
+                                else
+                                {
+                                    diag = dcv.activeInHierarchy ? "cv=1;act=1" : "cv=1;act=0";
+                                    Canvas dc = dcv.GetComponent<Canvas>();
+                                    if (dc == null) diag = diag + ";canvas=NULL";
+                                    else if (dc.renderMode == RenderMode.ScreenSpaceOverlay)
+                                        diag = diag + ";rm=overlay";
+                                    else diag = diag + ";rm=OTHER";
+                                    GameObject dp = GameObject.Find("__nvhPanel");
+                                    if (dp == null) diag = diag + ";panel=NULL";
+                                    else
+                                    {
+                                        diag = diag + (dp.activeInHierarchy ? ";panel=1;act=1"
+                                                                           : ";panel=1;act=0");
+                                        RectTransform dpRT = dp.GetComponent<RectTransform>();
+                                        if (dpRT == null) diag = diag + ";prt=NULL";
+                                        else
+                                        {
+                                            Vector2 sz = dpRT.sizeDelta;
+                                            diag = diag + (sz.x > 800f && sz.y > 400f
+                                                ? ";size=OK" : ";size=ZERO");
+                                            Vector2 pp = dpRT.anchoredPosition;
+                                            diag = diag + (pp.x > -500f && pp.x < 500f
+                                                && pp.y > -500f && pp.y < 500f
+                                                ? ";pos=OK" : ";pos=OFF");
+                                            Vector3 ps = dp.transform.localScale;
+                                            diag = diag + (ps.x > 0.5f ? ";scale=OK" : ";scale=0");
+                                        }
+                                        diag = diag + (dp.transform.childCount > 3
+                                            ? ";child=OK" : ";child=FEW");
+                                        Canvas dcp = dp.GetComponent<Canvas>();
+                                        diag = diag + (dcp == null ? ";pcanvas=inherit"
+                                                                   : ";pcanvas=own");
+                                    }
+                                    diag = diag + (Screen.width >= 1000 && Screen.height >= 700
+                                        ? ";screen=OK" : ";screen=SMALL");
+                                    GameObject dop = GameObject.Find("__nvhOpener");
+                                    diag = diag + (dop == null ? ";opener=NULL" : ";opener=1");
+                                }
+                                System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_diag.txt", diag);
+                            }
                         }
                     }
                     catch (Exception) { }
