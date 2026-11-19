@@ -613,7 +613,10 @@ def build():
                             pgt.sizeDelta = new Vector2(690f, 440f);
                             pgt.anchoredPosition = new Vector2(105f, -25f);
                         }}
-                        pg.SetActive({"true" if i == 0 else "false"});
+                        // PHẢI active lúc dựng: GameObject.Find bỏ qua object inactive,
+                        // nên nếu tắt ngay thì Find("__nvhPageN") trả null -> SetParent nổ.
+                        // Vòng "áp tab" bên dưới sẽ tắt các page không chọn.
+                        pg.SetActive(true);
                     }}
 ''')
 
