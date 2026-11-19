@@ -606,15 +606,20 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Nút INJECT cho Liên Quân — deploy gói đang chọn (`lqPack`).
+    /// Nút INJECT cho Liên Quân — deploy gói theo công tắc trong app.
+    ///
+    /// Nguồn sự thật là `lqModMenuMode` (segment CLASSIC | MENU trong thẻ
+    /// LQModCard), KHÔNG phải `lqPack` — `lqPack` là bộ chọn gói cũ
+    /// (Full HUD / NVH Beta / Unlock) và mặc định `.runtime`, nên đọc nó
+    /// sẽ luôn ra Classic và bỏ qua lựa chọn MENU của người dùng.
     ///
     /// `.fullMod` (Classic) → cấu hình do app điều khiển qua `nvh_aov.txt` +
     /// PlayerPrefs. `.menu34` → payload có thêm hook `NetworkModule::UpdateFrame`
     /// dựng menu cảm ứng trong game; app vẫn ghi được config nhưng menu là
     /// nguồn chính.
     private func injectLQ() {
-        // Chỉ hai gói Full Mod dùng chung đường inject Liên Quân.
-        let pack: LQPack = (lqPack == .menu34) ? .menu34 : .fullMod
+        // Chọn gói theo đúng công tắc người dùng bấm.
+        let pack: LQPack = lqModMenuMode ? .menu34 : .fullMod
         // Gói runtime: không cần payload trong app, tự đọc file gốc của game.
         if !pack.usesBundledPayload {
             injectLQRuntime()
