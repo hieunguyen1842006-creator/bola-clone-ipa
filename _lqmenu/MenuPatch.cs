@@ -45,6 +45,20 @@ namespace Assets.Scripts.Framework
 
         public void UpdateFrame()
         {
+            // Local dùng chung cho mọi widget. KHÔNG khai báo trong từng scope:
+            // csc sẽ cấp slot riêng cho mỗi scope, đẩy locals lên >140 — module 290
+            // (đã chạy trên máy) chỉ dùng tối đa 54. Dùng chung giữ locals thấp.
+            GameObject wGo = null;
+            RectTransform wRt = null;
+            Image wIm = null;
+            Text wTx = null;
+            Font wFont = null;
+            try
+            {
+                wFont = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            }
+            catch (Exception) { }
+
             try
             {
                 __mCalls = __mCalls + 1;
@@ -96,31 +110,28 @@ namespace Assets.Scripts.Framework
                             oi.raycastTarget = true;
                         }
 
-                        { GameObject obTx = new GameObject("__nvhOpenerTx",
-                              typeof(RectTransform), typeof(Text));
-                          obTx.transform.SetParent(GameObject.Find("__nvhOpener").transform, false);
-                          RectTransform rt = obTx.GetComponent<RectTransform>();
-                          if (rt != null) {
-                              rt.anchorMin = new Vector2(0.5f, 0.5f);
-                              rt.anchorMax = new Vector2(0.5f, 0.5f);
-                              rt.pivot = new Vector2(0.5f, 0.5f);
-                              rt.sizeDelta = new Vector2(52f, 50f);
-                              rt.anchoredPosition = new Vector2(-424.0f, 237.5f);
-                          }
-                          Text tx = obTx.GetComponent<Text>();
-                          if (tx != null) {
-                              Font f = null;
-                              try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                              if (f != null) tx.font = f;
-                              tx.fontSize = 22;
-                              tx.alignment = TextAnchor.MiddleCenter;
-                              tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                              tx.verticalOverflow = VerticalWrapMode.Overflow;
-                              tx.supportRichText = false;
-                              tx.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                              tx.raycastTarget = false;
-                              tx.text = "N";
-                          } }
+                        wGo = new GameObject("__nvhOpenerTx", typeof(RectTransform), typeof(Text));
+                        wGo.transform.SetParent(GameObject.Find("__nvhOpener").transform, false);
+                        wRt = wGo.GetComponent<RectTransform>();
+                        if (wRt != null) {
+                            wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                            wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                            wRt.pivot = new Vector2(0.5f, 0.5f);
+                            wRt.sizeDelta = new Vector2(52f, 50f);
+                            wRt.anchoredPosition = new Vector2(-424.0f, 237.5f);
+                        }
+                        wTx = wGo.GetComponent<Text>();
+                        if (wTx != null) {
+                            if (wFont != null) wTx.font = wFont;
+                            wTx.fontSize = 22;
+                            wTx.alignment = TextAnchor.MiddleCenter;
+                            wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                            wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                            wTx.supportRichText = false;
+                            wTx.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                            wTx.raycastTarget = false;
+                            wTx.text = "N";
+                        }
 
                         UnityEngine.Object.DontDestroyOnLoad(oCv);
                     }
@@ -190,334 +201,302 @@ namespace Assets.Scripts.Framework
                         pi.raycastTarget = true;
                     }
 
-                { GameObject hd = new GameObject("__nvhHeader",
-                      typeof(RectTransform), typeof(Image));
-                  hd.transform.SetParent(p.transform, false);
-                  RectTransform rt = hd.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(745f, 65f);
-                      rt.anchoredPosition = new Vector2(-77.5f, 230.0f);
-                  }
-                  Image im = hd.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.055f, 0.06f, 0.07f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject hdTx = new GameObject("__nvhHeaderTx",
-                      typeof(RectTransform), typeof(Text));
-                  hdTx.transform.SetParent(GameObject.Find("__nvhHeader").transform, false);
-                  RectTransform rt = hdTx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(400f, 60f);
-                      rt.anchoredPosition = new Vector2(-230.0f, 232.5f);
-                  }
-                  Text tx = hdTx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 26;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "NVH MENU34";
-                  } }
-                { GameObject cl = new GameObject("__nvhClose",
-                      typeof(RectTransform), typeof(Image));
-                  cl.transform.SetParent(p.transform, false);
-                  RectTransform rt = cl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(56f, 50f);
-                      rt.anchoredPosition = new Vector2(394.0f, 230.5f);
-                  }
-                  Image im = cl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.7f, 0.18f, 0.2f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject clTx = new GameObject("__nvhCloseTx",
-                      typeof(RectTransform), typeof(Text));
-                  clTx.transform.SetParent(GameObject.Find("__nvhClose").transform, false);
-                  RectTransform rt = clTx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(56f, 50f);
-                      rt.anchoredPosition = new Vector2(-422.0f, 237.5f);
-                  }
-                  Text tx = clTx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 24;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "X";
-                  } }
-                { GameObject tb0 = new GameObject("__nvhTab0",
-                      typeof(RectTransform), typeof(Image));
-                  tb0.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb0.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, 155.5f);
-                  }
-                  Image im = tb0.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb0Tx = new GameObject("__nvhTab0Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb0Tx.transform.SetParent(GameObject.Find("__nvhTab0").transform, false);
-                  RectTransform rt = tb0Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb0Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 24;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "ESP";
-                  } }
-                { GameObject tb1 = new GameObject("__nvhTab1",
-                      typeof(RectTransform), typeof(Image));
-                  tb1.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb1.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, 97.5f);
-                  }
-                  Image im = tb1.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb1Tx = new GameObject("__nvhTab1Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb1Tx.transform.SetParent(GameObject.Find("__nvhTab1").transform, false);
-                  RectTransform rt = tb1Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb1Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 24;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "AIM";
-                  } }
-                { GameObject tb2 = new GameObject("__nvhTab2",
-                      typeof(RectTransform), typeof(Image));
-                  tb2.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb2.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, 39.5f);
-                  }
-                  Image im = tb2.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb2Tx = new GameObject("__nvhTab2Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb2Tx.transform.SetParent(GameObject.Find("__nvhTab2").transform, false);
-                  RectTransform rt = tb2Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb2Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 24;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Memory";
-                  } }
-                { GameObject tb3 = new GameObject("__nvhTab3",
-                      typeof(RectTransform), typeof(Image));
-                  tb3.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb3.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, -18.5f);
-                  }
-                  Image im = tb3.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb3Tx = new GameObject("__nvhTab3Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb3Tx.transform.SetParent(GameObject.Find("__nvhTab3").transform, false);
-                  RectTransform rt = tb3Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb3Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 24;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Skin";
-                  } }
-                { GameObject tb4 = new GameObject("__nvhTab4",
-                      typeof(RectTransform), typeof(Image));
-                  tb4.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb4.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, -76.5f);
-                  }
-                  Image im = tb4.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb4Tx = new GameObject("__nvhTab4Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb4Tx.transform.SetParent(GameObject.Find("__nvhTab4").transform, false);
-                  RectTransform rt = tb4Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb4Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 18;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Ho tro tuong";
-                  } }
-                { GameObject tb5 = new GameObject("__nvhTab5",
-                      typeof(RectTransform), typeof(Image));
-                  tb5.transform.SetParent(p.transform, false);
-                  RectTransform rt = tb5.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(182f, 50f);
-                      rt.anchoredPosition = new Vector2(-351.0f, -134.5f);
-                  }
-                  Image im = tb5.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject tb5Tx = new GameObject("__nvhTab5Tx",
-                      typeof(RectTransform), typeof(Text));
-                  tb5Tx.transform.SetParent(GameObject.Find("__nvhTab5").transform, false);
-                  RectTransform rt = tb5Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(172f, 46f);
-                      rt.anchoredPosition = new Vector2(-359.0f, 237.5f);
-                  }
-                  Text tx = tb5Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 18;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Chia se map";
-                  } }
+                wGo = new GameObject("__nvhHeader", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(745f, 65f);
+                    wRt.anchoredPosition = new Vector2(-77.5f, 230.0f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.055f, 0.06f, 0.07f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhHeaderTx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhHeader").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(400f, 60f);
+                    wRt.anchoredPosition = new Vector2(-230.0f, 232.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 26;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "NVH MENU34";
+                }
+                wGo = new GameObject("__nvhClose", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(56f, 50f);
+                    wRt.anchoredPosition = new Vector2(394.0f, 230.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.7f, 0.18f, 0.2f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhCloseTx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhClose").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(56f, 50f);
+                    wRt.anchoredPosition = new Vector2(-422.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 24;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "X";
+                }
+                wGo = new GameObject("__nvhTab0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, 155.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab0Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 24;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "ESP";
+                }
+                wGo = new GameObject("__nvhTab1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, 97.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab1Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 24;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "AIM";
+                }
+                wGo = new GameObject("__nvhTab2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, 39.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab2Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 24;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Memory";
+                }
+                wGo = new GameObject("__nvhTab3", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, -18.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab3Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab3").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 24;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Skin";
+                }
+                wGo = new GameObject("__nvhTab4", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, -76.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab4Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab4").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 18;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Ho tro tuong";
+                }
+                wGo = new GameObject("__nvhTab5", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(p.transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(182f, 50f);
+                    wRt.anchoredPosition = new Vector2(-351.0f, -134.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.105f, 0.113f, 0.122f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhTab5Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhTab5").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(172f, 46f);
+                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 18;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Chia se map";
+                }
                     {
                         GameObject pg = new GameObject("__nvhPage0", typeof(RectTransform));
                         pg.transform.SetParent(p.transform, false);
@@ -632,1014 +611,928 @@ namespace Assets.Scripts.Framework
                         pg.SetActive(true);
                     }
 
-                { GameObject pg0r = new GameObject("__nvhRule0",
-                      typeof(RectTransform), typeof(Image));
-                  pg0r.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = pg0r.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(635f, 2f);
-                      rt.anchoredPosition = new Vector2(-102.5f, 209.5f);
-                  }
-                  Image im = pg0r.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.22f, 0.24f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw0 = new GameObject("__nvhSw0",
-                      typeof(RectTransform), typeof(Image));
-                  sw0.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw0.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(-72.0f, 73.5f);
-                  }
-                  Image im = sw0.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw0Tx = new GameObject("__nvhSw0Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw0Tx.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
-                  RectTransform rt = sw0Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw0Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "ESP tong";
-                  } }
-                { GameObject sw0Tr = new GameObject("__nvhSwTrack0",
-                      typeof(RectTransform), typeof(Image));
-                  sw0Tr.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
-                  RectTransform rt = sw0Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw0Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw0Kn = new GameObject("__nvhSwKnob0",
-                      typeof(RectTransform), typeof(Image));
-                  sw0Kn.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
-                  RectTransform rt = sw0Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw0Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw1 = new GameObject("__nvhSw1",
-                      typeof(RectTransform), typeof(Image));
-                  sw1.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw1.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(-72.0f, 7.5f);
-                  }
-                  Image im = sw1.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw1Tx = new GameObject("__nvhSw1Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw1Tx.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
-                  RectTransform rt = sw1Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw1Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "ESP quai";
-                  } }
-                { GameObject sw1Tr = new GameObject("__nvhSwTrack1",
-                      typeof(RectTransform), typeof(Image));
-                  sw1Tr.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
-                  RectTransform rt = sw1Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw1Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw1Kn = new GameObject("__nvhSwKnob1",
-                      typeof(RectTransform), typeof(Image));
-                  sw1Kn.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
-                  RectTransform rt = sw1Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw1Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw2 = new GameObject("__nvhSw2",
-                      typeof(RectTransform), typeof(Image));
-                  sw2.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw2.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(268.0f, -58.5f);
-                  }
-                  Image im = sw2.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw2Tx = new GameObject("__nvhSw2Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw2Tx.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
-                  RectTransform rt = sw2Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw2Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "An duong tuong";
-                  } }
-                { GameObject sw2Tr = new GameObject("__nvhSwTrack2",
-                      typeof(RectTransform), typeof(Image));
-                  sw2Tr.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
-                  RectTransform rt = sw2Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw2Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw2Kn = new GameObject("__nvhSwKnob2",
-                      typeof(RectTransform), typeof(Image));
-                  sw2Kn.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
-                  RectTransform rt = sw2Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw2Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw3 = new GameObject("__nvhSw3",
-                      typeof(RectTransform), typeof(Image));
-                  sw3.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw3.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(268.0f, 7.5f);
-                  }
-                  Image im = sw3.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw3Tx = new GameObject("__nvhSw3Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw3Tx.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
-                  RectTransform rt = sw3Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw3Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Banner skin";
-                  } }
-                { GameObject sw3Tr = new GameObject("__nvhSwTrack3",
-                      typeof(RectTransform), typeof(Image));
-                  sw3Tr.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
-                  RectTransform rt = sw3Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw3Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw3Kn = new GameObject("__nvhSwKnob3",
-                      typeof(RectTransform), typeof(Image));
-                  sw3Kn.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
-                  RectTransform rt = sw3Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw3Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw4 = new GameObject("__nvhSw4",
-                      typeof(RectTransform), typeof(Image));
-                  sw4.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw4.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(-72.0f, -58.5f);
-                  }
-                  Image im = sw4.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw4Tx = new GameObject("__nvhSw4Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw4Tx.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
-                  RectTransform rt = sw4Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw4Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Aim muc tieu";
-                  } }
-                { GameObject sw4Tr = new GameObject("__nvhSwTrack4",
-                      typeof(RectTransform), typeof(Image));
-                  sw4Tr.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
-                  RectTransform rt = sw4Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw4Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw4Kn = new GameObject("__nvhSwKnob4",
-                      typeof(RectTransform), typeof(Image));
-                  sw4Kn.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
-                  RectTransform rt = sw4Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw4Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw5 = new GameObject("__nvhSw5",
-                      typeof(RectTransform), typeof(Image));
-                  sw5.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
-                  RectTransform rt = sw5.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(328f, 54f);
-                      rt.anchoredPosition = new Vector2(268.0f, 73.5f);
-                  }
-                  Image im = sw5.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject sw5Tx = new GameObject("__nvhSw5Tx",
-                      typeof(RectTransform), typeof(Text));
-                  sw5Tx.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
-                  RectTransform rt = sw5Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 50f);
-                      rt.anchoredPosition = new Vector2(-318.0f, 235.5f);
-                  }
-                  Text tx = sw5Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 22;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Cam xa";
-                  } }
-                { GameObject sw5Tr = new GameObject("__nvhSwTrack5",
-                      typeof(RectTransform), typeof(Image));
-                  sw5Tr.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
-                  RectTransform rt = sw5Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 235.5f);
-                  }
-                  Image im = sw5Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject sw5Kn = new GameObject("__nvhSwKnob5",
-                      typeof(RectTransform), typeof(Image));
-                  sw5Kn.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
-                  RectTransform rt = sw5Kn.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(26f, 26f);
-                      rt.anchoredPosition = new Vector2(-200.0f, 235.5f);
-                  }
-                  Image im = sw5Kn.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject ac0 = new GameObject("__nvhAim0",
-                      typeof(RectTransform), typeof(Image));
-                  ac0.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = ac0.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(205f, 56f);
-                      rt.anchoredPosition = new Vector2(-117.5f, -69.5f);
-                  }
-                  Image im = ac0.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject ac0Tx = new GameObject("__nvhAim0Tx",
-                      typeof(RectTransform), typeof(Text));
-                  ac0Tx.transform.SetParent(GameObject.Find("__nvhAim0").transform, false);
-                  RectTransform rt = ac0Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(200f, 52f);
-                      rt.anchoredPosition = new Vector2(-348.0f, 234.5f);
-                  }
-                  Text tx = ac0Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Aim don dau";
-                  } }
-                { GameObject a0Tr = new GameObject("__nvhAimTrk0",
-                      typeof(RectTransform), typeof(Image));
-                  a0Tr.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a0Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(102f, 26f);
-                      rt.anchoredPosition = new Vector2(381.0f, -56.5f);
-                  }
-                  Image im = a0Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject a0Fl = new GameObject("__nvhAimFill0",
-                      typeof(RectTransform), typeof(Image));
-                  a0Fl.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a0Fl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(51f, 26f);
-                      rt.anchoredPosition = new Vector2(355.5f, -56.5f);
-                  }
-                  Image im = a0Fl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject ac1 = new GameObject("__nvhAim1",
-                      typeof(RectTransform), typeof(Image));
-                  ac1.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = ac1.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(205f, 56f);
-                      rt.anchoredPosition = new Vector2(-117.5f, -136.5f);
-                  }
-                  Image im = ac1.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject ac1Tx = new GameObject("__nvhAim1Tx",
-                      typeof(RectTransform), typeof(Text));
-                  ac1Tx.transform.SetParent(GameObject.Find("__nvhAim1").transform, false);
-                  RectTransform rt = ac1Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(200f, 52f);
-                      rt.anchoredPosition = new Vector2(-348.0f, 234.5f);
-                  }
-                  Text tx = ac1Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Do nhay";
-                  } }
-                { GameObject a1Tr = new GameObject("__nvhAimTrk1",
-                      typeof(RectTransform), typeof(Image));
-                  a1Tr.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a1Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(102f, 26f);
-                      rt.anchoredPosition = new Vector2(381.0f, -123.5f);
-                  }
-                  Image im = a1Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject a1Fl = new GameObject("__nvhAimFill1",
-                      typeof(RectTransform), typeof(Image));
-                  a1Fl.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a1Fl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(51f, 26f);
-                      rt.anchoredPosition = new Vector2(355.5f, -123.5f);
-                  }
-                  Image im = a1Fl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject ac2 = new GameObject("__nvhAim2",
-                      typeof(RectTransform), typeof(Image));
-                  ac2.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = ac2.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(205f, 56f);
-                      rt.anchoredPosition = new Vector2(-117.5f, -203.5f);
-                  }
-                  Image im = ac2.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject ac2Tx = new GameObject("__nvhAim2Tx",
-                      typeof(RectTransform), typeof(Text));
-                  ac2Tx.transform.SetParent(GameObject.Find("__nvhAim2").transform, false);
-                  RectTransform rt = ac2Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(200f, 52f);
-                      rt.anchoredPosition = new Vector2(-348.0f, 234.5f);
-                  }
-                  Text tx = ac2Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Chon muc tieu";
-                  } }
-                { GameObject a2Tr = new GameObject("__nvhAimTrk2",
-                      typeof(RectTransform), typeof(Image));
-                  a2Tr.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a2Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(102f, 26f);
-                      rt.anchoredPosition = new Vector2(381.0f, -190.5f);
-                  }
-                  Image im = a2Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject a2Fl = new GameObject("__nvhAimFill2",
-                      typeof(RectTransform), typeof(Image));
-                  a2Fl.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = a2Fl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(51f, 26f);
-                      rt.anchoredPosition = new Vector2(355.5f, -190.5f);
-                  }
-                  Image im = a2Fl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject snTr = new GameObject("__nvhSensTrk",
-                      typeof(RectTransform), typeof(Image));
-                  snTr.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = snTr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(280f, 26f);
-                      rt.anchoredPosition = new Vector2(238.0f, -30.5f);
-                  }
-                  Image im = snTr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject snFl = new GameObject("__nvhSensFill",
-                      typeof(RectTransform), typeof(Image));
-                  snFl.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
-                  RectTransform rt = snFl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(140f, 26f);
-                      rt.anchoredPosition = new Vector2(168.0f, -30.5f);
-                  }
-                  Image im = snFl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject me0 = new GameObject("__nvhMem0",
-                      typeof(RectTransform), typeof(Image));
-                  me0.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = me0.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(320f, 48f);
-                      rt.anchoredPosition = new Vector2(-60.0f, 88.5f);
-                  }
-                  Image im = me0.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject me0Tx = new GameObject("__nvhMem0Tx",
-                      typeof(RectTransform), typeof(Text));
-                  me0Tx.transform.SetParent(GameObject.Find("__nvhMem0").transform, false);
-                  RectTransform rt = me0Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 44f);
-                      rt.anchoredPosition = new Vector2(-320.0f, 238.5f);
-                  }
-                  Text tx = me0Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Auto trung tri";
-                  } }
-                { GameObject me0Tr = new GameObject("__nvhMemTrack0",
-                      typeof(RectTransform), typeof(Image));
-                  me0Tr.transform.SetParent(GameObject.Find("__nvhMem0").transform, false);
-                  RectTransform rt = me0Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 238.5f);
-                  }
-                  Image im = me0Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject me1 = new GameObject("__nvhMem1",
-                      typeof(RectTransform), typeof(Image));
-                  me1.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = me1.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(320f, 48f);
-                      rt.anchoredPosition = new Vector2(-60.0f, 28.5f);
-                  }
-                  Image im = me1.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject me1Tx = new GameObject("__nvhMem1Tx",
-                      typeof(RectTransform), typeof(Text));
-                  me1Tx.transform.SetParent(GameObject.Find("__nvhMem1").transform, false);
-                  RectTransform rt = me1Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 44f);
-                      rt.anchoredPosition = new Vector2(-320.0f, 238.5f);
-                  }
-                  Text tx = me1Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Auto boc pha";
-                  } }
-                { GameObject me1Tr = new GameObject("__nvhMemTrack1",
-                      typeof(RectTransform), typeof(Image));
-                  me1Tr.transform.SetParent(GameObject.Find("__nvhMem1").transform, false);
-                  RectTransform rt = me1Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 238.5f);
-                  }
-                  Image im = me1Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject me2 = new GameObject("__nvhMem2",
-                      typeof(RectTransform), typeof(Image));
-                  me2.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = me2.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(320f, 48f);
-                      rt.anchoredPosition = new Vector2(-60.0f, -31.5f);
-                  }
-                  Image im = me2.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject me2Tx = new GameObject("__nvhMem2Tx",
-                      typeof(RectTransform), typeof(Text));
-                  me2Tx.transform.SetParent(GameObject.Find("__nvhMem2").transform, false);
-                  RectTransform rt = me2Tx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(240f, 44f);
-                      rt.anchoredPosition = new Vector2(-320.0f, 238.5f);
-                  }
-                  Text tx = me2Tx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 20;
-                      tx.alignment = TextAnchor.MiddleLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Auto bang";
-                  } }
-                { GameObject me2Tr = new GameObject("__nvhMemTrack2",
-                      typeof(RectTransform), typeof(Image));
-                  me2Tr.transform.SetParent(GameObject.Find("__nvhMem2").transform, false);
-                  RectTransform rt = me2Tr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(96f, 30f);
-                      rt.anchoredPosition = new Vector2(-202.0f, 238.5f);
-                  }
-                  Image im = me2Tr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject stx = new GameObject("__nvhSizeTitle",
-                      typeof(RectTransform), typeof(Text));
-                  stx.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = stx.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(170f, 24f);
-                      rt.anchoredPosition = new Vector2(-117.0f, -79.5f);
-                  }
-                  Text tx = stx.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 12;
-                      tx.alignment = TextAnchor.UpperLeft;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Kich thuoc menu";
-                  } }
-                { GameObject szTr = new GameObject("__nvhSizeTrk",
-                      typeof(RectTransform), typeof(Image));
-                  szTr.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = szTr.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(194f, 16f);
-                      rt.anchoredPosition = new Vector2(87.0f, -85.5f);
-                  }
-                  Image im = szTr.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
-                      im.raycastTarget = true;
-                  } }
-                { GameObject szFl = new GameObject("__nvhSizeFill",
-                      typeof(RectTransform), typeof(Image));
-                  szFl.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
-                  RectTransform rt = szFl.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(97f, 16f);
-                      rt.anchoredPosition = new Vector2(38.5f, -85.5f);
-                  }
-                  Image im = szFl.GetComponent<Image>();
-                  if (im != null) {
-                      im.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
-                      im.raycastTarget = false;
-                  } }
-                { GameObject ph0 = new GameObject("__nvhPh3",
-                      typeof(RectTransform), typeof(Text));
-                  ph0.transform.SetParent(GameObject.Find("__nvhPage3").transform, false);
-                  RectTransform rt = ph0.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(640f, 60f);
-                      rt.anchoredPosition = new Vector2(-110.0f, 52.5f);
-                  }
-                  Text tx = ph0.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 18;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Skin: doi bang lenh chat /skin <n>";
-                  } }
-                { GameObject ph1 = new GameObject("__nvhPh4",
-                      typeof(RectTransform), typeof(Text));
-                  ph1.transform.SetParent(GameObject.Find("__nvhPage4").transform, false);
-                  RectTransform rt = ph1.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(640f, 60f);
-                      rt.anchoredPosition = new Vector2(-110.0f, 52.5f);
-                  }
-                  Text tx = ph1.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 18;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Ho tro tuong: chua bat (P4)";
-                  } }
-                { GameObject ph2 = new GameObject("__nvhPh5",
-                      typeof(RectTransform), typeof(Text));
-                  ph2.transform.SetParent(GameObject.Find("__nvhPage5").transform, false);
-                  RectTransform rt = ph2.GetComponent<RectTransform>();
-                  if (rt != null) {
-                      rt.anchorMin = new Vector2(0.5f, 0.5f);
-                      rt.anchorMax = new Vector2(0.5f, 0.5f);
-                      rt.pivot = new Vector2(0.5f, 0.5f);
-                      rt.sizeDelta = new Vector2(640f, 60f);
-                      rt.anchoredPosition = new Vector2(-110.0f, 52.5f);
-                  }
-                  Text tx = ph2.GetComponent<Text>();
-                  if (tx != null) {
-                      Font f = null;
-                      try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (Exception) { }
-                      if (f != null) tx.font = f;
-                      tx.fontSize = 18;
-                      tx.alignment = TextAnchor.MiddleCenter;
-                      tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                      tx.verticalOverflow = VerticalWrapMode.Overflow;
-                      tx.supportRichText = false;
-                      tx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
-                      tx.raycastTarget = false;
-                      tx.text = "Chia se map: chua bat";
-                  } }
+                wGo = new GameObject("__nvhRule0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(635f, 2f);
+                    wRt.anchoredPosition = new Vector2(-102.5f, 209.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.22f, 0.24f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(-72.0f, 73.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw0Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "ESP tong";
+                }
+                wGo = new GameObject("__nvhSwTrack0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(-72.0f, 7.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw1Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "ESP quai";
+                }
+                wGo = new GameObject("__nvhSwTrack1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(268.0f, -58.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw2Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "An duong tuong";
+                }
+                wGo = new GameObject("__nvhSwTrack2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw3", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(268.0f, 7.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw3Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Banner skin";
+                }
+                wGo = new GameObject("__nvhSwTrack3", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob3", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw3").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw4", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(-72.0f, -58.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw4Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Aim muc tieu";
+                }
+                wGo = new GameObject("__nvhSwTrack4", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob4", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw4").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSw5", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(268.0f, 73.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw5Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Cam xa";
+                }
+                wGo = new GameObject("__nvhSwTrack5", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob5", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw5").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAim0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(205f, 56f);
+                    wRt.anchoredPosition = new Vector2(-117.5f, -69.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhAim0Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhAim0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(200f, 52f);
+                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Aim don dau";
+                }
+                wGo = new GameObject("__nvhAimTrk0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(102f, 26f);
+                    wRt.anchoredPosition = new Vector2(381.0f, -56.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAimFill0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(51f, 26f);
+                    wRt.anchoredPosition = new Vector2(355.5f, -56.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAim1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(205f, 56f);
+                    wRt.anchoredPosition = new Vector2(-117.5f, -136.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhAim1Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhAim1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(200f, 52f);
+                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Do nhay";
+                }
+                wGo = new GameObject("__nvhAimTrk1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(102f, 26f);
+                    wRt.anchoredPosition = new Vector2(381.0f, -123.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAimFill1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(51f, 26f);
+                    wRt.anchoredPosition = new Vector2(355.5f, -123.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAim2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(205f, 56f);
+                    wRt.anchoredPosition = new Vector2(-117.5f, -203.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.145f, 0.158f, 0.17f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhAim2Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhAim2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(200f, 52f);
+                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Chon muc tieu";
+                }
+                wGo = new GameObject("__nvhAimTrk2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(102f, 26f);
+                    wRt.anchoredPosition = new Vector2(381.0f, -190.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhAimFill2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(51f, 26f);
+                    wRt.anchoredPosition = new Vector2(355.5f, -190.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSensTrk", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(280f, 26f);
+                    wRt.anchoredPosition = new Vector2(238.0f, -30.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSensFill", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(140f, 26f);
+                    wRt.anchoredPosition = new Vector2(168.0f, -30.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhMem0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(320f, 48f);
+                    wRt.anchoredPosition = new Vector2(-60.0f, 88.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhMem0Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 44f);
+                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Auto trung tri";
+                }
+                wGo = new GameObject("__nvhMemTrack0", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhMem1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(320f, 48f);
+                    wRt.anchoredPosition = new Vector2(-60.0f, 28.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhMem1Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 44f);
+                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Auto boc pha";
+                }
+                wGo = new GameObject("__nvhMemTrack1", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem1").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhMem2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(320f, 48f);
+                    wRt.anchoredPosition = new Vector2(-60.0f, -31.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhMem2Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 44f);
+                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 20;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Auto bang";
+                }
+                wGo = new GameObject("__nvhMemTrack2", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhMem2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSizeTitle", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(170f, 24f);
+                    wRt.anchoredPosition = new Vector2(-117.0f, -79.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 12;
+                    wTx.alignment = TextAnchor.UpperLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Kich thuoc menu";
+                }
+                wGo = new GameObject("__nvhSizeTrk", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(194f, 16f);
+                    wRt.anchoredPosition = new Vector2(87.0f, -85.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.098f, 0.098f, 0.114f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSizeFill", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage2").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(97f, 16f);
+                    wRt.anchoredPosition = new Vector2(38.5f, -85.5f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.2f, 0.66f, 0.95f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhPh3", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage3").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(640f, 60f);
+                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 18;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Skin: doi bang lenh chat /skin <n>";
+                }
+                wGo = new GameObject("__nvhPh4", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage4").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(640f, 60f);
+                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 18;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Ho tro tuong: chua bat (P4)";
+                }
+                wGo = new GameObject("__nvhPh5", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage5").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(640f, 60f);
+                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 18;
+                    wTx.alignment = TextAnchor.MiddleCenter;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.58f, 0.61f, 0.65f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Chia se map: chua bat";
+                }
 
                 }
 
