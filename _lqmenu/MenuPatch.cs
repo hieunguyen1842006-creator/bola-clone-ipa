@@ -85,9 +85,10 @@ namespace NucleusDrive.Logic
                     catch (Exception) { }
                 }
 
-                // config/paint 5 Hz; touch chạy mọi frame có chạm
+                // config/paint 5 Hz; touch chạy mọi frame có chạm; 2 lượt đầu
+                // bắt buộc vẽ (dựng canvas ngay, không đợi mốc %20)
                 __mStage = 3;
-                bool doSlow = ((__mMenuCalls % 20) == 0);
+                bool doSlow = ((__mMenuCalls % 20) == 0) || __mMenuCalls <= 2;
                 int tcount = 0;
                 try { tcount = Input.touchCount; } catch (Exception) { tcount = 0; }
                 if (!doSlow && tcount == 0) return;
@@ -216,7 +217,7 @@ namespace NucleusDrive.Logic
                         prt.anchorMax = new Vector2(0.5f, 0.5f);
                         prt.pivot = new Vector2(0.5f, 0.5f);
                         prt.sizeDelta = new Vector2(900f, 525f);
-                        prt.anchoredPosition = Vector2.zero;
+                        prt.anchoredPosition = new Vector2(0f, 0f);
                     }
                     Image pi = p.GetComponent<Image>();
                     if (pi != null)
@@ -1844,8 +1845,10 @@ namespace NucleusDrive.Logic
                         if (zr != null) zr.sizeDelta = new Vector2(97f + zu * 97f, 16f);
                     }
 
-                    // nhịp tim + ĐO cấu trúc thật: B1 trần không cho biết vì sao
-                    // vô hình. Ghi số đo để phân biệt canvas chết / widget 0 kích thước.
+                    // nhịp tim + probe chia khâu V8. Mỗi phép đo CHỈ dùng API đã
+                    // được payload chạy-thật chứng minh (soát chéo LQFull/LQHud):
+                    // get_localScale + get_renderMode loại — là 2 API unproven,
+                    // v1.6 chết đúng ở đó nên mất file diag.
                     try
                     {
                         string hb = System.Environment.GetEnvironmentVariable("HOME");
@@ -1856,24 +1859,21 @@ namespace NucleusDrive.Logic
                                                         (beat == 0) ? "B0" : "B1");
                             if (__mMenuCalls <= 60)
                             {
-                                // Probe chạy SAU mọi thứ khác và ghi được file đầu
-                                // tiên — nếu file đầu có mà file sau không, API ngay
-                                // sau mốc đó là thứ IFix không resolve được.
-                                // KHÔNG nối chuỗi với số (ToString() trên số sai trong IFix).
-                                string diag = "V7;P0";
-                                System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_diag.txt", diag);
+                                string diag = "V8";
                                 try
                                 {
+                                    diag = diag + (PlayerPrefs.GetInt("__nvhMenuOpen", 1) != 0
+                                        ? ";open=1" : ";open=0");
                                     GameObject dcv = GameObject.Find("__nvhMenuCanvas");
                                     diag = diag + (dcv == null ? ";cv=NULL" : ";cv=1");
                                     System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_diag.txt", diag);
                                     if (dcv != null)
                                     {
                                         diag = diag + (dcv.activeInHierarchy ? ";act=1" : ";act=0");
-                                        Canvas dc = dcv.GetComponent<Canvas>();
-                                        diag = diag + (dc == null ? ";canvas=NULL"
-                                            : (dc.renderMode == RenderMode.ScreenSpaceOverlay
-                                               ? ";rm=overlay" : ";rm=OTHER"));
+                                        diag = diag + (dcv.transform.parent == null
+                                            ? ";root=1" : ";root=0");
+                                        Canvas dc = dcv.GetComponent(typeof(Canvas)) as Canvas;
+                                        diag = diag + (dc == null ? ";canvas=NULL" : ";canvas=1");
                                         System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_diag.txt", diag);
                                     }
                                 }
@@ -1885,7 +1885,8 @@ namespace NucleusDrive.Logic
                                     if (dp != null)
                                     {
                                         diag = diag + (dp.activeInHierarchy ? ";pact=1" : ";pact=0");
-                                        RectTransform dpRT = dp.GetComponent<RectTransform>();
+                                        RectTransform dpRT = dp.GetComponent(typeof(RectTransform))
+                                            as RectTransform;
                                         if (dpRT == null) diag = diag + ";prt=NULL";
                                         else
                                         {
@@ -1897,8 +1898,6 @@ namespace NucleusDrive.Logic
                                                 && pp.y > -500f && pp.y < 500f
                                                 ? ";pos=OK" : ";pos=OFF");
                                         }
-                                        Vector3 ps = dp.transform.localScale;
-                                        diag = diag + (ps.x > 0.5f ? ";scale=OK" : ";scale=0");
                                         diag = diag + (dp.transform.childCount > 3
                                             ? ";child=OK" : ";child=FEW");
                                     }
@@ -1911,6 +1910,8 @@ namespace NucleusDrive.Logic
                                         ? ";screen=OK" : ";screen=SMALL");
                                     GameObject dop = GameObject.Find("__nvhOpener");
                                     diag = diag + (dop == null ? ";opener=NULL" : ";opener=1");
+                                    GameObject desp = GameObject.Find("iFix.HiddenHeroLines.v4");
+                                    diag = diag + (desp == null ? ";espcv=NULL" : ";espcv=1");
                                 }
                                 catch (Exception) { }
                                 System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_diag.txt", diag);
@@ -1926,31 +1927,24 @@ namespace NucleusDrive.Logic
                     __mStage = 7;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Ghi NỘI DUNG lỗi — "E" trần không nói được chết ở đâu.
+                // Không GetType()/FullName/Message — GetType unproven, chết ngay
+                // trong catch → mất cả file lỗi. Chỉ ghép stage bằng hằng chuỗi.
                 try
                 {
                     string h = System.Environment.GetEnvironmentVariable("HOME");
                     if (h != null && h.Length > 0)
                     {
-                        string msg = "E";
-                        try { msg = ex.GetType().FullName + "|" + ex.Message; }
-                        catch (Exception) { }
-                        try { msg = msg + "|stage=" + __mStage; }
-                        catch (Exception) { }
-                        // Báo khối đã chạy trọn một lượt trước đó (nếu có).
-                        try
-                        {
-                            if (__mStage == 7)
-                                System.IO.File.WriteAllText(h + "/Documents/nvh_menu_stage.txt", "OK");
-                        }
-                        catch (Exception) { }
+                        string msg = (__mStage <= 2) ? "E2"
+                                   : (__mStage <= 3) ? "E3"
+                                   : (__mStage <= 4) ? "E4"
+                                   : (__mStage <= 6) ? "E6"
+                                   : "E7";
                         System.IO.File.WriteAllText(h + "/Documents/nvh_menu_err.txt", msg);
                     }
                     else
                     {
-                        // HOME null (sandbox chặn) — vẫn ghi cạnh prefs nếu được.
                         try
                         {
                             System.IO.File.WriteAllText(
