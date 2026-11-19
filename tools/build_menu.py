@@ -98,16 +98,15 @@ def write_cfg(path: str) -> None:
 
     out = bytearray()
     # 1 nhom class — 2 hook (xem MenuPatch.cs):
-    #   NucleusDrive.Logic.LFramework   :: get_frameSynchr()  -> Void (menu block only)
+    #   CTimerManager                   :: Update()  -> Void  (host proven menuesp,
+    #     main thread, moi frame, IFix tu sinh trampoline cho base.Update())
     #   LDataProvider.PlayerBase        :: IsAtMyTeam(Int32,Int32) -> Boolean
     # isMatch() cua IFix so ca danh sach param, nen phai khai DUNG so luong +
     # ten kieu tung param.
-    # KHONG hook NetworkModule::UpdateFrame nua — thay than goc = chet bom mang
-    # = treo load. merge_menu_vm22.py goi block menu tu vm22 co san.
     out += struct.pack("<i", 2)
-    out += s("NucleusDrive.Logic.LFramework")
+    out += s("CTimerManager")
     out += struct.pack("<i", 1)
-    out += s("get_frameSynchr") + s("System.Void")
+    out += s("Update") + s("System.Void")
     out += struct.pack("<i", 0)                       # 0 param
     out += s("LDataProvider.PlayerBase")
     out += struct.pack("<i", 1)
@@ -119,7 +118,7 @@ def write_cfg(path: str) -> None:
     out += struct.pack("<i", 0)
     # field moi
     out += struct.pack("<i", 1)                       # 1 class co field moi
-    out += s("NucleusDrive.Logic.LFramework")
+    out += s("CTimerManager")
     out += struct.pack("<i", len(fields))
     for ft, name in fields:
         out += s(name) + s(ft)

@@ -5,11 +5,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import merge_menu as mm
-from build_menu34_pack import parse_lq2
+import merge_menu as mm  # noqa: E402
+from build_menu34_pack import parse_lq2  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
-BRANCHES = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
 
 
 def hs2(path):
@@ -18,42 +17,37 @@ def hs2(path):
     return mm.lqmb_parse(body)
 
 
-def check(original, merged):
-    old = original["blocks"][22]["instrs"]
-    new = merged["blocks"][22]["instrs"]
-    boundary = len(old) // 2 - 2
-    menu_vm = len(original["blocks"])
-    inserted = [(164, 0), (45, (1 << 16) | menu_vm)]
-    assert list(zip(new[2 * boundary::2], new[2 * boundary + 1::2])) == (
-        inserted + [(72, 16), (173, 1)]
-    ), "menu exit must push this, Call argc1, then preserve original return"
-    seen = 0
-    for pc in range(boundary):
-        opcode, operand = old[2 * pc:2 * pc + 2]
-        if opcode in BRANCHES:
-            target = pc + operand
-            expected = target if target <= boundary else target + len(inserted)
-            assert new[2 * pc] == opcode and pc + new[2 * pc + 1] == expected, (
-                f"branch pc{pc} skips menu: expected target {expected}"
-            )
-            seen += target == boundary
-        else:
-            assert new[2 * pc:2 * pc + 2] == [opcode, operand], f"vm22 pc{pc} changed"
-    assert seen == 6, f"expected all 6 original return branches, got {seen}"
-    assert merged["blocks"][22]["handlers"] == original["blocks"][22]["handlers"]
-    assert merged["interpret"] == original["interpret"], "hook table changed"
-    for vm in range(menu_vm):
-        if vm != 22:
-            assert merged["blocks"][vm] == original["blocks"][vm], f"original vm{vm} changed"
+def check_hooks(original, merged, menu):
+    """Hook table: 6 classic + CTimerManager::Update; trampoline IL present."""
+    inter = merged["interpret"]
+    assert len(inter) == 7, f"hooks phai 7, thay {len(inter)}"
+    assert all(h["method"]["name"] != "UpdateFrame" for h in inter), \
+        "khong duoc con hook UpdateFrame (thay than goc = treo load)"
+    upd = [h for h in inter if h["method"]["name"] == "Update"]
+    assert len(upd) == 1, "phai dung 1 hook CTimerManager::Update"
+    decl = merged["types"][upd[0]["method"]["declType"]].split(",")[0]
+    assert decl == "CTimerManager", f"hook decl phai CTimerManager, thay {decl}"
+
+    # Classic blocks + tables must be byte-identical prefixes.
     for table in ("types", "methods", "strings", "fields"):
-        assert merged[table][:len(original[table])] == original[table], f"{table} prefix changed"
-    menu = merged["blocks"][menu_vm]
-    returns = [menu["instrs"][i + 1] for i in range(0, len(menu["instrs"]), 2)
-               if menu["instrs"][i] == 173]
-    assert returns and set(returns) == {0}, "menu must return void"
-    assert all(h[0] != 0 or (0 <= h[1] < len(merged["types"]) and
-               "System.Exception," in merged["types"][h[1]])
-               for h in menu["handlers"]), "catch type not remapped to System.Exception"
+        assert merged[table][:len(original[table])] == original[table], \
+            f"{table} prefix changed"
+    for vm in range(len(original["blocks"])):
+        assert merged["blocks"][vm] == original["blocks"][vm], \
+            f"Classic vm{vm} changed"
+
+    # Trampoline IL inside the hook block (pattern proven by menuesp vm42).
+    blk = merged["blocks"][upd[0]["vm"]]
+    i2 = blk["instrs"]
+    fld_of = lambda idx: (merged["fields"][idx]["name"]
+                          if 0 <= idx < len(merged["fields"]) else "?")
+    assert any(i2[2 * k] == 60 and fld_of(i2[2 * k + 1]) == "wrapperArray"
+               for k in range(len(i2) // 2)), "thieu Ldsfld wrapperArray"
+    assert any(i2[2 * k] == 122 and merged["methods"][i2[2 * k + 1] & 0xFFFF]["name"] == "Update"
+               and (i2[2 * k + 1] >> 16) == 1
+               for k in range(len(i2) // 2)), "thieu CallExtern host::Update argc1"
+    assert any(i2[2 * k] == 175 for k in range(len(i2) // 2)), "thieu Stelem_Ref"
+
     counters = {f["name"] for f in merged["fields"] if f["isNew"]}
     assert {"__mCalls", "__mMenuCalls"} <= counters, "menu counter aliases Classic counter"
 
@@ -68,7 +62,6 @@ TOKEN_TABLES = {
 
 
 def label(table, entry):
-    """Human-stable identity of a metadata entry, independent of its index."""
     if table == "types":
         return entry.split(",")[0].strip()
     if table == "methods":
@@ -106,5 +99,11 @@ if __name__ == "__main__":
     original = hs2(os.path.join(ROOT, "Resources", "LQFull.bytes"))
     merged = hs2(sys.argv[1] if len(sys.argv) > 1 else
                  os.path.join(ROOT, "Resources", "LQFullMenu34.bytes"))
-    check(original, merged)
-    print("PASS: 6 return branches reach menu; this/void/catch types valid; Classic unchanged")
+    # nguồn so token = MenuT.bytes (đã gắn trampoline, cùng kích thước merged)
+    menut = os.path.join(ROOT, "_lqmenu", "MenuT.bytes")
+    menu, _, _, _ = mm.load(menut if os.path.exists(menut)
+                            else os.path.join(ROOT, "_lqmenu", "Menu.bytes"))
+    check_hooks(original, merged, menu)
+    check_tokens(menu, merged, 0, merged["interpret"][-1]["vm"])
+    print("PASS: 7 hooks (6 classic + CTimerManager::Update); trampoline IL present; "
+          "Classic unchanged; token audit OK")

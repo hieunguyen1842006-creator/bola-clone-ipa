@@ -122,21 +122,23 @@ using UnityEngine.UI;
 
 [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
 
-namespace NucleusDrive.Logic
+// Stub cùng tên+namespace với class THẬT của game (global namespace) — IFix
+// khớp hook theo full name. Self-call Update() → translator fork sinh
+// trampoline giữ thân gốc (bằng chứng vm42 menuesp: wrapperArray → null slot
+// → CallExtern gốc → restore).
+public class CTimerManager
 {
-    public class LFramework
-    {
-        // Field mới — danh sách này PHẢI khớp regex tools/build_menu.py:write_cfg().
-        // Khai trên LFramework vì Call từ vm22 truyền this = LFramework instance.
-        public int __mMenuCalls;
-        // Mốc tiến trình — ghi kèm thông báo lỗi để biết chết ở khâu nào.
-        // 1=đã vào block 2=fetch config 3=throttle qua 4=canvas xong 5=panel xong 6=widgets xong
-        public int __mStage;
+    // Field mới — danh sách này PHẢI khớp regex tools/build_menu.py:write_cfg().
+    public int __mMenuCalls;
+    // Mốc tiến trình: 1=vào block 2=config 3=throttle 4=canvas 6=widget 7=xong.
+    public int __mStage;
 
-        // void: block này được vm22 GỌI thẳng (Call), không phải hook thân method.
-        // Ret 0 giữ stack cân bằng — caller không phải Pop.
-        public void get_frameSynchr()
-        {
+    public void Update()
+    {
+        // Thân hook = MENU ONLY. Trampoline gọi thân gốc được GẮN THỦ CÔNG
+        // bởi tools/tramp.py sau build (copy IL chuẩn vm42 của payload thật —
+        // wrapperArray → null slot → CallExtern gốc → restore).
+
             // Local dùng chung cho mọi widget. KHÔNG khai báo trong từng scope:
             // csc sẽ cấp slot riêng cho mỗi scope, đẩy locals lên >140 — module 290
             // (đã chạy trên máy) chỉ dùng tối đa 54. Dùng chung giữ locals thấp.
@@ -668,7 +670,6 @@ TAIL = '''
                 catch (Exception) { }
             }
         }
-    }
 }
 '''
 

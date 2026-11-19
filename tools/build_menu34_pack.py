@@ -84,6 +84,14 @@ def main():
     if not os.path.exists(MENU):
         raise SystemExit("thiếu %s — chạy build_menu.py trước" % MENU)
 
+    # Gắn trampoline giữ thân gốc CTimerManager::Update (IL chuẩn vm42 menuesp).
+    menut = os.path.join(ROOT, "_lqmenu", "MenuT.bytes")
+    rc = subprocess.run([sys.executable, os.path.join(HERE, "tramp.py"),
+                         MENU, menut, "CTimerManager", "Update"], cwd=ROOT)
+    if rc.returncode != 0:
+        raise SystemExit("tramp.py thất bại")
+    menu_file = menut
+
     entries = parse_lq2(open(SRC_PACK, "rb").read())
     print("== LQFull có %d file: %s" % (len(entries), [n for n, _ in entries]))
 
@@ -96,9 +104,9 @@ def main():
     open(p2, "wb").write(hs2)
 
     hs2_menu = os.path.join(WORK, "HeroSkin_2_menu34.bytes")
-    print("== merge menu vào HeroSkin_2 (splice vm22, không hook UpdateFrame)")
+    print("== merge menu vào HeroSkin_2 (hook CTimerManager::Update, trampoline)")
     rc = subprocess.run([sys.executable, os.path.join(HERE, "merge_menu_vm22.py"),
-                         p2, MENU, hs2_menu], cwd=ROOT)
+                         p2, menu_file, hs2_menu], cwd=ROOT)
     if rc.returncode != 0:
         raise SystemExit("merge_menu_vm22.py thất bại")
 
@@ -111,10 +119,10 @@ def main():
     print("   HeroSkin_2: %d hook, %d block" % (len(h2), b2))
     if "UpdateFrame" in h2:
         raise SystemExit("HeroSkin_2 còn hook UpdateFrame — sẽ treo load!")
-    if "get_frameSynchr" not in h2:
-        raise SystemExit("HeroSkin_2 mất hook get_frameSynchr — trùng hook!")
-    if len(h2) != 6:
-        raise SystemExit("HeroSkin_2 phải đúng 6 hook, thấy %d" % len(h2))
+    if "Update" not in h2:
+        raise SystemExit("HeroSkin_2 mất hook CTimerManager::Update")
+    if len(h2) != 7:
+        raise SystemExit("HeroSkin_2 phải đúng 7 hook, thấy %d" % len(h2))
 
     out = build_lq2([("HeroSkin_1.bytes", new_hs1), ("HeroSkin_2.bytes", new_hs2)])
     open(OUT_PACK, "wb").write(out)
