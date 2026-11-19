@@ -96,11 +96,11 @@ def main():
     open(p2, "wb").write(hs2)
 
     hs2_menu = os.path.join(WORK, "HeroSkin_2_menu34.bytes")
-    print("== merge menu vào HeroSkin_2")
-    rc = subprocess.run([sys.executable, os.path.join(HERE, "merge_menu.py"),
+    print("== merge menu vào HeroSkin_2 (splice vm22, không hook UpdateFrame)")
+    rc = subprocess.run([sys.executable, os.path.join(HERE, "merge_menu_vm22.py"),
                          p2, MENU, hs2_menu], cwd=ROOT)
     if rc.returncode != 0:
-        raise SystemExit("merge_menu.py thất bại")
+        raise SystemExit("merge_menu_vm22.py thất bại")
 
     new_hs1 = hs1
     new_hs2 = open(hs2_menu, "rb").read()
@@ -109,10 +109,12 @@ def main():
     h2, b2 = hook_names(hs2_menu, "HeroSkin_2")
     print("   HeroSkin_1: %d hook, %d block" % (len(h1), b1))
     print("   HeroSkin_2: %d hook, %d block" % (len(h2), b2))
-    if "UpdateFrame" not in h2:
-        raise SystemExit("HeroSkin_2 thiếu hook UpdateFrame — merge sai")
+    if "UpdateFrame" in h2:
+        raise SystemExit("HeroSkin_2 còn hook UpdateFrame — sẽ treo load!")
     if "get_frameSynchr" not in h2:
         raise SystemExit("HeroSkin_2 mất hook get_frameSynchr — trùng hook!")
+    if len(h2) != 6:
+        raise SystemExit("HeroSkin_2 phải đúng 6 hook, thấy %d" % len(h2))
 
     out = build_lq2([("HeroSkin_1.bytes", new_hs1), ("HeroSkin_2.bytes", new_hs2)])
     open(OUT_PACK, "wb").write(out)

@@ -102,6 +102,8 @@ def write_cfg(path: str) -> None:
     #   LDataProvider.PlayerBase        :: IsAtMyTeam(Int32,Int32) -> Boolean
     # isMatch() cua IFix so ca danh sach param, nen phai khai DUNG so luong +
     # ten kieu tung param.
+    # KHONG hook NetworkModule::UpdateFrame nua — thay than goc = chet bom mang
+    # = treo load. merge_menu_vm22.py goi block menu tu vm22 co san.
     out += struct.pack("<i", 2)
     out += s("NucleusDrive.Logic.LFramework")
     out += struct.pack("<i", 1)
