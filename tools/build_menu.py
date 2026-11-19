@@ -98,7 +98,7 @@ def write_cfg(path: str) -> None:
 
     out = bytearray()
     # 1 nhom class — 2 hook (xem MenuPatch.cs):
-    #   NucleusDrive.Logic.LFramework   :: get_frameSynchr()  -> LFrameSynchr
+    #   NucleusDrive.Logic.LFramework   :: get_frameSynchr()  -> Void (menu block only)
     #   LDataProvider.PlayerBase        :: IsAtMyTeam(Int32,Int32) -> Boolean
     # isMatch() cua IFix so ca danh sach param, nen phai khai DUNG so luong +
     # ten kieu tung param.
@@ -107,7 +107,7 @@ def write_cfg(path: str) -> None:
     out += struct.pack("<i", 2)
     out += s("NucleusDrive.Logic.LFramework")
     out += struct.pack("<i", 1)
-    out += s("get_frameSynchr") + s("NucleusDrive.Logic.LFrameSynchr")
+    out += s("get_frameSynchr") + s("System.Void")
     out += struct.pack("<i", 0)                       # 0 param
     out += s("LDataProvider.PlayerBase")
     out += struct.pack("<i", 1)

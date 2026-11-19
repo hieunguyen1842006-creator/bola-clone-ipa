@@ -9,14 +9,11 @@ LQFull, device-proven, chay moi frame) ngay truoc return.
 Cach lam:
   1. Remap toan bo index cua Menu.bytes sang HS2 (dung lai Remap cua merge_menu).
   2. Append block menu vao cuoi dst.blocks — KHONG dang ky interpret hook.
-  3. Chen `Call newBlock` vao vm22 tai pc1010 (ngay truoc Ldloc16/Ret cuoi):
-       pc1009 Br 1 -> 1011  (Bo qua Call khi _frameSynchr == null)
-       pc1010 Call newBlock (this = arg0 = LFramework -> __mCalls hop le)
-       pc1011 Ldloc16       (giu nguyen)
-       pc1012 Ret 1
-     Stack tai pc1010 rong; menu block tu quan ly stack (arg0 doc, khong an).
-  4. Branch dich >= 1010: +1. Handler offset >= 1010: +1 (16 handler, khong Switch).
-  5. Bo hook IsAtMyTeam cua menu neu trung (IFix 1 hook/method — giu hook dst).
+  3. Chen Ldarg0 / Call argc1 tai pc1010 (truoc Ldloc16/Ret cuoi).
+     Moi branch ve pc1010 PHAI van den pc1010, khong nhay qua menu.
+     Menu tra void, vm22 van tra LFrameSynchr nhu cu.
+  4. Chi dich > 1010 moi doi offset; cac handler ket thuc truoc pc1010 giu nguyen.
+  5. Giu nguyen bang hook cua dst.
 
 Chay: python tools/merge_menu_vm22.py <HS2.bytes> <Menu.bytes> <out.bytes>
 """
@@ -73,13 +70,16 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
                 if tgt not in vmap:
                     raise SystemExit(f"menu block {sbi} Call vm{tgt} ngoai pham vi")
                 ins[k + 1] = ((op >> 16) << 16) | vmap[tgt]
+        for handler in dst["blocks"][dbi]["handlers"]:
+            handler[1] = rp.type_(menu, handler[1])
     for i in range(len(menu["fields"])):
         rp.field_(menu, i)
 
-    # menu phai khai field __mCalls tren LFramework (this cua vm22)
+    # Separate counter: sharing __mCalls would alter Classic's modulo-20 polling.
     f0 = menu["fields"][0]
+    assert f0["name"] == "__mMenuCalls"
     assert menu["types"][f0["declType"]].split(",")[0] == "NucleusDrive.Logic.LFramework", \
-        "field __mCalls phai khai tren LFramework — gen_menu34 chua doi?"
+        "field __mMenuCalls phai khai tren LFramework — gen_menu34 chua doi?"
     m0 = menu["interpret"][0]["method"]
     assert menu["types"][m0["declType"]].split(",")[0] == "NucleusDrive.Logic.LFramework" \
         and m0["name"] == "get_frameSynchr", "menu hook phai la LFramework::get_frameSynchr"
@@ -97,23 +97,23 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
     assert ins[2 * 1011] == 173 and ins[2 * 1011 + 1] == 1, "pc1011 phai Ret 1"
     assert not any(ins[2 * i] == 149 for i in range(n)), "vm22 co Switch — dung splice"
 
-    # branch dich >= INSERT_PC: +1 (pc1009 Br 1 -> 2 de bo qua Call)
-    nfix = 0
-    for i in range(n):
-        c, o = ins[2 * i], ins[2 * i + 1]
-        if c in BR_OPS and i + o >= INSERT_PC:
-            ins[2 * i + 1] = o + 1
-            nfix += 1
-    # handler: [type, ?, tryStart, tryEnd, handlerStart, handlerEnd] — offset >= INSERT_PC +1
+    # All six return branches must land on the inserted Ldarg0, not skip it.
+    inserted = [164, 0, OP_CALL, (1 << 16) | new_vm]
+    width = len(inserted) // 2
+    for pc in range(n):
+        code, operand = ins[2 * pc:2 * pc + 2]
+        if code in BR_OPS:
+            target = pc + operand
+            moved_pc = pc + (width if pc >= INSERT_PC else 0)
+            moved_target = target + (width if target > INSERT_PC else 0)
+            ins[2 * pc + 1] = moved_target - moved_pc
     for h in b22["handlers"]:
         for j in (2, 3, 4, 5):
-            if h[j] >= INSERT_PC:
-                h[j] += 1
+            assert h[j] < INSERT_PC, "handler overlaps menu insertion boundary"
 
-    call_op = (0 << 16) | new_vm       # argc=0, this lay tu arg0
-    ins[2 * INSERT_PC:2 * INSERT_PC] = [OP_CALL, call_op]
-    print(f"   vm22: +Call vm{new_vm} @pc{INSERT_PC}, {nfix} branch +1, "
-          f"{len(b22['handlers'])} handler remap, len={len(ins)//2}")
+    ins[2 * INSERT_PC:2 * INSERT_PC] = inserted
+    print(f"   vm22: +Ldarg0/Call argc1 vm{new_vm} @pc{INSERT_PC}, "
+          f"return branches preserved, len={len(ins)//2}")
 
     # ---- 3. roundtrip + verify ----
     body = mm.lqmb_serialize(dst)
@@ -125,12 +125,12 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
 
     b = back["blocks"][22]
     i2 = b["instrs"]
-    assert len(i2) // 2 == 1013
-    assert i2[2 * 1009 + 1] == 2 and i2[2 * 1009 + 2] == OP_CALL
-    assert (i2[2 * 1009 + 3] & 0xFFFF) == new_vm
-    assert i2[2 * 1011] == 72 and i2[2 * 1012] == 173
+    assert len(i2) // 2 == 1014
+    assert i2[2 * 1009 + 1] == 1
+    assert i2[2 * 1010:2 * 1012] == inserted
+    assert i2[2 * 1012:] == [72, 16, 173, 1]
     for h in b["handlers"]:
-        assert all(0 <= h[j] <= 1013 for j in (2, 3, 4, 5)), f"handler vuot bien: {h}"
+        assert all(0 <= h[j] <= 1014 for j in (2, 3, 4, 5)), f"handler vuot bien: {h}"
 
     # block goc tru vm22 phai khong doi
     for i in range(22):
@@ -151,7 +151,11 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
                 assert (o & 0xFFFF) < len(back["types"])
             elif c == OP_CALL:
                 assert (o & 0xFFFF) < len(back["blocks"])
-    print("   verify OK: 6 hook, vm22+1 lenh, block moi trong pham vi")
+    # Compare against the original input, not the already-modified destination.
+    original, *_ = mm.load(dst_path)
+    from test_menu_vm22 import check
+    check(original, back)
+    print("   verify OK: 6 return branches reach menu; argc1/Ret0/catch remap valid")
 
     out = mm.resd_encrypt(body, dres, dtag, denc)
     open(out_path, "wb").write(out)

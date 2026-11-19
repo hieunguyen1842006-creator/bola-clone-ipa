@@ -40,16 +40,15 @@ using UnityEngine.UI;
 
 namespace NucleusDrive.Logic
 {
-    // Stub return type — chỉ để csc biên dịch; thân thật do vm22 gốc đảm nhiệm.
-    public class LFrameSynchr { }
-
     public class LFramework
     {
         // Field mới — danh sách này PHẢI khớp regex tools/build_menu.py:write_cfg().
         // Khai trên LFramework vì Call từ vm22 truyền this = LFramework instance.
-        public int __mCalls;
+        public int __mMenuCalls;
 
-        public LFrameSynchr get_frameSynchr()
+        // void: block này được vm22 GỌI thẳng (Call), không phải hook thân method.
+        // Ret 0 giữ stack cân bằng — caller không phải Pop.
+        public void get_frameSynchr()
         {
             // Local dùng chung cho mọi widget. KHÔNG khai báo trong từng scope:
             // csc sẽ cấp slot riêng cho mỗi scope, đẩy locals lên >140 — module 290
@@ -67,13 +66,13 @@ namespace NucleusDrive.Logic
 
             try
             {
-                __mCalls = __mCalls + 1;
+                __mMenuCalls = __mMenuCalls + 1;
 
                 // config/paint 5 Hz; touch chạy mọi frame có chạm
-                bool doSlow = ((__mCalls % 20) == 0);
+                bool doSlow = ((__mMenuCalls % 20) == 0);
                 int tcount = 0;
                 try { tcount = Input.touchCount; } catch (Exception) { tcount = 0; }
-                if (!doSlow && tcount == 0) return null;
+                if (!doSlow && tcount == 0) return;
 
                 bool open = PlayerPrefs.GetInt("__nvhMenuOpen", 1) != 0;
                 GameObject cv = GameObject.Find("__nvhMenuCanvas");
@@ -160,7 +159,7 @@ namespace NucleusDrive.Logic
                             }
                         }
                     }
-                    return null;
+                    return;
                 }
 
                 // ================= MỞ: dựng lần đầu =================
@@ -1830,7 +1829,7 @@ namespace NucleusDrive.Logic
                         string hb = System.Environment.GetEnvironmentVariable("HOME");
                         if (hb != null && hb.Length > 0)
                         {
-                            int beat = (__mCalls / 20) % 2;
+                            int beat = (__mMenuCalls / 20) % 2;
                             System.IO.File.WriteAllText(hb + "/Documents/nvh_menu_hb.txt",
                                                         (beat == 0) ? "B0" : "B1");
                         }
@@ -1848,7 +1847,6 @@ namespace NucleusDrive.Logic
                 }
                 catch (Exception) { }
             }
-            return null;
         }
     }
 }

@@ -3,7 +3,7 @@
 """build_menu34_pack.py — đóng gói LQFullMenu34.bytes (LQ2) từ:
 
     HeroSkin_1.bytes   lấy nguyên từ LQFull.bytes   (42 hook — skin/aim/zoom/…)
-    HeroSkin_2.bytes   LQFull.bytes + Menu.bytes     (7 hook + menu UI)
+    HeroSkin_2.bytes   LQFull.bytes + Menu.bytes     (6 hook, menu gọi từ vm22)
 
 rồi sinh LQFullMenu34.vault.
 
@@ -119,6 +119,11 @@ def main():
     out = build_lq2([("HeroSkin_1.bytes", new_hs1), ("HeroSkin_2.bytes", new_hs2)])
     open(OUT_PACK, "wb").write(out)
     print("== ghi %s (%d B)" % (OUT_PACK, len(out)))
+
+    # Validate return-path reachability, not merely hook counts or serialization.
+    rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "test_menu_vm22.py")], cwd=ROOT)
+    if rc.returncode != 0:
+        raise SystemExit("test_menu_vm22.py thất bại")
 
     # vault
     rc = subprocess.run([sys.executable, os.path.join(HERE, "make_vault.py")], cwd=ROOT)
