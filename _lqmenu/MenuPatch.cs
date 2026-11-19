@@ -45,6 +45,9 @@ namespace NucleusDrive.Logic
         // Field mới — danh sách này PHẢI khớp regex tools/build_menu.py:write_cfg().
         // Khai trên LFramework vì Call từ vm22 truyền this = LFramework instance.
         public int __mMenuCalls;
+        // Mốc tiến trình — ghi kèm thông báo lỗi để biết chết ở khâu nào.
+        // 1=đã vào block 2=fetch config 3=throttle qua 4=canvas xong 5=panel xong 6=widgets xong
+        public int __mStage;
 
         // void: block này được vm22 GỌI thẳng (Call), không phải hook thân method.
         // Ret 0 giữ stack cân bằng — caller không phải Pop.
@@ -67,22 +70,23 @@ namespace NucleusDrive.Logic
             try
             {
                 __mMenuCalls = __mMenuCalls + 1;
+                __mStage = 2;
 
-                // Mốc chẩn đoán: "A" = block ĐÃ được gọi ít nhất 1 lần.
-                // Không có A = vm22 không tới được lệnh Call (sai splice).
-                // Có A mà không có B0/B1 = có exception (xem nvh_menu_err.txt).
+                // Mốc chẩn đoán: "S1" = block ĐÃ được gọi ít nhất 1 lần.
+                // Không có file = vm22 không tới được lệnh Call (sai splice).
                 if (__mMenuCalls == 1)
                 {
                     try
                     {
                         string hb0 = System.Environment.GetEnvironmentVariable("HOME");
                         if (hb0 != null && hb0.Length > 0)
-                            System.IO.File.WriteAllText(hb0 + "/Documents/nvh_menu_hb.txt", "A");
+                            System.IO.File.WriteAllText(hb0 + "/Documents/nvh_menu_hb.txt", "S1");
                     }
                     catch (Exception) { }
                 }
 
                 // config/paint 5 Hz; touch chạy mọi frame có chạm
+                __mStage = 3;
                 bool doSlow = ((__mMenuCalls % 20) == 0);
                 int tcount = 0;
                 try { tcount = Input.touchCount; } catch (Exception) { tcount = 0; }
@@ -90,6 +94,7 @@ namespace NucleusDrive.Logic
 
                 bool open = PlayerPrefs.GetInt("__nvhMenuOpen", 1) != 0;
                 GameObject cv = GameObject.Find("__nvhMenuCanvas");
+                __mStage = 4;
 
                 // ================= ĐÓNG: chỉ icon nổi =================
                 if (!open)
@@ -193,6 +198,7 @@ namespace NucleusDrive.Logic
                     UnityEngine.Object.DontDestroyOnLoad(cv);
                 }
                 cv.SetActive(true);
+                __mStage = 4;
 
                 float dragX = PlayerPrefs.GetFloat("__nvhPanelX", 0f);
                 float dragY = PlayerPrefs.GetFloat("__nvhPanelY", 0f);
@@ -1556,6 +1562,7 @@ namespace NucleusDrive.Logic
                 }
 
                 // ---- áp vị trí kéo + tab đang chọn ----
+                __mStage = 6;
                 GameObject panelGo = GameObject.Find("__nvhPanel");
                 if (panelGo != null)
                 {
@@ -1849,15 +1856,46 @@ namespace NucleusDrive.Logic
                         }
                     }
                     catch (Exception) { }
+                    __mStage = 7;
+                }
+                else
+                {
+                    // Khung không vẽ (throttle) vẫn đánh dấu: khối chạy hết, không lỗi.
+                    __mStage = 7;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Ghi NỘI DUNG lỗi — "E" trần không nói được chết ở đâu.
                 try
                 {
                     string h = System.Environment.GetEnvironmentVariable("HOME");
                     if (h != null && h.Length > 0)
-                        System.IO.File.WriteAllText(h + "/Documents/nvh_menu_err.txt", "E");
+                    {
+                        string msg = "E";
+                        try { msg = ex.GetType().FullName + "|" + ex.Message; }
+                        catch (Exception) { }
+                        try { msg = msg + "|stage=" + __mStage; }
+                        catch (Exception) { }
+                        // Báo khối đã chạy trọn một lượt trước đó (nếu có).
+                        try
+                        {
+                            if (__mStage == 7)
+                                System.IO.File.WriteAllText(h + "/Documents/nvh_menu_stage.txt", "OK");
+                        }
+                        catch (Exception) { }
+                        System.IO.File.WriteAllText(h + "/Documents/nvh_menu_err.txt", msg);
+                    }
+                    else
+                    {
+                        // HOME null (sandbox chặn) — vẫn ghi cạnh prefs nếu được.
+                        try
+                        {
+                            System.IO.File.WriteAllText(
+                                "/var/mobile/Documents/nvh_menu_err.txt", "NOHOME");
+                        }
+                        catch (Exception) { }
+                    }
                 }
                 catch (Exception) { }
             }
