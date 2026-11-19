@@ -655,8 +655,11 @@ public final class AppModel: ObservableObject {
                         self.lqModMenuModeInjected = (pack == .menu34)
                         UserDefaults.standard.set(self.lqModMenuModeInjected,
                                                   forKey: "nvh.lq.modmenu.injected")
-                        // dọn log + file chẩn đoán của đời cũ (đã bỏ dò tướng)
-                        for n in [LQModConfig.logFileName, "nvh_detect.txt", "nvh_skin.txt"] {
+                        // dọn log + file chẩn đoán của đời cũ (đã bỏ dò tướng).
+                        // Xoá cả file chẩn đoán menu: kết quả cũ sẽ đọc nhầm là mới.
+                        for n in [LQModConfig.logFileName, "nvh_detect.txt", "nvh_skin.txt",
+                                  "nvh_menu_hb.txt", "nvh_menu_diag.txt",
+                                  "nvh_menu_err.txt", "nvh_menu_stage.txt"] {
                             try? live.remove(n, in: self.game)
                         }
                     }
