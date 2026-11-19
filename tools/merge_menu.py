@@ -41,19 +41,28 @@ OP_LDFLD = 0xA7
 OP_STFLD = 0x4B
 OP_LDSFLD = 0x3C
 OP_NEWOBJ = 0x49          # operand = (argc<<16) | ctorMethodId
-OP_CASTCLASS = 0x58
-OP_CASTCLASS2 = 0x18
-OP_CASTCLASS3 = 0x8A
-OP_BOX = 0x22
-OP_NEWARR = 0x59
-OP_LDTOKEN = 0x5E
-OP_INITOBJ = 0x97
-OP_CONSTRAINED = 0x16
+# ID LQMB lay tu opcode_table_lqmb_full.json — KHONG doan theo IL chuan.
+OP_CASTCLASS = 88         # Castclass
+OP_CASTCLASS2 = 24        # Isinst
+OP_BOX = 161              # Box   (0x22 la Ldflda — tung lam menu chet vi box sai type)
+OP_UNBOX = 135            # Unbox
+OP_UNBOX_ANY = 133        # Unbox_Any
+OP_NEWARR = 89            # Newarr
+OP_LDTOKEN = 94           # Ldtype
+OP_LDTOKEN2 = 95          # Ldtoken
+OP_INITOBJ = 151          # Initobj
+OP_CONSTRAINED = 22       # Constrained
+OP_LDELEMA = 99           # Ldelema
+OP_LDELEM_ANY = 82        # Ldelem_Any
+OP_STELEM_ANY = 23        # Stelem_Any
+OP_LDOBJ = 172            # Ldobj
+OP_STOBJ = 96             # Stobj
 
 # opcode ma operand LA TYPE INDEX thuan
-TYPE_OPS = {OP_CASTCLASS, OP_CASTCLASS2, OP_CASTCLASS3, OP_BOX,
-            OP_NEWARR, OP_LDTOKEN, OP_INITOBJ, OP_CONSTRAINED}
-FIELD_OPS = {OP_LDFLD, OP_STFLD, OP_LDSFLD}
+TYPE_OPS = {OP_CASTCLASS, OP_CASTCLASS2, OP_BOX, OP_UNBOX, OP_UNBOX_ANY,
+            OP_NEWARR, OP_LDTOKEN, OP_LDTOKEN2, OP_INITOBJ, OP_CONSTRAINED,
+            OP_LDELEMA, OP_LDELEM_ANY, OP_STELEM_ANY, OP_LDOBJ, OP_STOBJ}
+FIELD_OPS = {OP_LDFLD, OP_STFLD, OP_LDSFLD, 34, 97, 85}   # + Ldflda/Ldsflda/Stsfld
 
 
 def load(path: str, res_name: str | None = None):

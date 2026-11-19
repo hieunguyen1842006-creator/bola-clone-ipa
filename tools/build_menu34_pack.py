@@ -120,7 +120,7 @@ def main():
     open(OUT_PACK, "wb").write(out)
     print("== ghi %s (%d B)" % (OUT_PACK, len(out)))
 
-    # Validate return-path reachability, not merely hook counts or serialization.
+    # Validate return-path reachability and token identity, not merely hook counts.
     rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "test_menu_vm22.py")], cwd=ROOT)
     if rc.returncode != 0:
         raise SystemExit("test_menu_vm22.py thất bại")

@@ -152,6 +152,20 @@ namespace NucleusDrive.Logic
             {
                 __mMenuCalls = __mMenuCalls + 1;
 
+                // Mốc chẩn đoán: "A" = block ĐÃ được gọi ít nhất 1 lần.
+                // Không có A = vm22 không tới được lệnh Call (sai splice).
+                // Có A mà không có B0/B1 = có exception (xem nvh_menu_err.txt).
+                if (__mMenuCalls == 1)
+                {
+                    try
+                    {
+                        string hb0 = System.Environment.GetEnvironmentVariable("HOME");
+                        if (hb0 != null && hb0.Length > 0)
+                            System.IO.File.WriteAllText(hb0 + "/Documents/nvh_menu_hb.txt", "A");
+                    }
+                    catch (Exception) { }
+                }
+
                 // config/paint 5 Hz; touch chạy mọi frame có chạm
                 bool doSlow = ((__mMenuCalls % 20) == 0);
                 int tcount = 0;

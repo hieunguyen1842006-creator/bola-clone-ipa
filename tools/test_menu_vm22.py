@@ -58,6 +58,50 @@ def check(original, merged):
     assert {"__mCalls", "__mMenuCalls"} <= counters, "menu counter aliases Classic counter"
 
 
+TOKEN_TABLES = {
+    mm.OP_LDSTR: "strings",
+    mm.OP_CALLEXTERN: "methods",
+    mm.OP_NEWOBJ: "methods",
+    **{op: "fields" for op in mm.FIELD_OPS},
+    **{op: "types" for op in mm.TYPE_OPS},
+}
+
+
+def label(table, entry):
+    """Human-stable identity of a metadata entry, independent of its index."""
+    if table == "types":
+        return entry.split(",")[0].strip()
+    if table == "methods":
+        return entry["name"]
+    if table == "fields":
+        return entry["name"]
+    return entry
+
+
+def check_tokens(source, destination, src_vm, dst_vm):
+    """Every token operand must still point at the same named entry.
+
+    A wrong opcode id silently skips remapping and leaves a source index in the
+    destination table: `box System.Int32` then boxes CSProtocol.CSPkg, the menu
+    throws inside its own try, its catch swallows it, and nothing is drawn.
+    """
+    s = source["blocks"][src_vm]["instrs"]
+    d = destination["blocks"][dst_vm]["instrs"]
+    assert len(s) == len(d), f"block size changed: {len(s) // 2} -> {len(d) // 2}"
+    checked = 0
+    for k in range(0, len(s) - 1, 2):
+        table = TOKEN_TABLES.get(s[k])
+        if table is None:
+            continue
+        want = label(table, source[table][s[k + 1] & 0xFFFF])
+        got = label(table, destination[table][d[k + 1] & 0xFFFF])
+        assert want == got, (
+            f"pc{k // 2} opcode {s[k]}: {table}[{s[k + 1] & 0xFFFF}] is "
+            f"{want!r} in source but {got!r} in payload")
+        checked += 1
+    assert checked > 1000, f"token audit covered only {checked} operands"
+
+
 if __name__ == "__main__":
     original = hs2(os.path.join(ROOT, "Resources", "LQFull.bytes"))
     merged = hs2(sys.argv[1] if len(sys.argv) > 1 else

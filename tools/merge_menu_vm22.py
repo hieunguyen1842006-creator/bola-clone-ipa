@@ -153,9 +153,11 @@ def merge(dst_path: str, menu_path: str, out_path: str) -> None:
                 assert (o & 0xFFFF) < len(back["blocks"])
     # Compare against the original input, not the already-modified destination.
     original, *_ = mm.load(dst_path)
-    from test_menu_vm22 import check
+    from test_menu_vm22 import check, check_tokens
     check(original, back)
-    print("   verify OK: 6 return branches reach menu; argc1/Ret0/catch remap valid")
+    check_tokens(menu, back, 0, new_vm)
+    print("   verify OK: 6 return branches reach menu; argc1/Ret0/catch remap valid; "
+          "token audit passed")
 
     out = mm.resd_encrypt(body, dres, dtag, denc)
     open(out_path, "wb").write(out)
