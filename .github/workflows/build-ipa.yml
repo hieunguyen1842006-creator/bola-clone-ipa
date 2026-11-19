@@ -40,7 +40,7 @@ jobs:
         run: |
           APP=build/Build/Products/Release-iphoneos/NVHMOD.app
           MISSING=0
-          for f in NVHMenu.vault NeutralPatch.vault LQHud.vault LQUnlock.vault NVHLQ.vault; do
+          for f in NVHMenu.vault NeutralPatch.vault LQHud.vault LQUnlock.vault NVHLQ.vault LQFull.vault LQFullMenu34.vault; do
             if [ ! -f "$APP/$f" ]; then echo "THIEU: $f"; MISSING=1; fi
           done
           if [ "$MISSING" = "1" ]; then

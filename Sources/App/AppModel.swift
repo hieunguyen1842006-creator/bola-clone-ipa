@@ -37,6 +37,15 @@ public final class AppModel: ObservableObject {
     /// Gói hotfix đang chọn cho Liên Quân (Patch máy / Full HUD / NVH Beta / Unlock skin).
     @Published public var lqPack: LQPack =
         LQPack(rawValue: UserDefaults.standard.string(forKey: "nvh.lq.pack") ?? "") ?? .runtime
+
+    /// Kiểu chạy Full Mod AOV: `false` = Classic (app điều khiển),
+    /// `true` = Menu34 (menu cảm ứng trong game). Đổi = INJECT lại.
+    @Published public var lqModMenuMode: Bool =
+        UserDefaults.standard.bool(forKey: "nvh.lq.modmenu")
+
+    /// Kiểu đã ghi vào máy lần INJECT gần nhất — để cảnh báo lệch.
+    @Published public var lqModMenuModeInjected: Bool =
+        UserDefaults.standard.bool(forKey: "nvh.lq.modmenu.injected")
     /// Cấu hình cho payload NVH Beta (đọc từ Documents/lqcfg.txt).
     @Published public var lqEsp: Bool = UserDefaults.standard.bool(forKey: "nvh.lq.esp")
     @Published public var lqHud: Bool =
@@ -597,10 +606,15 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    /// Nút INJECT cho Liên Quân — luôn deploy Full Mod AOV (LQFull),
-    /// cấu hình tính năng do thẻ trong app điều khiển (PlayerPrefs của game).
+    /// Nút INJECT cho Liên Quân — deploy gói đang chọn (`lqPack`).
+    ///
+    /// `.fullMod` (Classic) → cấu hình do app điều khiển qua `nvh_aov.txt` +
+    /// PlayerPrefs. `.menu34` → payload có thêm hook `NetworkModule::UpdateFrame`
+    /// dựng menu cảm ứng trong game; app vẫn ghi được config nhưng menu là
+    /// nguồn chính.
     private func injectLQ() {
-        let pack = LQPack.fullMod
+        // Chỉ hai gói Full Mod dùng chung đường inject Liên Quân.
+        let pack: LQPack = (lqPack == .menu34) ? .menu34 : .fullMod
         // Gói runtime: không cần payload trong app, tự đọc file gốc của game.
         if !pack.usesBundledPayload {
             injectLQRuntime()
@@ -632,6 +646,10 @@ public final class AppModel: ObservableObject {
                     if outcome.ok {
                         // cấu hình toggle hiện tại → PlayerPrefs của game luôn
                         self.pushAOVConfig(via: live)
+                        // nhớ kiểu chạy đã ghi, để cảnh báo khi người dùng đổi mà chưa INJECT
+                        self.lqModMenuModeInjected = (pack == .menu34)
+                        UserDefaults.standard.set(self.lqModMenuModeInjected,
+                                                  forKey: "nvh.lq.modmenu.injected")
                         // dọn log + file chẩn đoán của đời cũ (đã bỏ dò tướng)
                         for n in [LQModConfig.logFileName, "nvh_detect.txt", "nvh_skin.txt"] {
                             try? live.remove(n, in: self.game)
@@ -733,6 +751,16 @@ public final class AppModel: ObservableObject {
         lqPack = pack
         UserDefaults.standard.set(pack.rawValue, forKey: "nvh.lq.pack")
         toast("Đã chọn gói \(pack.title) — bấm INJECT để áp dụng")
+    }
+
+    /// Đổi kiểu chạy Full Mod: Classic (app) ↔ Menu34 (menu trong game).
+    /// Không ghi file ngay — người dùng bấm INJECT.
+    public func setLQModMenuMode(_ on: Bool) {
+        guard on != lqModMenuMode else { return }
+        lqModMenuMode = on
+        UserDefaults.standard.set(on, forKey: "nvh.lq.modmenu")
+        toast(on ? "Menu trong game — bấm INJECT để áp dụng"
+                 : "Classic (app điều khiển) — bấm INJECT để áp dụng")
     }
 
     private func saveAOV() {

@@ -12,6 +12,9 @@ public enum LQPack: String, CaseIterable, Identifiable {
     case nvhBeta = "nvhbeta"
     case unlockSkin = "unlock"
     case fullMod = "full"
+    /// Cùng 6 hook như `fullMod`, cộng hook `NetworkModule::UpdateFrame`
+    /// (Project_d) dựng menu cảm ứng trong game. Bật/tắt tính năng ngay trong trận.
+    case menu34 = "menu34"
 
     public var id: String { rawValue }
 
@@ -21,7 +24,8 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .hudFull: return "Full HUD"
         case .nvhBeta: return "CAMXA FullSkin"
         case .unlockSkin: return "4in1 LiqiMobi"
-        case .fullMod: return "Full Mod (AOV)"
+        case .fullMod: return "Full Mod (AOV) · Classic"
+        case .menu34: return "Full Mod (AOV) · Menu trong game"
         }
     }
 
@@ -37,6 +41,8 @@ public enum LQPack: String, CaseIterable, Identifiable {
             return "Gói 4in1 LiqiMobi 16/10 (FullSkin/HUD/ESP) — HeroSkin_1 + HeroSkin_2"
         case .fullMod:
             return "32 hook: FullSkin, ESP xuyên tường, aim assist, zoom, tắt privacy, giả host, auto BP/Smite. Guard đã gỡ. Điều khiển bằng toggle trong app (live)."
+        case .menu34:
+            return "33 hook: y hệt Classic, cộng menu cảm ứng trong game (tab/switch/slider). Bật/tắt ngay trong trận, không cần mở app."
         }
     }
 
@@ -47,6 +53,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .nvhBeta: return "bolt.fill"
         case .unlockSkin: return "paintpalette"
         case .fullMod: return "flame.fill"
+        case .menu34: return "square.grid.2x2.fill"
         }
     }
 
@@ -58,6 +65,7 @@ public enum LQPack: String, CaseIterable, Identifiable {
         case .nvhBeta: return "NVHLQ"
         case .unlockSkin: return "LQUnlock"
         case .fullMod: return "LQFull"
+        case .menu34: return "LQFullMenu34"
         }
     }
 

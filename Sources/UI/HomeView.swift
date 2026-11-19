@@ -316,6 +316,24 @@ struct LQModCard: View {
                 }
             }
 
+            // Chọn kiểu chạy — hai payload khác nhau, INJECT lại để đổi.
+            LQSection("KIỂU CHẠY")
+            LQSegRow(title: "Điều khiển",
+                     options: ["CLASSIC", "MENU"],
+                     index: model.lqModMenuMode ? 1 : 0) { i in
+                model.setLQModMenuMode(i == 1)
+            }
+            Text(model.lqModMenuMode
+                 ? "Menu cảm ứng trong game: 3 ngón × 3 lần (2,5 s) hoặc chạm icon M. Bật/tắt ngay trong trận."
+                 : "Toggle trong app → ghi PlayerPrefs. Không có gì hiện trong game.")
+                .font(Theme.monoFont).foregroundStyle(Theme.dim)
+                .fixedSize(horizontal: false, vertical: true)
+            if model.lqModMenuMode != model.lqModMenuModeInjected {
+                Text("⚠ Đã đổi kiểu — bấm INJECT rồi thoát hẳn game, mở lại.")
+                    .font(Theme.monoFont).foregroundStyle(Theme.warn)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             LQToggleRow(title: "ESP xuyên tường",
                         isOn: Binding(get: { model.aovEsp }, set: { model.setAOVEsp($0) }))
             LQToggleRow(title: "Aim assist",
