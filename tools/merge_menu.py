@@ -131,24 +131,41 @@ class Remap:
             return self.t[i]
         full = src["types"][i]
         s = short_name(full)
-        # Generic instantiation (Singleton`1[[X]], PoolObjHandle`1[[Y]]&, ...)
-        # PHẢI khớp nguyên chuỗi — dedupe theo tên ngắn ghép SAI instantiation
-        # (UI3DRoot → Camera_UI3D) làm module tick chết trên máy.
+        # 0. Generic instantiation (Singleton`1[[X]], PoolObjHandle`1[[Y]]&,
+        #    ...) và byref PHẢI khớp nguyên chuỗi — dedupe theo tên ngắn ghép
+        #    SAI instantiation (UI3DRoot → Camera_UI3D) làm tick chết trên máy.
         if "`" in s or s.endswith("&"):
             for j, x in enumerate(self.dst["types"]):
                 if x == full:
                     self.t[i] = j
                     return j
-            self.dst["types"].append(full)
+            self.dst["types"].append(full)   # nguyên bản — module proven strings
             self.t[i] = len(self.dst["types"]) - 1
             return self.t[i]
-        # 1. da co type cung ten trong dst -> DUNG LAI (tranh sinh ban trung
-        #    voi assembly gia — day la nguyen nhan treo luc nap patch)
+        # 1. exact string trước
         for j, x in enumerate(self.dst["types"]):
-            if short_name(x) == s:
+            if x == full:
                 self.t[i] = j
                 return j
-        # 2. type moi: sua assembly cho dung truoc khi them
+        # 2. cùng type nhưng khác version-suffix: chuẩn hoá (bỏ Version/Culture/
+        #    PublicKeyToken SAU instantiation) rồi so — PHẢI CÙNG assembly.
+        #    Dedupe first-short-name-wins ghép NHẦM SkillSlot (NucleusDrive.Logic
+        #    vs Assets.Scripts.GameLogic) — method remap sang type sai → loader
+        #    resolve method chết → cả file HS2 bị vứt (v1.15/16 mất menu).
+        def norm(t):
+            t = t.split("[[")[0] if "[[" in t else t
+            keep = [",".join(part.split(",")[:1]).strip()
+                    if idx >= 1 else part.strip()
+                    for idx, part in enumerate(t.split(", "))]
+            out = ", ".join(k for k in keep if k)
+            return out
+        ns = norm(full)
+        for j, x in enumerate(self.dst["types"]):
+            if norm(x) == ns:
+                self.t[i] = j
+                return j
+        # 3. type mới: thêm NGUYÊN BẢN (chuỗi proven của payload nguồn) —
+        #    fix_assembly có thể phá generic/bằng chứng assembly của module.
         self.dst["types"].append(fix_assembly(full))
         self.t[i] = len(self.dst["types"]) - 1
         return self.t[i]
