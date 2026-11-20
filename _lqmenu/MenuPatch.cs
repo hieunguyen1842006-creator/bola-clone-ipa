@@ -104,7 +104,16 @@ public class CTimerManager
                 // ================= ĐÓNG: chỉ icon nổi =================
                 if (!open)
                 {
-                    if (cv != null) cv.SetActive(false);
+                    // KHÔNG SetActive(false) canvas: canvas inactive thì Find
+                    // không thấy → lần mở sau sẽ DỰNG LẠI toàn bộ menu (rác
+                    // tích tụ; là lý do "tắt mở lại mới hiện nút tab").
+                    // Đẩy panel ra ngoài màn hình thay thế.
+                    GameObject pv = GameObject.Find("__nvhPanel");
+                    if (pv != null)
+                    {
+                        RectTransform pvr = pv.GetComponent<RectTransform>();
+                        if (pvr != null) pvr.anchoredPosition = new Vector2(3000f, 0f);
+                    }
                     if (GameObject.Find("__nvhOpener") == null)
                     {
                         GameObject oCv = new GameObject("__nvhOpenerCv",
@@ -664,7 +673,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(33.0f, 31.0f);
+                    wRt.anchoredPosition = new Vector2(-167.0f, 91.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -731,7 +740,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(33.0f, -35.0f);
+                    wRt.anchoredPosition = new Vector2(-167.0f, 25.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -798,7 +807,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(373.0f, -101.0f);
+                    wRt.anchoredPosition = new Vector2(173.0f, -41.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -865,7 +874,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(373.0f, -35.0f);
+                    wRt.anchoredPosition = new Vector2(173.0f, 25.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -932,7 +941,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(33.0f, -101.0f);
+                    wRt.anchoredPosition = new Vector2(-167.0f, -41.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -999,7 +1008,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(373.0f, 31.0f);
+                    wRt.anchoredPosition = new Vector2(173.0f, 91.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1580,7 +1589,17 @@ public class CTimerManager
                 for (int i = 0; i < 6; i++)
                 {
                     GameObject pg = GameObject.Find("__nvhPage" + i);
-                    if (pg != null && pg.activeSelf != (i == curTab)) pg.SetActive(i == curTab);
+                    if (pg != null)
+                    {
+                        // KHÔNG SetActive(false): Find bỏ qua object inactive,
+                        // page tắt rồi không bao giờ bật lại được. Đẩy ra ngoài
+                        // màn hình thay thế — object vẫn active, Find thấy.
+                        RectTransform pgt2 = pg.GetComponent<RectTransform>();
+                        if (pgt2 != null)
+                            pgt2.anchoredPosition = (i == curTab)
+                                ? new Vector2(105f, -25f)
+                                : new Vector2(3000f, 0f);
+                    }
                     GameObject tb = GameObject.Find("__nvhTab" + i);
                     if (tb != null)
                     {

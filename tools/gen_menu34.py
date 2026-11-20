@@ -211,7 +211,16 @@ public class CTimerManager
                 // ================= ĐÓNG: chỉ icon nổi =================
                 if (!open)
                 {
-                    if (cv != null) cv.SetActive(false);
+                    // KHÔNG SetActive(false) canvas: canvas inactive thì Find
+                    // không thấy → lần mở sau sẽ DỰNG LẠI toàn bộ menu (rác
+                    // tích tụ; là lý do "tắt mở lại mới hiện nút tab").
+                    // Đẩy panel ra ngoài màn hình thay thế.
+                    GameObject pv = GameObject.Find("__nvhPanel");
+                    if (pv != null)
+                    {
+                        RectTransform pvr = pv.GetComponent<RectTransform>();
+                        if (pvr != null) pvr.anchoredPosition = new Vector2(3000f, 0f);
+                    }
                     if (GameObject.Find("__nvhOpener") == null)
                     {
                         GameObject oCv = new GameObject("__nvhOpenerCv",
@@ -315,7 +324,17 @@ TAIL = '''
                 for (int i = 0; i < 6; i++)
                 {
                     GameObject pg = GameObject.Find("__nvhPage" + i);
-                    if (pg != null && pg.activeSelf != (i == curTab)) pg.SetActive(i == curTab);
+                    if (pg != null)
+                    {
+                        // KHÔNG SetActive(false): Find bỏ qua object inactive,
+                        // page tắt rồi không bao giờ bật lại được. Đẩy ra ngoài
+                        // màn hình thay thế — object vẫn active, Find thấy.
+                        RectTransform pgt2 = pg.GetComponent<RectTransform>();
+                        if (pgt2 != null)
+                            pgt2.anchoredPosition = (i == curTab)
+                                ? new Vector2(105f, -25f)
+                                : new Vector2(3000f, 0f);
+                    }
                     GameObject tb = GameObject.Find("__nvhTab" + i);
                     if (tb != null)
                     {
@@ -795,8 +814,8 @@ def build():
     for i, lab in enumerate(sw_labels):
         cell = order[i]
         col, row = cell % 2, cell // 2
-        wx = 214 + 340 * col
-        wy = 162 + 66 * row
+        wx = 14 + 340 * col          # spec 214/554 là hệ PANEL; page bắt đầu x200
+        wy = 102 + 66 * row          # spec 162/228/294 là hệ PANEL; page bắt đầu y60
         parts.append(img_block(f"sw{i}", 'GameObject.Find("__nvhPage0")',
                                f"__nvhSw{i}", (wx, wy, 328, 54),
                                (0.125, 0.132, 0.142, 1.0), True))
