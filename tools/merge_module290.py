@@ -83,8 +83,32 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     assert len(rets) == 1, f"menu block phải có đúng 1 Ret, thấy {len(rets)}"
     ret_pc = rets[0]
     assert not any(ins[2 * k] == OP_SWITCH for k in range(n)), "menu block có Switch"
+    # dispatcher có GATE: đọc pref "nvh.m290.on" (mặc định TẮT) trước khi gọi
+    # tick module — lỗi module không được kéo menu chết cùng.
+    gate_str = None
+    for j, t in enumerate(dst["strings"]):
+        if t == "nvh.m290.on":
+            gate_str = j
+            break
+    if gate_str is None:
+        dst["strings"].append("nvh.m290.on")
+        gate_str = len(dst["strings"]) - 1
+    getint = None
+    for j, m in enumerate(dst["methods"]):
+        if (m["name"] == "GetInt"
+                and dst["types"][m["declType"]].split(",")[0] == "UnityEngine.PlayerPrefs"
+                and len(m["params"]) == 2):
+            getint = j
+            break
+    assert getint is not None, "thiếu PlayerPrefs::GetInt(argc2) trong dst"
+    disp = [mm.OP_LDSTR, gate_str,
+            143, 0,                       # Ldc_I4 0
+            122, (2 << 16) | getint,      # CallExtern PlayerPrefs::GetInt argc2
+            134, 3,                       # Brfalse -> Ret (pcI+6)
+            OP_LDARG, 0,
+            OP_CALL, (1 << 16) | tick_dst]
     insert_pc = ret_pc          # ngay trước Ret cuối
-    width = 2
+    width = len(disp) // 2      # 6 lệnh
     BR = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
     for k in range(n):
         if ins[2 * k] in BR:
@@ -95,8 +119,9 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
         for j in (2, 3, 4, 5):
             if h[j] >= insert_pc:
                 h[j] += width
-    ins[2 * insert_pc:2 * insert_pc] = [OP_LDARG, 0, OP_CALL, (1 << 16) | tick_dst]
-    print(f"   dispatcher: vm{menu_vm} pc{insert_pc} += Ldarg0/Call vm{tick_dst} (module tick)")
+    ins[2 * insert_pc:2 * insert_pc] = disp
+    print(f"   dispatcher: vm{menu_vm} pc{insert_pc} += gate(nvh.m290.on) "
+          f"/ Ldarg0 / Call vm{tick_dst}")
 
     # ---- roundtrip + verify ----
     body = mm.lqmb_serialize(dst)
@@ -105,8 +130,8 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     assert back["nextAlloc"] == len(back["blocks"])
     assert len(back["interpret"]) == 7, f"hooks phải 7, thấy {len(back['interpret'])}"
     i2 = back["blocks"][menu_vm]["instrs"]
-    assert i2[2 * insert_pc:2 * (insert_pc + 2)] == [OP_LDARG, 0, OP_CALL, (1 << 16) | tick_dst]
-    assert i2[2 * (insert_pc + 2)] == OP_RET
+    assert i2[2 * insert_pc:2 * insert_pc + len(disp)] == disp
+    assert i2[2 * (insert_pc + width)] == OP_RET
     # mọi operand của block mới trong phạm vi
     for bi in range(base, len(back["blocks"])):
         ins2 = back["blocks"][bi]["instrs"]

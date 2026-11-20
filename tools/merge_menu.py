@@ -131,6 +131,17 @@ class Remap:
             return self.t[i]
         full = src["types"][i]
         s = short_name(full)
+        # Generic instantiation (Singleton`1[[X]], PoolObjHandle`1[[Y]]&, ...)
+        # PHẢI khớp nguyên chuỗi — dedupe theo tên ngắn ghép SAI instantiation
+        # (UI3DRoot → Camera_UI3D) làm module tick chết trên máy.
+        if "`" in s or s.endswith("&"):
+            for j, x in enumerate(self.dst["types"]):
+                if x == full:
+                    self.t[i] = j
+                    return j
+            self.dst["types"].append(full)
+            self.t[i] = len(self.dst["types"]) - 1
+            return self.t[i]
         # 1. da co type cung ten trong dst -> DUNG LAI (tranh sinh ban trung
         #    voi assembly gia — day la nguyen nhan treo luc nap patch)
         for j, x in enumerate(self.dst["types"]):
