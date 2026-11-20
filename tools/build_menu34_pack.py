@@ -118,11 +118,17 @@ def main():
     if rc.returncode != 0:
         raise SystemExit("strip_hs1_menu.py thất bại")
     hs2_m290 = os.path.join(WORK, "HeroSkin_2_m290.bytes")
-    module290 = os.path.join(os.path.dirname(ROOT), "_v2", "MODULE290", "module.bin")
-    rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "merge_module290.py"),
-                         hs2_menu, module290, hs2_m290], cwd=ROOT)
-    if rc.returncode != 0:
-        raise SystemExit("merge_module290.py thất bại")
+    if os.environ.get("NVH_NO_M290") == "1":
+        # bisect: bỏ ghép module — HS2 giữ menu-only (trạng thái v1.14)
+        import shutil
+        shutil.copyfile(hs2_menu, hs2_m290)
+        print("== NVH_NO_M290=1: skip merge module290 (bisect build)")
+    else:
+        module290 = os.path.join(os.path.dirname(ROOT), "_v2", "MODULE290", "module.bin")
+        rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "merge_module290.py"),
+                             hs2_menu, module290, hs2_m290], cwd=ROOT)
+        if rc.returncode != 0:
+            raise SystemExit("merge_module290.py thất bại")
 
     new_hs1 = open(hs1_menu, "rb").read()
     new_hs2 = open(hs2_m290, "rb").read()
