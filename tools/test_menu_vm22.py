@@ -99,11 +99,18 @@ if __name__ == "__main__":
     original = hs2(os.path.join(ROOT, "Resources", "LQFull.bytes"))
     merged = hs2(sys.argv[1] if len(sys.argv) > 1 else
                  os.path.join(ROOT, "Resources", "LQFullMenu34.bytes"))
-    # nguồn so token = MenuT.bytes (đã gắn trampoline, cùng kích thước merged)
-    menut = os.path.join(ROOT, "_lqmenu", "MenuT.bytes")
-    menu, _, _, _ = mm.load(menut if os.path.exists(menut)
-                            else os.path.join(ROOT, "_lqmenu", "Menu.bytes"))
-    check_hooks(original, merged, menu)
-    check_tokens(menu, merged, 0, merged["interpret"][-1]["vm"])
+    # nguồn so token = bản sau dispatcher (m290) nếu có, ngược lại MenuT
+    m290 = os.path.join(ROOT, "_lqmenu", "work", "HeroSkin_2_m290.bytes")
+    if os.path.exists(m290):
+        srcp, _, _, _ = mm.load(m290, "HeroSkin_2")
+        svm = merged["interpret"][-1]["vm"]
+        check_hooks(original, merged, None)
+        check_tokens(srcp, merged, svm, svm)
+    else:
+        menut = os.path.join(ROOT, "_lqmenu", "MenuT.bytes")
+        menu, _, _, _ = mm.load(menut if os.path.exists(menut)
+                                else os.path.join(ROOT, "_lqmenu", "Menu.bytes"))
+        check_hooks(original, merged, menu)
+        check_tokens(menu, merged, 0, merged["interpret"][-1]["vm"])
     print("PASS: 7 hooks (6 classic + CTimerManager::Update); trampoline IL present; "
           "Classic unchanged; token audit OK")

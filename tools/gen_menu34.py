@@ -838,19 +838,19 @@ def build():
         parts.append(lbl_block(f"ac{i}Tx", f'GameObject.Find("__nvhAim{i}")', f"__nvhAim{i}Tx",
                                (2, 2, 200, 52), nm, 20, "MiddleCenter",
                                (0.90, 0.91, 0.92, 1.0)))
-        # Aim85_Slider1..3 (780, 306+67i, 102, 26) — 0..60
+        # Aim85_Slider1..3 — page-local nằm gọn (460..562 trong page 690)
         parts.append(img_block(f"a{i}Tr", 'GameObject.Find("__nvhPage1")',
-                               f"__nvhAimTrk{i}", (780, 306 + 67 * i, 102, 26),
+                               f"__nvhAimTrk{i}", (460, 306 + 67 * i, 102, 26),
                                (0.098, 0.098, 0.114, 1.0), False))
         parts.append(img_block(f"a{i}Fl", 'GameObject.Find("__nvhPage1")',
-                               f"__nvhAimFill{i}", (780, 306 + 67 * i, 51, 26),
+                               f"__nvhAimFill{i}", (460, 306 + 67 * i, 51, 26),
                                (0.2, 0.66, 0.95, 1.0), False))
-    # Aim86_Slider (548, 280, 280, 26) — 0..100
+    # Aim86_Slider — page-local (400..680)
     parts.append(img_block("snTr", 'GameObject.Find("__nvhPage1")',
-                           "__nvhSensTrk", (548, 280, 280, 26),
+                           "__nvhSensTrk", (400, 280, 280, 26),
                            (0.098, 0.098, 0.114, 1.0), False))
     parts.append(img_block("snFl", 'GameObject.Find("__nvhPage1")',
-                           "__nvhSensFill", (548, 280, 140, 26),
+                           "__nvhSensFill", (400, 280, 140, 26),
                            (0.2, 0.66, 0.95, 1.0), False))
 
     # ---------------- Page2: 3 hàng auto (key thật) + size slider ----------------

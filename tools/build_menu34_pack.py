@@ -110,8 +110,22 @@ def main():
     if rc.returncode != 0:
         raise SystemExit("merge_menu_vm22.py thất bại")
 
-    new_hs1 = hs1
-    new_hs2 = open(hs2_menu, "rb").read()
+    # MENU pack = bộ tính năng RIÊNG: strip ESP/aim classic khỏi HS1
+    # (Classic pack LQFull.bytes giữ nguyên 42 hook) + HS2 đã merge MODULE290.
+    hs1_menu = os.path.join(WORK, "HeroSkin_1_menu.bytes")
+    rc = subprocess.run([sys.executable, os.path.join(HERE, "strip_hs1_menu.py"),
+                         p1, hs1_menu], cwd=ROOT)
+    if rc.returncode != 0:
+        raise SystemExit("strip_hs1_menu.py thất bại")
+    hs2_m290 = os.path.join(WORK, "HeroSkin_2_m290.bytes")
+    module290 = os.path.join(os.path.dirname(ROOT), "_v2", "MODULE290", "module.bin")
+    rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "merge_module290.py"),
+                         hs2_menu, module290, hs2_m290], cwd=ROOT)
+    if rc.returncode != 0:
+        raise SystemExit("merge_module290.py thất bại")
+
+    new_hs1 = open(hs1_menu, "rb").read()
+    new_hs2 = open(hs2_m290, "rb").read()
 
     h1, b1 = hook_names(p1, "HeroSkin_1")
     h2, b2 = hook_names(hs2_menu, "HeroSkin_2")
