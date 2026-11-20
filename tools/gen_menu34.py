@@ -174,12 +174,14 @@ public class CTimerManager
                 // config/paint 5 Hz; touch chạy mọi frame có chạm; 2 lượt đầu
                 // bắt buộc vẽ (dựng canvas ngay, không đợi mốc %20)
                 __mStage = 3;
-                bool doSlow = ((__mMenuCalls % 20) == 0) || __mMenuCalls <= 2;
+                bool doSlow = ((__mMenuCalls % 20) == 0);
                 int tcount = 0;
                 try { tcount = Input.touchCount; } catch (Exception) { tcount = 0; }
                 if (!doSlow && tcount == 0) return;
 
-                bool open = PlayerPrefs.GetInt("__nvhMenuOpen", 1) != 0;
+                // Mặc định ĐÓNG: boot/login không dựng canvas nặng — chỉ icon nổi.
+                // (E205 ở login do build toàn menu đúng lúc handshake.)
+                bool open = PlayerPrefs.GetInt("__nvhMenuOpen2", 0) != 0;
                 GameObject cv = GameObject.Find("__nvhMenuCanvas");
                 __mStage = 4;
 
@@ -239,7 +241,7 @@ OPENER_LABEL = '''
                             float dy = t0.position.y - (Screen.height * 0.5f + oy);
                             if (dx > -26f && dx < 26f && dy > -25f && dy < 25f)
                             {
-                                PlayerPrefs.SetInt("__nvhMenuOpen", 1);
+                                PlayerPrefs.SetInt("__nvhMenuOpen2", 1);
                                 PlayerPrefs.Save();
                             }
                         }
@@ -319,7 +321,7 @@ TAIL = '''
                         if (lx > 388f && lx < 448f && ly > 203f && ly < 258f)
                         {
                             handled = true;
-                            PlayerPrefs.SetInt("__nvhMenuOpen", 0);
+                            PlayerPrefs.SetInt("__nvhMenuOpen2", 0);
                             PlayerPrefs.Save();
                         }
 
@@ -576,7 +578,7 @@ TAIL = '''
                                 string diag = "V8";
                                 try
                                 {
-                                    diag = diag + (PlayerPrefs.GetInt("__nvhMenuOpen", 1) != 0
+                                    diag = diag + (PlayerPrefs.GetInt("__nvhMenuOpen2", 0) != 0
                                         ? ";open=1" : ";open=0");
                                     GameObject dcv = GameObject.Find("__nvhMenuCanvas");
                                     diag = diag + (dcv == null ? ";cv=NULL" : ";cv=1");
