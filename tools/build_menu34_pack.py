@@ -133,6 +133,13 @@ def main():
     if rc.returncode != 0:
         raise SystemExit("test_menu_vm22.py thất bại")
 
+    # Chạy khối menu trong interpreter IFix cục bộ — bắt lỗi branch/stack trước khi ship.
+    for mode in ("closed", "open"):
+        rc = subprocess.run([sys.executable, "-I", os.path.join(HERE, "vmtest_menu.py"), mode],
+                            cwd=ROOT)
+        if rc.returncode != 0:
+            raise SystemExit("vmtest_menu.py %s thất bại" % mode)
+
     # vault
     rc = subprocess.run([sys.executable, os.path.join(HERE, "make_vault.py")], cwd=ROOT)
     if rc.returncode != 0:
