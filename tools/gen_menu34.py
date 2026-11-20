@@ -20,16 +20,39 @@ SPEC = os.path.join(os.path.dirname(ROOT), "_v2", "MODULE290", "report", "MENU34
 OUT = os.path.join(ROOT, "_lqmenu", "Menu34Full.cs")
 
 # ---------------------------------------------------------------- rect helper (python side)
-def center_rect(x, y, w, h, page_w=900.0, page_h=525.0):
-    """Toạ độ spec (gốc trên-trái panel 900×525) → anchoredPosition neo giữa."""
-    return (x + w / 2.0 - page_w / 2.0, page_h / 2.0 - y - h / 2.0)
+def center_rect(x, y, w, h, pw=900.0, ph=525.0):
+    """Toạ độ spec (gốc trên-trái CHA) → anchoredPosition neo giữa.
+    pw/ph phải là KÍCH THƯỚC CHA TRỰC TIẾP — sai cha = widget lệch cả hệ."""
+    return (x + w / 2.0 - pw / 2.0, ph / 2.0 - y - h / 2.0)
+
+
+_PARENT_DIMS = {
+    "__nvhHeader": (745.0, 65.0),
+    "__nvhClose": (56.0, 50.0),
+    "__nvhOpener": (52.0, 50.0),
+    "__nvhTab": (182.0, 50.0),
+    "__nvhPage": (690.0, 440.0),
+    "__nvhSw": (328.0, 54.0),
+    "__nvhMem": (320.0, 48.0),
+    "__nvhAim": (205.0, 56.0),
+}
+
+
+def _parent_dims(parent):
+    """Suy kích thước CHA TRỰC TIẾP từ chuỗi parent expr của widget."""
+    if parent.strip() == '"p"':
+        return (900.0, 525.0)
+    for k, d in _PARENT_DIMS.items():
+        if k in parent:
+            return d
+    return (900.0, 525.0)
 
 
 def img_block(var, parent, name, rect, color, raycast, indent="                "):
     """Dùng local DÙNG CHUNG (wGo/wRt/wIm) — mỗi widget một scope riêng sẽ đẩy
     locals lên >140; module 290 đã chạy trên máy chỉ dùng tối đa 54."""
     x, y, w, h = rect
-    cx, cy = center_rect(x, y, w, h)
+    cx, cy = center_rect(x, y, w, h, *_parent_dims(parent))
     r, g, b, a = color
     return f"""{indent}wGo = new GameObject("{name}", typeof(RectTransform), typeof(Image));
 {indent}wGo.transform.SetParent({parent}.transform, false);
@@ -55,7 +78,7 @@ def lbl_block(var, parent, name, rect, text, size, align, color, indent="       
     Overload generic 1 tham số <Font>(string) KHÔNG xuất hiện ở bất kỳ payload nào
     đã chạy trên máy, nên không dùng."""
     x, y, w, h = rect
-    cx, cy = center_rect(x, y, w, h)
+    cx, cy = center_rect(x, y, w, h, *_parent_dims(parent))
     r, g, b, a = color
     return f"""{indent}wGo = new GameObject("{name}", typeof(RectTransform), typeof(Text));
 {indent}wGo.transform.SetParent({parent}.transform, false);

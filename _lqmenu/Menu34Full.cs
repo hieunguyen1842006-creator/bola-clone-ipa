@@ -147,7 +147,7 @@ public class CTimerManager
                             wRt.anchorMax = new Vector2(0.5f, 0.5f);
                             wRt.pivot = new Vector2(0.5f, 0.5f);
                             wRt.sizeDelta = new Vector2(52f, 50f);
-                            wRt.anchoredPosition = new Vector2(-424.0f, 237.5f);
+                            wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                         }
                         wTx = wGo.GetComponent<Text>();
                         if (wTx != null) {
@@ -254,7 +254,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(400f, 60f);
-                    wRt.anchoredPosition = new Vector2(-230.0f, 232.5f);
+                    wRt.anchoredPosition = new Vector2(-152.5f, 2.5f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -291,7 +291,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(56f, 50f);
-                    wRt.anchoredPosition = new Vector2(-422.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -328,7 +328,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -365,7 +365,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -402,7 +402,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -439,7 +439,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -476,7 +476,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -513,7 +513,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(172f, 46f);
-                    wRt.anchoredPosition = new Vector2(-359.0f, 237.5f);
+                    wRt.anchoredPosition = new Vector2(0.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -649,7 +649,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(635f, 2f);
-                    wRt.anchoredPosition = new Vector2(-102.5f, 209.5f);
+                    wRt.anchoredPosition = new Vector2(2.5f, 167.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -664,7 +664,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(-72.0f, 73.5f);
+                    wRt.anchoredPosition = new Vector2(33.0f, 31.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -679,7 +679,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -701,7 +701,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -716,7 +716,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -731,7 +731,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(-72.0f, 7.5f);
+                    wRt.anchoredPosition = new Vector2(33.0f, -35.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -746,7 +746,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -768,7 +768,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -783,7 +783,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -798,7 +798,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(268.0f, -58.5f);
+                    wRt.anchoredPosition = new Vector2(373.0f, -101.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -813,7 +813,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -835,7 +835,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -850,7 +850,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -865,7 +865,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(268.0f, 7.5f);
+                    wRt.anchoredPosition = new Vector2(373.0f, -35.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -880,7 +880,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -902,7 +902,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -917,7 +917,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -932,7 +932,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(-72.0f, -58.5f);
+                    wRt.anchoredPosition = new Vector2(33.0f, -101.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -947,7 +947,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -969,7 +969,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -984,7 +984,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -999,7 +999,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(328f, 54f);
-                    wRt.anchoredPosition = new Vector2(268.0f, 73.5f);
+                    wRt.anchoredPosition = new Vector2(373.0f, 31.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1014,7 +1014,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 50f);
-                    wRt.anchoredPosition = new Vector2(-318.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1036,7 +1036,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1051,7 +1051,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(26f, 26f);
-                    wRt.anchoredPosition = new Vector2(-200.0f, 235.5f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1066,7 +1066,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(205f, 56f);
-                    wRt.anchoredPosition = new Vector2(-117.5f, -69.5f);
+                    wRt.anchoredPosition = new Vector2(-12.5f, -112.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1081,7 +1081,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(200f, 52f);
-                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                    wRt.anchoredPosition = new Vector2(-0.5f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1103,7 +1103,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(381.0f, -56.5f);
+                    wRt.anchoredPosition = new Vector2(486.0f, -99.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1118,7 +1118,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(355.5f, -56.5f);
+                    wRt.anchoredPosition = new Vector2(460.5f, -99.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1133,7 +1133,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(205f, 56f);
-                    wRt.anchoredPosition = new Vector2(-117.5f, -136.5f);
+                    wRt.anchoredPosition = new Vector2(-12.5f, -179.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1148,7 +1148,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(200f, 52f);
-                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                    wRt.anchoredPosition = new Vector2(-0.5f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1170,7 +1170,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(381.0f, -123.5f);
+                    wRt.anchoredPosition = new Vector2(486.0f, -166.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1185,7 +1185,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(355.5f, -123.5f);
+                    wRt.anchoredPosition = new Vector2(460.5f, -166.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1200,7 +1200,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(205f, 56f);
-                    wRt.anchoredPosition = new Vector2(-117.5f, -203.5f);
+                    wRt.anchoredPosition = new Vector2(-12.5f, -246.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1215,7 +1215,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(200f, 52f);
-                    wRt.anchoredPosition = new Vector2(-348.0f, 234.5f);
+                    wRt.anchoredPosition = new Vector2(-0.5f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1237,7 +1237,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(381.0f, -190.5f);
+                    wRt.anchoredPosition = new Vector2(486.0f, -233.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1252,7 +1252,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(355.5f, -190.5f);
+                    wRt.anchoredPosition = new Vector2(460.5f, -233.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1267,7 +1267,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(280f, 26f);
-                    wRt.anchoredPosition = new Vector2(238.0f, -30.5f);
+                    wRt.anchoredPosition = new Vector2(343.0f, -73.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1282,7 +1282,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(140f, 26f);
-                    wRt.anchoredPosition = new Vector2(168.0f, -30.5f);
+                    wRt.anchoredPosition = new Vector2(273.0f, -73.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1297,7 +1297,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(320f, 48f);
-                    wRt.anchoredPosition = new Vector2(-60.0f, 88.5f);
+                    wRt.anchoredPosition = new Vector2(45.0f, 46.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1312,7 +1312,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 44f);
-                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(-30.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1334,7 +1334,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(88.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1349,7 +1349,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(320f, 48f);
-                    wRt.anchoredPosition = new Vector2(-60.0f, 28.5f);
+                    wRt.anchoredPosition = new Vector2(45.0f, -14.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1364,7 +1364,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 44f);
-                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(-30.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1386,7 +1386,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(88.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1401,7 +1401,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(320f, 48f);
-                    wRt.anchoredPosition = new Vector2(-60.0f, -31.5f);
+                    wRt.anchoredPosition = new Vector2(45.0f, -74.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1416,7 +1416,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(240f, 44f);
-                    wRt.anchoredPosition = new Vector2(-320.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(-30.0f, 0.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1438,7 +1438,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(96f, 30f);
-                    wRt.anchoredPosition = new Vector2(-202.0f, 238.5f);
+                    wRt.anchoredPosition = new Vector2(88.0f, 0.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1453,7 +1453,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(170f, 24f);
-                    wRt.anchoredPosition = new Vector2(-117.0f, -79.5f);
+                    wRt.anchoredPosition = new Vector2(-12.0f, -122.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1475,7 +1475,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(194f, 16f);
-                    wRt.anchoredPosition = new Vector2(87.0f, -85.5f);
+                    wRt.anchoredPosition = new Vector2(192.0f, -128.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1490,7 +1490,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(97f, 16f);
-                    wRt.anchoredPosition = new Vector2(38.5f, -85.5f);
+                    wRt.anchoredPosition = new Vector2(143.5f, -128.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1505,7 +1505,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(640f, 60f);
-                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                    wRt.anchoredPosition = new Vector2(-5.0f, 10.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1527,7 +1527,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(640f, 60f);
-                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                    wRt.anchoredPosition = new Vector2(-5.0f, 10.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
@@ -1549,7 +1549,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(640f, 60f);
-                    wRt.anchoredPosition = new Vector2(-110.0f, 52.5f);
+                    wRt.anchoredPosition = new Vector2(-5.0f, 10.0f);
                 }
                 wTx = wGo.GetComponent<Text>();
                 if (wTx != null) {
