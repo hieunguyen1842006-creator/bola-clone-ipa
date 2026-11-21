@@ -384,14 +384,15 @@ TAIL = '''
                         // 6 switch (tab ESP) — mỗi ô một PlayerPrefs key thật
                         if (!handled && curTab == 0)
                         {
-                            for (int i = 0; i < 6 && !handled; i++)
+                            // KHỚP BUILD page-local: wx=14+340*col, wy=102+66*row
+                            for (int i = 0; i < 7 && !handled; i++)
                             {
                                 int cell = (i == 1) ? 2 : (i == 2) ? 5 : (i == 3) ? 3
-                                         : (i == 4) ? 4 : (i == 5) ? 1 : 0;
+                                         : (i == 4) ? 4 : (i == 5) ? 1 : i;
                                 int col = cell % 2;
                                 int row = cell / 2;
-                                float cx = 105f + (214f + 340f * col + 164f - 345f);
-                                float cy = -25f + (220f - (162f + 66f * row) - 27f);
+                                float cx = 105f + (14f + 340f * col + 164f - 345f);
+                                float cy = -25f + (220f - (102f + 66f * row) - 27f);
                                 if (lx > cx - 164f && lx < cx + 164f &&
                                     ly > cy - 27f && ly < cy + 27f)
                                 {
@@ -402,6 +403,7 @@ TAIL = '''
                                     else if (i == 3) k = "iFix.Banner.v1";
                                     else if (i == 4) k = "iFix.AIM.TargetMode.v1";
                                     else if (i == 5) k = "iFix.Camera.Zoom.v1";
+                                    else if (i == 6) k = "nvh.m290.on";
                                     int cur = PlayerPrefs.GetInt(k, 0);
                                     PlayerPrefs.SetInt(k, cur == 0 ? 1 : 0);
                                     PlayerPrefs.Save();
@@ -520,7 +522,7 @@ TAIL = '''
                 // ================= VẼ LẠI (5 Hz) =================
                 if (doSlow)
                 {
-                    for (int i = 0; i < 6; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         string k = "iFix.ESP.Enabled.v1";
                         if (i == 1) k = "iFix.ESP.Monster.v1";
@@ -528,6 +530,7 @@ TAIL = '''
                         else if (i == 3) k = "iFix.Banner.v1";
                         else if (i == 4) k = "iFix.AIM.TargetMode.v1";
                         else if (i == 5) k = "iFix.Camera.Zoom.v1";
+                        else if (i == 6) k = "nvh.m290.on";
                         bool on = PlayerPrefs.GetInt(k, 0) != 0;
                         GameObject tr = GameObject.Find("__nvhSwTrack" + i);
                         if (tr != null)
@@ -809,8 +812,8 @@ def build():
     #   iFix.AIM.TargetMode.v1      b22 pc482
     #   iFix.Camera.Zoom.v1         b22 pc717
     sw_labels = ["ESP tong", "ESP quai", "An duong tuong",
-                 "Banner skin", "Aim muc tieu", "Cam xa"]
-    order = [0, 2, 5, 3, 4, 1]      # index widget -> cell
+                 "Banner skin", "Aim muc tieu", "Cam xa", "Tinh nang moi"]
+    order = [0, 2, 5, 3, 4, 1, 6]   # index widget -> cell (6 = hàng 4 cột trái)
     for i, lab in enumerate(sw_labels):
         cell = order[i]
         col, row = cell % 2, cell // 2

@@ -1067,6 +1067,73 @@ public class CTimerManager
                     wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                     wIm.raycastTarget = false;
                 }
+                wGo = new GameObject("__nvhSw6", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhPage0").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(328f, 54f);
+                    wRt.anchoredPosition = new Vector2(-167.0f, -107.0f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.125f, 0.132f, 0.142f, 1.0f);
+                    wIm.raycastTarget = true;
+                }
+                wGo = new GameObject("__nvhSw6Tx", typeof(RectTransform), typeof(Text));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw6").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(240f, 50f);
+                    wRt.anchoredPosition = new Vector2(-32.0f, 0.0f);
+                }
+                wTx = wGo.GetComponent<Text>();
+                if (wTx != null) {
+                    if (wFont != null) wTx.font = wFont;
+                    wTx.fontSize = 22;
+                    wTx.alignment = TextAnchor.MiddleLeft;
+                    wTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    wTx.verticalOverflow = VerticalWrapMode.Overflow;
+                    wTx.supportRichText = false;
+                    wTx.color = new Color(0.9f, 0.91f, 0.92f, 1.0f);
+                    wTx.raycastTarget = false;
+                    wTx.text = "Tinh nang moi";
+                }
+                wGo = new GameObject("__nvhSwTrack6", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw6").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(96f, 30f);
+                    wRt.anchoredPosition = new Vector2(84.0f, 0.0f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(0.61f, 0.76f, 0.91f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
+                wGo = new GameObject("__nvhSwKnob6", typeof(RectTransform), typeof(Image));
+                wGo.transform.SetParent(GameObject.Find("__nvhSw6").transform, false);
+                wRt = wGo.GetComponent<RectTransform>();
+                if (wRt != null) {
+                    wRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    wRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    wRt.pivot = new Vector2(0.5f, 0.5f);
+                    wRt.sizeDelta = new Vector2(26f, 26f);
+                    wRt.anchoredPosition = new Vector2(86.0f, 0.0f);
+                }
+                wIm = wGo.GetComponent<Image>();
+                if (wIm != null) {
+                    wIm.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    wIm.raycastTarget = false;
+                }
                 wGo = new GameObject("__nvhAim0", typeof(RectTransform), typeof(Image));
                 wGo.transform.SetParent(GameObject.Find("__nvhPage1").transform, false);
                 wRt = wGo.GetComponent<RectTransform>();
@@ -1112,7 +1179,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(486.0f, -99.0f);
+                    wRt.anchoredPosition = new Vector2(166.0f, -99.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1127,7 +1194,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(460.5f, -99.0f);
+                    wRt.anchoredPosition = new Vector2(140.5f, -99.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1179,7 +1246,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(486.0f, -166.0f);
+                    wRt.anchoredPosition = new Vector2(166.0f, -166.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1194,7 +1261,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(460.5f, -166.0f);
+                    wRt.anchoredPosition = new Vector2(140.5f, -166.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1246,7 +1313,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(102f, 26f);
-                    wRt.anchoredPosition = new Vector2(486.0f, -233.0f);
+                    wRt.anchoredPosition = new Vector2(166.0f, -233.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1261,7 +1328,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(51f, 26f);
-                    wRt.anchoredPosition = new Vector2(460.5f, -233.0f);
+                    wRt.anchoredPosition = new Vector2(140.5f, -233.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1276,7 +1343,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(280f, 26f);
-                    wRt.anchoredPosition = new Vector2(343.0f, -73.0f);
+                    wRt.anchoredPosition = new Vector2(195.0f, -73.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1291,7 +1358,7 @@ public class CTimerManager
                     wRt.anchorMax = new Vector2(0.5f, 0.5f);
                     wRt.pivot = new Vector2(0.5f, 0.5f);
                     wRt.sizeDelta = new Vector2(140f, 26f);
-                    wRt.anchoredPosition = new Vector2(273.0f, -73.0f);
+                    wRt.anchoredPosition = new Vector2(125.0f, -73.0f);
                 }
                 wIm = wGo.GetComponent<Image>();
                 if (wIm != null) {
@@ -1649,14 +1716,15 @@ public class CTimerManager
                         // 6 switch (tab ESP) — mỗi ô một PlayerPrefs key thật
                         if (!handled && curTab == 0)
                         {
-                            for (int i = 0; i < 6 && !handled; i++)
+                            // KHỚP BUILD page-local: wx=14+340*col, wy=102+66*row
+                            for (int i = 0; i < 7 && !handled; i++)
                             {
                                 int cell = (i == 1) ? 2 : (i == 2) ? 5 : (i == 3) ? 3
-                                         : (i == 4) ? 4 : (i == 5) ? 1 : 0;
+                                         : (i == 4) ? 4 : (i == 5) ? 1 : i;
                                 int col = cell % 2;
                                 int row = cell / 2;
-                                float cx = 105f + (214f + 340f * col + 164f - 345f);
-                                float cy = -25f + (220f - (162f + 66f * row) - 27f);
+                                float cx = 105f + (14f + 340f * col + 164f - 345f);
+                                float cy = -25f + (220f - (102f + 66f * row) - 27f);
                                 if (lx > cx - 164f && lx < cx + 164f &&
                                     ly > cy - 27f && ly < cy + 27f)
                                 {
@@ -1667,6 +1735,7 @@ public class CTimerManager
                                     else if (i == 3) k = "iFix.Banner.v1";
                                     else if (i == 4) k = "iFix.AIM.TargetMode.v1";
                                     else if (i == 5) k = "iFix.Camera.Zoom.v1";
+                                    else if (i == 6) k = "nvh.m290.on";
                                     int cur = PlayerPrefs.GetInt(k, 0);
                                     PlayerPrefs.SetInt(k, cur == 0 ? 1 : 0);
                                     PlayerPrefs.Save();
@@ -1785,7 +1854,7 @@ public class CTimerManager
                 // ================= VẼ LẠI (5 Hz) =================
                 if (doSlow)
                 {
-                    for (int i = 0; i < 6; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         string k = "iFix.ESP.Enabled.v1";
                         if (i == 1) k = "iFix.ESP.Monster.v1";
@@ -1793,6 +1862,7 @@ public class CTimerManager
                         else if (i == 3) k = "iFix.Banner.v1";
                         else if (i == 4) k = "iFix.AIM.TargetMode.v1";
                         else if (i == 5) k = "iFix.Camera.Zoom.v1";
+                        else if (i == 6) k = "nvh.m290.on";
                         bool on = PlayerPrefs.GetInt(k, 0) != 0;
                         GameObject tr = GameObject.Find("__nvhSwTrack" + i);
                         if (tr != null)
