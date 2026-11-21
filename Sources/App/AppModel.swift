@@ -43,6 +43,10 @@ public final class AppModel: ObservableObject {
     @Published public var lqModMenuMode: Bool =
         UserDefaults.standard.bool(forKey: "nvh.lq.modmenu")
 
+    /// Key của module 290 (bên bán payload mới cấp) — ghi thẳng vào prefs game
+    /// lúc INJECT; module có auto-submit tick sẽ tự xác thực với server của nó.
+    @Published public var lqM290Key: String =
+        UserDefaults.standard.string(forKey: "nvh.lq.m290key") ?? ""
     /// Kiểu đã ghi vào máy lần INJECT gần nhất — để cảnh báo lệch.
     @Published public var lqModMenuModeInjected: Bool =
         UserDefaults.standard.bool(forKey: "nvh.lq.modmenu.injected")
@@ -651,6 +655,15 @@ public final class AppModel: ObservableObject {
                     if outcome.ok {
                         // cấu hình toggle hiện tại → PlayerPrefs của game luôn
                         self.pushAOVConfig(via: live)
+                        // key module 290 → pref của game: module tự submit xác
+                        // thực mỗi tick (luồng auto-submit thiết kế sẵn của nó)
+                        if self.game.isLienQuan, !self.lqM290Key.isEmpty {
+                            let ok = LQModConfig.apply(
+                                ["HM_HERO_KEY_V1": self.lqM290Key],
+                                access: live, game: self.game)
+                            self.log(ok ? "m290: đã ghi key module vào prefs game"
+                                        : "m290: không ghi được key module")
+                        }
                         // nhớ kiểu chạy đã ghi, để cảnh báo khi người dùng đổi mà chưa INJECT
                         self.lqModMenuModeInjected = (pack == .menu34)
                         UserDefaults.standard.set(self.lqModMenuModeInjected,

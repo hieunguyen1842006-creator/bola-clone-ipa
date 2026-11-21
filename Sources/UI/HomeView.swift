@@ -337,6 +337,25 @@ struct LQModCard: View {
                      index: model.lqModMenuMode ? 1 : 0) { i in
                 model.setLQModMenuMode(i == 1)
             }
+            if model.lqModMenuMode {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("KEY MODULE 290 (bên bán payload cấp)").font(Theme.monoFont)
+                        .foregroundStyle(Theme.dim)
+                    TextField("dán key vào đây", text: Binding(
+                        get: { model.lqM290Key },
+                        set: {
+                            model.lqM290Key = $0
+                            UserDefaults.standard.set($0, forKey: "nvh.lq.m290key")
+                        }))
+                    .textFieldStyle(.roundedBorder)
+                    .font(Theme.monoFont)
+                    .autocorrelationDisabled()
+                    .textInputAutocapitalization(.never)
+                }
+                Text("Key được ghi vào prefs game lúc INJECT — module tự xác thực với server của nó (auth 300s, tự gia hạn).")
+                    .font(Theme.monoFont).foregroundStyle(Theme.dim)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Text(model.lqModMenuMode
                  ? "Menu cảm ứng trong game: 3 ngón × 3 lần (2,5 s) hoặc chạm icon M. Bật/tắt ngay trong trận."
                  : "Toggle trong app → ghi PlayerPrefs. Không có gì hiện trong game.")
