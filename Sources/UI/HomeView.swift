@@ -349,8 +349,6 @@ struct LQModCard: View {
                         }))
                     .textFieldStyle(.roundedBorder)
                     .font(Theme.monoFont)
-                    .autocorrelationDisabled()
-                    .textInputAutocapitalization(.never)
                 }
                 Text("Key được ghi vào prefs game lúc INJECT — module tự xác thực với server của nó (auth 300s, tự gia hạn).")
                     .font(Theme.monoFont).foregroundStyle(Theme.dim)
