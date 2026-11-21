@@ -155,6 +155,20 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     print(f"   NOP IsGameLogicStarted gates: vm{vm10_dst} x{g1}, vm{vm8_dst} x{g2}")
     assert g1 == 1 and g2 == 1, "không tìm thấy đúng 1 cổng IsGameLogicStarted mỗi block"
 
+    # vm51/vm52 = reflection re-install hook (loader đã cài rồi — chạy lại chỉ
+    # có nguy cơ throw → field 27 latch = ESP fleet chết vĩnh viễn). NOP 2 Call.
+    vm51_dst, vm52_dst = vmap[51], vmap[52]
+    nopd = 0
+    for k in range(len(ins8) // 2):
+        if ins8[2 * k] == OP_CALL:
+            tgt = ins8[2 * k + 1] & 0xFFFF
+            if tgt in (vm51_dst, vm52_dst):
+                ins8[2 * k] = 103
+                ins8[2 * k + 1] = 0
+                nopd += 1
+    print(f"   NOP vm51/vm52 reflection re-install trong vm8: x{nopd}")
+    assert nopd == 2, f"phải NOP đúng 2 Call vm51/vm52, thấy {nopd}"
+
     # ---- đăng ký 5 hook KHÔNG trùng của module (vm1583 do vm24 chiếm) ----
     # vm10 get_frameSynchr (tick hub 10Hz, tự trả _frameSynchr như getter gốc),
     # vm84 get_deltaTime (trampoline chuẩn), vm1800/1802/1803 (vỏ replay
