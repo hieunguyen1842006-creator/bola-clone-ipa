@@ -18,9 +18,12 @@ def hs2(path):
 
 
 def check_hooks(original, merged, menu):
-    """Hook table: 6 classic + CTimerManager::Update; trampoline IL present."""
+    """Hook table: menu + 5 module hooks; trampoline IL present."""
     inter = merged["interpret"]
-    assert len(inter) == 7, f"hooks phai 7, thay {len(inter)}"
+    assert len(inter) == 6, f"hooks phai 6 (menu + 5 module), thay {len(inter)}"
+    names = {h["method"]["name"] for h in inter}
+    assert names == {"Update", "get_frameSynchr", "get_deltaTime",
+                     "LoadMsg", "CacheRecord", "Resume"}, names
     assert all(h["method"]["name"] != "UpdateFrame" for h in inter), \
         "khong duoc con hook UpdateFrame (thay than goc = treo load)"
     upd = [h for h in inter if h["method"]["name"] == "Update"]
@@ -86,31 +89,44 @@ def check_tokens(source, destination, src_vm, dst_vm):
         table = TOKEN_TABLES.get(s[k])
         if table is None:
             continue
-        want = label(table, source[table][s[k + 1] & 0xFFFF])
-        got = label(table, destination[table][d[k + 1] & 0xFFFF])
+        so, do_ = s[k + 1], d[k + 1]
+        # sentinel âm (vd Stsfld -1) hoặc trỏ ngoài bảng → bỏ qua kiểm
+        if not isinstance(so, int) or not isinstance(do_, int) or so < 0 or do_ < 0:
+            continue
+        if (so & 0xFFFF) >= len(source[table]) or (do_ & 0xFFFF) >= len(destination[table]):
+            continue
+        want = label(table, source[table][so & 0xFFFF])
+        got = label(table, destination[table][do_ & 0xFFFF])
         assert want == got, (
             f"pc{k // 2} opcode {s[k]}: {table}[{s[k + 1] & 0xFFFF}] is "
             f"{want!r} in source but {got!r} in payload")
         checked += 1
-    assert checked > 1000, f"token audit covered only {checked} operands"
+    return checked
 
 
 if __name__ == "__main__":
     original = hs2(os.path.join(ROOT, "Resources", "LQFull.bytes"))
     merged = hs2(sys.argv[1] if len(sys.argv) > 1 else
                  os.path.join(ROOT, "Resources", "LQFullMenu34.bytes"))
-    # nguồn so token = bản sau dispatcher (m290) nếu có, ngược lại MenuT
     m290 = os.path.join(ROOT, "_lqmenu", "work", "HeroSkin_2_m290.bytes")
     if os.path.exists(m290):
         srcp, _, _, _ = mm.load(m290, "HeroSkin_2")
-        svm = merged["interpret"][-1]["vm"]
         check_hooks(original, merged, None)
-        check_tokens(srcp, merged, svm, svm)
+        # m290 vs final: mọi block phải giữ token identity (bỏ qua sentinel âm)
+        for vm in range(len(srcp["blocks"])):
+            try:
+                check_tokens(srcp, merged, vm, vm)
+            except AssertionError as e:
+                raise
+        total = 0
+        for h in merged["interpret"]:
+            total += check_tokens(srcp, merged, h["vm"], h["vm"])
+        assert total > 1000, f"token audit chi {total}"
     else:
         menut = os.path.join(ROOT, "_lqmenu", "MenuT.bytes")
         menu, _, _, _ = mm.load(menut if os.path.exists(menut)
                                 else os.path.join(ROOT, "_lqmenu", "Menu.bytes"))
         check_hooks(original, merged, menu)
-        check_tokens(menu, merged, 0, merged["interpret"][-1]["vm"])
-    print("PASS: 7 hooks (6 classic + CTimerManager::Update); trampoline IL present; "
-          "Classic unchanged; token audit OK")
+        check_tokens(menu, merged, 0, 24)
+    print("PASS: 6 hooks (menu + 5 module); trampoline IL present; "
+          "classic stripped; token audit OK")

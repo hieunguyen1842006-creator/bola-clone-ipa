@@ -134,7 +134,9 @@ def run(mode, calls=21):
     _, _, body, _ = mm.resd_decrypt(ent["HeroSkin_2.bytes"], "HeroSkin_2")
     patch = parse_patch(body)
     # hook cuối = interpret cuối; parser của họ đọc fix registry cuối file
-    hook_method = patch["fixes"][-1]["method_id"]
+    # hook cần chạy = CTimerManager::Update (không phải fixes[-1] — giờ là Resume)
+    hook_method = next(f["method_id"] for f in patch["fixes"]
+                       if "CTimerManager" in f["desc"])
     native = MenuNative(mode)
     ar = arities(patch)
     this = Obj()

@@ -28,6 +28,16 @@ OP_SWITCH = 149
 
 def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     dst, dtag, denc, dres = mm.load(hs2_menu_path, "HeroSkin_2")
+    # MENU pack = BẢN MỚI THUẦN: bỏ 6 hook classic (vm22 đọc nvh_aov.txt +
+    # vm3 vẽ ESP quái classic là lý do user còn thấy ESP cũ).
+    CLASSIC = {"LoadMsg", "CacheRecord", "UpdateLogic", "GetActorSkinID",
+               "get_frameSynchr", "IsAtMyTeam"}
+    kept = [h for h in dst["interpret"]
+            if h["method"]["name"] not in CLASSIC]
+    dropped = len(dst["interpret"]) - len(kept)
+    dst["interpret"] = kept
+    assert len(dst["interpret"]) == 1, "menu hook phải còn lại"
+    print(f"   strip classic hooks: -{dropped}, còn {len(dst['interpret'])}")
     blob = open(module_path, "rb").read()
     src = mm.lqmb_parse(blob)
 
@@ -66,6 +76,46 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     for i in range(len(src["fields"])):
         rp.field_(src, i)
 
+    # ---- đăng ký 5 hook KHÔNG trùng của module (vm1583 do vm24 chiếm) ----
+    # vm10 get_frameSynchr (tick hub 10Hz, tự trả _frameSynchr như getter gốc),
+    # vm84 get_deltaTime (trampoline chuẩn), vm1800/1802/1803 (vỏ replay
+    # GIỮ logic gốc — không thay hành vi game).
+    MOD_SKIP = {"Update"}   # CTimerManager::Update — vm24 đã chiếm
+    for h in src["interpret"]:
+        m = h["method"]
+        if m["name"] in MOD_SKIP:
+            continue
+        dt = rp.type_(src, m["declType"])
+        ps = [dict(q, id=(rp.type_(src, q["id"]) if not q["isName"] else q["id"]))
+              for q in m["params"]]
+        ta = [rp.type_(src, x) for x in m["typeArgs"]]
+        mi = -1
+        for j, cm in enumerate(dst["methods"]):
+            if (cm["declType"] == dt and cm["name"] == m["name"]
+                    and cm["isGeneric"] == m["isGeneric"]
+                    and cm["typeArgs"] == ta
+                    and [q["id"] for q in cm["params"]] == [q["id"] for q in ps]
+                    and [q["isName"] for q in cm["params"]] == [q["isName"] for q in ps]):
+                mi = j
+                break
+        if mi < 0:
+            dst["methods"].append({
+                "isGeneric": m["isGeneric"], "declType": dt, "name": m["name"],
+                "typeArgs": ta, "params": ps,
+            })
+            mi = len(dst["methods"]) - 1
+        rec = dst["methods"][mi]
+        dst["interpret"].append({
+            "method": {
+                "isGeneric": rec["isGeneric"], "declType": rec["declType"],
+                "name": rec["name"], "typeArgs": list(rec["typeArgs"]),
+                "params": [dict(q) for q in rec["params"]],
+            },
+            "vm": vmap[h["vm"]],
+        })
+        print(f"   + module hook {dst['types'][rec['declType']].split(',')[0]}"
+              f"::{rec['name']} -> vm{vmap[h['vm']]}")
+
     # ---- dispatcher: chèn Ldarg0 + Call vm_tick vào vm24 (menu block) ----
     tick_src = None
     for h in src["interpret"]:
@@ -76,7 +126,14 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     assert tick_src is not None, "module290 thiếu hook CTimerManager::Update"
     tick_dst = vmap[tick_src]
 
-    menu_vm = dst["interpret"][-1]["vm"]
+    # menu block = hook CTimerManager::Update (interpret[-1] giờ là module hook)
+    menu_vm = None
+    for h in dst["interpret"]:
+        if (h["method"]["name"] == "Update"
+                and dst["types"][h["method"]["declType"]].split(",")[0] == "CTimerManager"):
+            menu_vm = h["vm"]
+            break
+    assert menu_vm is not None, "không tìm thấy menu hook CTimerManager::Update"
     ins = dst["blocks"][menu_vm]["instrs"]
     n = len(ins) // 2
     rets = [k for k in range(n) if ins[2 * k] == OP_RET]
@@ -128,7 +185,7 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     back = mm.lqmb_parse(body)
     assert mm.lqmb_serialize(back) == body, "roundtrip loi"
     assert back["nextAlloc"] == len(back["blocks"])
-    assert len(back["interpret"]) == 7, f"hooks phải 7, thấy {len(back['interpret'])}"
+    assert len(back["interpret"]) == 6, f"hooks phải 6 (menu + 5 module), thấy {len(back['interpret'])}"
     i2 = back["blocks"][menu_vm]["instrs"]
     assert i2[2 * insert_pc:2 * insert_pc + len(disp)] == disp
     assert i2[2 * (insert_pc + width)] == OP_RET
