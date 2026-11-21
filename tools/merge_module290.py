@@ -99,6 +99,7 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
 
     auth_dst = rp.field_(src, 2075)     # auth bool (writers: vm1884/vm1902/1792/1798)
     wants_dst = rp.field_(src, 2250)    # keyui_wants (writers: vm1790=0/vm1791=1)
+    vm77_dst = vmap[77]                 # module boot + tick-hub caller (vm61)
 
     getint = None
     for j, m in enumerate(dst["methods"]):
@@ -116,17 +117,22 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     assert not any(ins10[2 * k] == OP_SWITCH for k in range(n10)), "vm10 có Switch"
     # splice tại pc1 (giữ StackSpace pc0); branch operand TƯƠNG ĐỐI — site lẫn
     # target cùng dịch nên KHÔNG đổi (bài học tramp v1.9); handler +W (tuyệt đối)
-    sp = [164, 0,                # Ldarg 0 (this = LFramework)
-          167, auth_dst,         # Ldfld auth
-          127, 5,                # Brtrue -> skip (đã auth, đừng ép wants)
-          39, menu_on_str,       # Ldstr "nvh.m290.on"
-          143, 0,                # Ldc_I4 0
+    # I0 Ldstr  I1 Ldc  I2 GetInt  I3 Brfalse->END
+    # I4 Ldarg  I5 Call vm77 (boot + tick hub vm61, dedupe frameCount sẵn trong vm77)
+    # I6 Ldarg  I7 Ldfld auth  I8 Brtrue->skipW  I9 Ldarg  I10 Ldc1  I11 Stfld wants
+    sp = [39, menu_on_str,
+          143, 0,
           122, (2 << 16) | getint,
-          134, 1,                # Brfalse -> skip (switch OFF)
-          164, 0,                # Ldarg 0
-          143, 1,                # Ldc_I4 1
+          134, 9,                # Brfalse -> END (switch OFF: bỏ hết)
+          164, 0,
+          45, (1 << 16) | vm77_dst,   # Call vm77 mỗi frame (dedupe bên trong)
+          164, 0,
+          167, auth_dst,
+          127, 4,                # Brtrue -> skipW (đã auth: đừng ép wants)
+          164, 0,
+          143, 1,
           75, wants_dst]         # Stfld keyui_wants = 1
-    W = len(sp) // 2             # 10
+    W = len(sp) // 2             # 11
     BRSET = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
     for h in dst["blocks"][vm10_dst]["handlers"]:
         for j in (2, 3, 4, 5):
@@ -167,7 +173,18 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
                 ins8[2 * k + 1] = 0
                 nopd += 1
     print(f"   NOP vm51/vm52 reflection re-install trong vm8: x{nopd}")
-    assert nopd == 2, f"phải NOP đúng 2 Call vm51/vm52, thấy {nopd}"
+    assert nopd == 2, f"phải NOP đúng 2 Call vm51/vm52 trong vm8, thấy {nopd}"
+    vm82_dst = vmap[82]
+    ins82 = dst["blocks"][vm82_dst]["instrs"]
+    nopd2 = 0
+    for k in range(len(ins82) // 2):
+        if ins82[2 * k] == OP_CALL:
+            tgt = ins82[2 * k + 1] & 0xFFFF
+            if tgt in (vm51_dst, vm52_dst):
+                ins82[2 * k] = 103
+                ins82[2 * k + 1] = 0
+                nopd2 += 1
+    print(f"   NOP vm51/vm52 reflection re-install trong vm82: x{nopd2}")
 
     # ---- đăng ký 5 hook KHÔNG trùng của module (vm1583 do vm24 chiếm) ----
     # vm10 get_frameSynchr (tick hub 10Hz, tự trả _frameSynchr như getter gốc),
