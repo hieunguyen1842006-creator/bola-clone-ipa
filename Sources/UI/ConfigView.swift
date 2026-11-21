@@ -428,20 +428,30 @@ public struct ConfigView: View {
     private var injectArea: some View {
         VStack(spacing: 8) {
             Button {
-                if model.patchInstalled { model.removePatch() } else { model.inject() }
+                model.inject()
             } label: {
                 HStack(spacing: 10) {
                     if model.busy {
-                        ProgressView().tint(model.patchInstalled ? .white : .black)
+                        ProgressView().tint(.black)
                     }
-                    Text(model.busy
-                         ? "Đang xử lý…"
-                         : (model.patchInstalled ? "UN INJECT" : "INJECT"))
+                    Text(model.busy ? "Đang xử lý…" : "INJECT")
                 }
             }
             .buttonStyle(InjectButtonStyle(enabled: !model.busy && gate.isAuthorized,
-                                           danger: model.patchInstalled))
+                                           danger: false))
             .disabled(model.busy)
+
+            if model.patchInstalled {
+                Button { model.removePatch() } label: {
+                    Text("UN INJECT — gỡ patch về bản gốc")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Theme.warn)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(CardButtonStyle())
+                .disabled(model.busy)
+            }
 
             if !model.game.isLienQuan {
                 Button { model.writeConfig() } label: {
