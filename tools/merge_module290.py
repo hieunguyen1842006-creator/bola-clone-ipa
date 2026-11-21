@@ -76,6 +76,85 @@ def merge(hs2_menu_path: str, module_path: str, out_path: str) -> None:
     for i in range(len(src["fields"])):
         rp.field_(src, i)
 
+    # ---- tái hiện luồng gốc: phá deadlock key-UI của module ----
+    # Thiết kế của module: nút KEY chỉ xuất hiện khi keyui_wants==1, mà wants
+    # chỉ được bật bởi chính nút KEY (deadlock trên máy mới). Stage-0 gốc phá
+    # deadlock bằng grant GameObject ký RSA. Ở đây: khi pref nvh.m290.on = 1
+    # và CHƯA auth (field 2075 = false), set keyui_wants (field 2250) = 1 mỗi
+    # tick → module TỰ fetch schema + dựng BẢNG LOGIN KEY của chính nó; user
+    # nhập key trong game → submit → server verify → auth=true → toàn bộ
+    # menu + ESP mới của module mở khoá đúng như bản gốc.
+    # Đồng thời NOP 2 cổng IsGameLogicStarted (vm10 + vm8) để tick + dựng
+    # canvas chạy ngay ở LOBBY — bảng login hiện như bản gốc, ESP vẫn gate
+    # battle riêng (mainBattleLogic null ở lobby → an toàn).
+    MENU_ON = "nvh.m290.on"
+    menu_on_str = None
+    for j, t in enumerate(dst["strings"]):
+        if t == MENU_ON:
+            menu_on_str = j
+            break
+    if menu_on_str is None:
+        dst["strings"].append(MENU_ON)
+        menu_on_str = len(dst["strings"]) - 1
+
+    auth_dst = rp.field_(src, 2075)     # auth bool (writers: vm1884/vm1902/1792/1798)
+    wants_dst = rp.field_(src, 2250)    # keyui_wants (writers: vm1790=0/vm1791=1)
+
+    getint = None
+    for j, m in enumerate(dst["methods"]):
+        if (m["name"] == "GetInt"
+                and dst["types"][m["declType"]].split(",")[0] == "UnityEngine.PlayerPrefs"
+                and len(m["params"]) == 2):
+            getint = j
+            break
+    assert getint is not None, "thiếu PlayerPrefs::GetInt(argc2) trong dst"
+
+    # vm10 dst = hook get_frameSynchr của module
+    vm10_dst = vmap[10]
+    ins10 = dst["blocks"][vm10_dst]["instrs"]
+    n10 = len(ins10) // 2
+    assert not any(ins10[2 * k] == OP_SWITCH for k in range(n10)), "vm10 có Switch"
+    # splice tại pc1 (giữ StackSpace pc0); branch operand TƯƠNG ĐỐI — site lẫn
+    # target cùng dịch nên KHÔNG đổi (bài học tramp v1.9); handler +W (tuyệt đối)
+    sp = [164, 0,                # Ldarg 0 (this = LFramework)
+          167, auth_dst,         # Ldfld auth
+          127, 5,                # Brtrue -> skip (đã auth, đừng ép wants)
+          39, menu_on_str,       # Ldstr "nvh.m290.on"
+          143, 0,                # Ldc_I4 0
+          122, (2 << 16) | getint,
+          134, 1,                # Brfalse -> skip (switch OFF)
+          164, 0,                # Ldarg 0
+          143, 1,                # Ldc_I4 1
+          75, wants_dst]         # Stfld keyui_wants = 1
+    W = len(sp) // 2             # 10
+    BRSET = {93, 134, 127, 110, 125, 11, 17, 47, 43, 33, 30, 176, 111, 153}
+    for h in dst["blocks"][vm10_dst]["handlers"]:
+        for j in (2, 3, 4, 5):
+            if h[j] >= 1:
+                h[j] += W
+    ins10[2 * 1:2 * 1] = sp
+    print(f"   key-ui bootstrap: vm{vm10_dst} += wants=1 gate(pref/auth), +{W} ins")
+
+    # NOP cổng IsGameLogicStarted trong vm10 (CallExtern + Brfalse liền nhau)
+    def nop_gate(block_idx, blk_ins, blk_n):
+        hit = 0
+        for k in range(blk_n - 1):
+            if blk_ins[2 * k] == 122 and blk_ins[2 * k + 2] == 134:
+                mi = blk_ins[2 * k + 1] & 0xFFFF
+                if dst["methods"][mi]["name"] == "get_IsGameLogicStarted":
+                    blk_ins[2 * k] = 103
+                    blk_ins[2 * k + 1] = 0
+                    blk_ins[2 * k + 2] = 103
+                    blk_ins[2 * k + 3] = 0
+                    hit += 1
+        return hit
+    g1 = nop_gate(vm10_dst, ins10, len(ins10) // 2)
+    vm8_dst = vmap[8]
+    ins8 = dst["blocks"][vm8_dst]["instrs"]
+    g2 = nop_gate(vm8_dst, ins8, len(ins8) // 2)
+    print(f"   NOP IsGameLogicStarted gates: vm{vm10_dst} x{g1}, vm{vm8_dst} x{g2}")
+    assert g1 == 1 and g2 == 1, "không tìm thấy đúng 1 cổng IsGameLogicStarted mỗi block"
+
     # ---- đăng ký 5 hook KHÔNG trùng của module (vm1583 do vm24 chiếm) ----
     # vm10 get_frameSynchr (tick hub 10Hz, tự trả _frameSynchr như getter gốc),
     # vm84 get_deltaTime (trampoline chuẩn), vm1800/1802/1803 (vỏ replay
